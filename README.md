@@ -234,16 +234,40 @@ python tools/token_budget.py status
 python tools/orchestrator.py full
 ```
 
+## 测试覆盖
+
+| 测试文件 | 测试数量 | 状态 |
+|---------|---------|------|
+| test_factor_generator.py | 22 | 通过 |
+| test_trajectory_analyzer.py | 11 | 通过 |
+| test_report_parser.py | 16 | 通过 |
+| test_multi_debater.py | 22 | 通过 |
+| test_rl_interface.py | 15 | 通过 |
+| test_full_pipeline.py（集成） | 22 | 通过 |
+| test_performance.py（基准） | 8 | 通过 |
+| **总计** | **116** | **全部通过** |
+
 ## 文档
 
-- [架构设计](docs/ARCHITECTURE.md) - 详细的架构设计文档
-- [运维文档](docs/OPERATIONS.md) - 部署、监控、故障排查
+- [论文分析报告](docs/paper_analysis_improvements.md) - FactorEngine/FinCon/GIFT 分析
+- [实施计划](docs/implementation_plan.md) - Phase 1-6 详细计划
+- [代码规范](docs/CODE_STYLE.md) - 编码行为准则
+
+## 技术演进
+
+基于三篇论文的核心思想：
+
+| 论文 | 核心思想 | 对应模块 |
+|-----|---------|---------|
+| FactorEngine (2603.16365) | 因子即代码、知识注入 | Phase 1/3 |
+| FinCon (2407.06567) | 概念性语言反馈、多角色协作 | Phase 4 |
+| GIFT (2606.08450) | LLM 引导的 RL 接口设计 | Phase 5 |
 
 ## 与 v1 Skill 的关系
 
-- **共享模块**：`scripts/trend_scanner/` 是核心计算包，v1 和 v2 共用
+- **共享模块**：`scripts/trend_scanner/` 是核心计算包，v1 和 v4 共用
 - **v1 保留**：原 Skill 继续可用，作为回退方案
-- **v2 增量**：Agent 层是新增的调度层，不影响 v1 代码
+- **v4 增量**：新增动态因子/轨迹分析/研报注入/多角色/RL 接口五个模块
 
 ## 许可证
 
