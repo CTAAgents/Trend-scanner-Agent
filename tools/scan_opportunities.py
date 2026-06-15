@@ -54,6 +54,10 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any]) -> Opti
         engine = IndicatorEngine(df)
         engine.compute_all()
         
+        # 计算复合趋势强度（compute_all 不包含此步骤）
+        composite = engine.get_trend_strength_composite()
+        engine.df['trend_strength_composite'] = composite
+        
         # 获取最新一行数据
         latest = engine.df.iloc[-1]
         
