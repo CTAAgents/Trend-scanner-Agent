@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "description": "趋势跟踪 Agent 配置文件（用户可通过对话动态修改）",
+
+  "scanner": {
+    "enabled": true,
+    "symbols": [
+      "SHFE.rb", "SHFE.hc", "SHFE.ru", "SHFE.ni", "SHFE.cu",
+      "DCE.jm", "DCE.j", "DCE.i", "DCE.p", "DCE.y", "DCE.cs",
+      "CZCE.CF", "CZCE.SR", "CZCE.TA", "CZCE.MA",
+      "INE.sc", "INE.lu"
+    ],
+    "schedule": ["09:15", "09:30", "10:30", "13:30", "14:30", "15:15"],
+    "signal_filter": {
+      "er_min": 0.6,
+      "tsi_min": 20,
+      "tsi_max": -20,
+      "trend_strength_min": 0.5,
+      "r2_min": 0.4
+    },
+    "output_path": "data/latest_scan.json"
+  },
+
+  "monitor": {
+    "enabled": true,
+    "interval_minutes": 30,
+    "data_source": "data/positions.json",
+    "alert_thresholds": {
+      "LOW": {
+        "trend_strength_drop": 0.15
+      },
+      "MEDIUM": {
+        "trend_strength_drop": 0.25,
+        "tsi_divergence": true
+      },
+      "HIGH": {
+        "trend_strength_drop": 0.35,
+        "er_below": 0.3
+      }
+    },
+    "output_path": "data/latest_monitor.json"
+  },
+
+  "reasoner": {
+    "llm_type": "workbuddy_agent",
+    "debate_trigger_confidence": 0.7,
+    "max_tokens_per_day": 500000
+  },
+
+  "debater": {
+    "enabled": true,
+    "trigger_conditions": {
+      "confidence_below": 0.7,
+      "position_value_above": 50000
+    }
+  },
+
+  "evolver": {
+    "enabled": true,
+    "auto_trigger": {
+      "consecutive_losses": 3,
+      "cumulative_loss_pct": 10,
+      "trade_count_interval": 20
+    }
+  },
+
+  "token_budget": {
+    "daily_limit": 850000,
+    "warn_at_pct": 80,
+    "stop_at_pct": 100
+  },
+
+  "data_retention": {
+    "scan_history_days": 30,
+    "brief_history_days": 90,
+    "log_days": 7
+  }
+}

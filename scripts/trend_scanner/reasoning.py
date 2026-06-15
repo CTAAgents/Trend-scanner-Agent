@@ -1,0 +1,938 @@
+"""
+推理引擎 —— 系统的大脑
+
+核心理念：推理是一切的上游，规则只是推理的临时产物。
+所有约束（止损、仓位、入场条件）均由推理层根据当前市场状态
+和历史经验实时推导，而非事先写死。
+
+默认使用 WorkBuddy Agent 调用，后接自定义 LLM。
+
+v3.1 增强：机制门思想
+- 引入机制权重，根据当前市场机制动态调整历史经验权重
+- 同机制经验权重更高，异机制经验权重更低
+"""
+
+import json
+import time
+from typing import Optional, List, Dict
+from abc import ABC, abstractmethod
+
+from .models import (
+    MarketContext, Experience, ExperienceMatch,
+    Route, Constraint, MarketAssessment, Uncertainty,
+)
+
+
+# ──────────────────────────────────────────────
+# LLM Provider 抽象
+# ──────────────────────────────────────────────
+
+class LLMProvider(ABC):
+    """LLM 提供者抽象基类"""
+
+    @abstractmethod
+    def generate(self, system_prompt: str, user_prompt: str) -> str:
+        """
+        调用 LLM 生成响应
+
+        参数:
+            system_prompt: 系统提示词
+            user_prompt: 用户提示词
+
+        返回:
+            LLM 的文本响应
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """提供者名称"""
+        pass
+
+
+class WorkBuddyAgentProvider(LLMProvider):
+    """
+    WorkBuddy Agent 提供者
+
+    通过 WorkBuddy 的 Agent 系统调用 LLM。
+    这是默认的推理提供者。
+    """
+
+    def __init__(self, model: str = "default"):
+        self.model = model
+
+    @property
+    def name(self) -> str:
+        return f"WorkBuddy Agent ({self.model})"
+
+    def generate(self, system_prompt: str, user_prompt: str) -> str:
+        """
+        通过 WorkBuddy Agent 调用 LLM
+
+        注意：这个方法在实际运行时会被 WorkBuddy 的 Agent 系统接管。
+        在独立运行时，它会尝试调用本地 LLM 或返回模拟响应。
+        """
+        # 在 WorkBuddy 环境中，这个调用会被 Agent 系统处理
+        # 这里提供一个 fallback 实现
+        try:
+            return self._call_via_agent(system_prompt, user_prompt)
+        except Exception as e:
+            return self._fallback_response(system_prompt, user_prompt)
+
+    def _call_via_agent(self, system_prompt: str, user_prompt: str) -> str:
+        """
+        通过 WorkBuddy Agent 调用
+
+        在 WorkBuddy 环境中，这个方法会被 Agent 系统接管。
+        """
+        # 这里应该调用 WorkBuddy 的 Agent API
+        # 暂时使用简单的实现
+        raise NotImplementedError("需要在 WorkBuddy 环境中运行")
+
+    def _fallback_response(self, system_prompt: str, user_prompt: str) -> str:
+        """
+        Fallback 响应（当 LLM 不可用时）
+
+        使用规则退化，生成基本的路线建议。
+        """
+        # 解析用户提示中的关键信息
+        lines = user_prompt.split('\n')
+
+        # 提取趋势阶段信息
+        trend_phase = "CONSOLIDATING"  # 默认
+        for line in lines:
+            if "趋势发展" in line or "趋势成熟" in line:
+                trend_phase = "DEVELOPING"
+            elif "趋势萌芽" in line:
+                trend_phase = "EMERGING"
+            elif "趋势衰竭" in line:
+                trend_phase = "FATIGUING"
+            elif "趋势反转" in line:
+                trend_phase = "REVERSING"
+            elif "横盘整理" in line or "震荡" in line:
+                trend_phase = "CONSOLIDATING"
+
+        # 生成基本响应
+        return json.dumps({
+            "routes": [
+                {
+                    "route_id": "A",
+                    "name": "观望等待",
+                    "action": "暂不操作，等待更明确的信号",
+                    "confidence": 0.5,
+                    "reasoning": "LLM 不可用，使用规则退化建议",
+                    "constraints": [],
+                    "risks": ["无法进行深度推理，建议仅供参考"],
+                }
+            ],
+            "recommended_route": "A",
+            "warnings": ["当前使用规则退化模式，建议质量有限"],
+        }, ensure_ascii=False)
+
+
+class CustomLLMProvider(LLMProvider):
+    """
+    自定义 LLM 提供者
+
+    支持接入自定义的 LLM API（如 OpenAI、DeepSeek 等）。
+    """
+
+    def __init__(self, api_url: str, api_key: str, model: str = "default"):
+        self.api_url = api_url
+        self.api_key = api_key
+        self.model = model
+
+    @property
+    def name(self) -> str:
+        return f"Custom LLM ({self.model})"
+
+    def generate(self, system_prompt: str, user_prompt: str) -> str:
+        """调用自定义 LLM API"""
+        import requests
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "temperature": 0.3,
+            "max_tokens": 2000,
+        }
+
+        try:
+            response = requests.post(self.api_url, headers=headers, json=data, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+        except Exception as e:
+            return json.dumps({
+                "routes": [{"route_id": "A", "name": "错误", "action": f"LLM 调用失败: {e}", "confidence": 0}],
+                "warnings": [f"LLM 调用失败: {e}"],
+            }, ensure_ascii=False)
+
+
+# ──────────────────────────────────────────────
+# 推理引擎
+# ──────────────────────────────────────────────
+
+class ReasoningEngine:
+    """
+    推理引擎 —— 系统的大脑
+
+    职责：
+    1. 接收市场上下文和相似经验
+    2. 构建推理提示词
+    3. 调用 LLM 生成路线建议
+    4. 解析和验证 LLM 输出
+    5. 生成动态约束
+    """
+
+    def __init__(self, llm_provider: Optional[LLMProvider] = None):
+        self.llm_provider = llm_provider or WorkBuddyAgentProvider()
+
+    def reason(
+        self,
+        context: MarketContext,
+        similar_experiences: List[ExperienceMatch],
+        experience_aggregation: dict,
+    ) -> dict:
+        """
+        执行推理
+
+        参数:
+            context: 当前市场上下文
+            similar_experiences: 相似经验列表
+            experience_aggregation: 经验聚合结果
+
+        返回:
+            推理结果（包含操作方案、约束、不确定性等）
+        """
+        start_time = time.time()
+
+        # 1. 生成基础预测（技术指标层）
+        base_prediction = self._generate_base_prediction(context)
+
+        # 2. 构建系统提示词
+        system_prompt = self._build_system_prompt()
+
+        # 3. 构建用户提示词
+        user_prompt = self._build_user_prompt(
+            context, similar_experiences, experience_aggregation,
+        )
+
+        # 4. 调用 LLM
+        try:
+            llm_response = self.llm_provider.generate(system_prompt, user_prompt)
+        except Exception as e:
+            llm_response = self._emergency_fallback(context)
+
+        # 5. 解析响应
+        try:
+            parsed = self._parse_response(llm_response)
+        except Exception as e:
+            parsed = self._emergency_fallback(context)
+
+        # 6. 添加元信息
+        parsed['generation_time_ms'] = int((time.time() - start_time) * 1000)
+        parsed['reasoning_model'] = self.llm_provider.name
+        parsed['experience_count'] = len(similar_experiences)
+
+        # 7. 记录修正轨迹（路径②：最后一公里）
+        parsed['base_prediction'] = base_prediction
+        parsed['llm_revision'] = self._extract_llm_revision(parsed)
+        parsed['revision_trace'] = self._build_revision_trace(
+            base_prediction, parsed
+        )
+
+        # 8. 记录分歧度和条件层级（可审计性）
+        parsed['divergence'] = self._calculate_divergence(parsed)
+        parsed['condition_levels'] = self._extract_condition_levels(parsed)
+
+        return parsed
+
+    def _calculate_divergence(self, parsed: dict) -> dict:
+        """
+        计算分歧度
+
+        分歧度衡量LLM输出中的不确定性：
+        1. 路线分歧：多个路线之间的方向差异
+        2. 置信度分歧：推荐路线的置信度
+        3. 警告分歧：警告数量
+
+        Returns:
+            分歧度字典
+        """
+        routes = parsed.get('routes', [])
+        recommended = parsed.get('recommended_route', '')
+        warnings = parsed.get('warnings', [])
+
+        # 1. 路线分歧
+        if len(routes) > 1:
+            # 提取所有路线的方向
+            directions = []
+            for route in routes:
+                action = route.get('action', '')
+                if '多' in action or 'LONG' in action.upper():
+                    directions.append(1)
+                elif '空' in action or 'SHORT' in action.upper():
+                    directions.append(-1)
+                else:
+                    directions.append(0)
+
+            # 计算方向分歧（标准差）
+            if directions:
+                import numpy as np
+                direction_std = float(np.std(directions))
+            else:
+                direction_std = 0.0
+        else:
+            direction_std = 0.0
+
+        # 2. 置信度分歧
+        recommended_confidence = 0.5
+        for route in routes:
+            if route.get('route_id') == recommended:
+                recommended_confidence = route.get('confidence', 0.5)
+                break
+
+        # 3. 警告分歧
+        warning_count = len(warnings)
+
+        # 综合分歧度
+        divergence_score = (
+            direction_std * 0.5 +  # 方向分歧权重50%
+            (1 - recommended_confidence) * 0.3 +  # 置信度分歧权重30%
+            min(warning_count / 5, 1.0) * 0.2  # 警告分歧权重20%
+        )
+
+        return {
+            'score': round(divergence_score, 3),
+            'direction_std': round(direction_std, 3),
+            'recommended_confidence': round(recommended_confidence, 3),
+            'warning_count': warning_count,
+            'routes_count': len(routes),
+            'level': 'LOW' if divergence_score < 0.3 else 'MEDIUM' if divergence_score < 0.6 else 'HIGH',
+        }
+
+    def _extract_condition_levels(self, parsed: dict) -> dict:
+        """
+        提取条件层级
+
+        条件层级衡量反身性框架的条件：
+        1. 自我强化程度
+        2. 预期反映度
+        3. 反身性周期阶段
+        4. 反转风险
+
+        Returns:
+            条件层级字典
+        """
+        # 从LLM输出中提取反身性分析
+        # 由于LLM输出是JSON，我们需要从文本中提取
+        llm_response = parsed.get('llm_response', '')
+
+        # 默认条件层级
+        condition_levels = {
+            'self_reinforcing': 'UNKNOWN',  # 自我强化程度
+            'expectation_reflection': 'UNKNOWN',  # 预期反映度
+            'reflexivity_cycle': 'UNKNOWN',  # 反身性周期阶段
+            'reversal_risk': 'UNKNOWN',  # 反转风险
+            'overall': 'UNKNOWN',  # 整体条件层级
+        }
+
+        # 从路线推理中提取条件信息
+        routes = parsed.get('routes', [])
+        recommended = parsed.get('recommended_route', '')
+
+        for route in routes:
+            if route.get('route_id') == recommended:
+                reasoning = route.get('reasoning', '')
+
+                # 分析推理文本中的反身性关键词
+                reasoning_lower = reasoning.lower()
+
+                # 自我强化程度
+                if any(k in reasoning_lower for k in ['自我强化', 'self-reinforc', '加速', 'amplif']):
+                    condition_levels['self_reinforcing'] = 'HIGH'
+                elif any(k in reasoning_lower for k in ['减弱', '衰减', 'fade', 'weaken']):
+                    condition_levels['self_reinforcing'] = 'LOW'
+                else:
+                    condition_levels['self_reinforcing'] = 'MEDIUM'
+
+                # 预期反映度
+                if any(k in reasoning_lower for k in ['过度', 'overextend', '过热', 'overheat']):
+                    condition_levels['expectation_reflection'] = 'HIGH'
+                elif any(k in reasoning_lower for k in ['不足', 'insufficient', '低估', 'underestimate']):
+                    condition_levels['expectation_reflection'] = 'LOW'
+                else:
+                    condition_levels['expectation_reflection'] = 'MEDIUM'
+
+                # 反身性周期阶段
+                if any(k in reasoning_lower for k in ['早期', 'early', '初期', 'begin']):
+                    condition_levels['reflexivity_cycle'] = 'EARLY'
+                elif any(k in reasoning_lower for k in ['中期', 'middle', '加速', 'accelerat']):
+                    condition_levels['reflexivity_cycle'] = 'MIDDLE'
+                elif any(k in reasoning_lower for k in ['晚期', 'late', '末期', 'end']):
+                    condition_levels['reflexivity_cycle'] = 'LATE'
+                else:
+                    condition_levels['reflexivity_cycle'] = 'UNKNOWN'
+
+                # 反转风险
+                if any(k in reasoning_lower for k in ['反转', 'reversal', '崩盘', 'crash']):
+                    condition_levels['reversal_risk'] = 'HIGH'
+                elif any(k in reasoning_lower for k in ['稳定', 'stable', '持续', 'continu']):
+                    condition_levels['reversal_risk'] = 'LOW'
+                else:
+                    condition_levels['reversal_risk'] = 'MEDIUM'
+
+                break
+
+        # 整体条件层级
+        risk_levels = ['LOW', 'MEDIUM', 'HIGH', 'UNKNOWN']
+        risk_scores = {level: i for i, level in enumerate(risk_levels)}
+
+        # 计算整体风险分数
+        total_score = 0
+        count = 0
+        for key in ['self_reinforcing', 'expectation_reflection', 'reversal_risk']:
+            level = condition_levels[key]
+            if level in risk_scores:
+                total_score += risk_scores[level]
+                count += 1
+
+        if count > 0:
+            avg_score = total_score / count
+            if avg_score < 1.0:
+                condition_levels['overall'] = 'LOW'
+            elif avg_score < 2.0:
+                condition_levels['overall'] = 'MEDIUM'
+            else:
+                condition_levels['overall'] = 'HIGH'
+
+        return condition_levels
+
+    def _generate_base_prediction(self, context: MarketContext) -> dict:
+        """
+        生成基础预测（技术指标层）
+
+        基于市场上下文的技术指标，生成一个纯粹的"基础预测"。
+        这个预测不经过LLM推理，只基于规则和指标。
+
+        这是路径②中的"基础模型预测"，LLM在此之上做"最后一公里修正"。
+        """
+        # 从趋势阶段推导基础方向
+        phase = context.trend_phase.phase if hasattr(context, 'trend_phase') else 'UNKNOWN'
+        confidence = context.trend_phase.confidence if hasattr(context, 'trend_phase') else 0.5
+
+        # 基于阶段的基础信号
+        phase_signal_map = {
+            'CONSOLIDATING': {'direction': 0, 'signal': 'HOLD', 'strength': 'NEUTRAL'},
+            'EMERGING': {'direction': 0, 'signal': 'WATCH', 'strength': 'WEAK'},
+            'DEVELOPING': {'direction': 1, 'signal': 'BUY', 'strength': 'MEDIUM'},
+            'MATURE': {'direction': 1, 'signal': 'HOLD_LONG', 'strength': 'STRONG'},
+            'FATIGUING': {'direction': 0, 'signal': 'REDUCE', 'strength': 'WEAK'},
+            'REVERSING': {'direction': -1, 'signal': 'SELL', 'strength': 'MEDIUM'},
+        }
+
+        base = phase_signal_map.get(phase, {'direction': 0, 'signal': 'UNKNOWN', 'strength': 'NEUTRAL'})
+
+        # 添加上下文信息
+        base['trend_phase'] = phase
+        base['phase_confidence'] = confidence
+        base['current_price'] = context.current_price if hasattr(context, 'current_price') else 0
+
+        # 添加市场结构信息（如果有）
+        if hasattr(context, 'snapshot') and context.snapshot:
+            base['volatility'] = 'HIGH' if context.snapshot.high - context.snapshot.low > context.current_price * 0.02 else 'NORMAL'
+
+        return base
+
+    def _extract_llm_revision(self, parsed: dict) -> dict:
+        """
+        从LLM输出中提取修正信息
+
+        提取LLM对基础预测的修正内容。
+        """
+        revision = {
+            'routes_count': len(parsed.get('routes', [])),
+            'recommended_route': parsed.get('recommended_route', ''),
+            'warnings': parsed.get('warnings', []),
+            'has_recommendation': bool(parsed.get('recommended_route')),
+        }
+
+        # 提取推荐路线的详细信息
+        routes = parsed.get('routes', [])
+        if routes and parsed.get('recommended_route'):
+            for route in routes:
+                if route.get('route_id') == parsed['recommended_route']:
+                    revision['recommended_action'] = route.get('action', '')
+                    revision['recommended_confidence'] = route.get('confidence', 0)
+                    revision['recommended_reasoning'] = route.get('reasoning', '')
+                    break
+
+        return revision
+
+    def _build_revision_trace(self, base_prediction: dict, parsed: dict) -> dict:
+        """
+        构建修正轨迹
+
+        记录基础预测和LLM修正之间的差异，用于可审计性。
+        """
+        llm_revision = parsed.get('llm_revision', {})
+        recommended_action = llm_revision.get('recommended_action', '')
+
+        # 判断LLM是否修正了基础预测
+        base_signal = base_prediction.get('signal', 'UNKNOWN')
+        base_direction = base_prediction.get('direction', 0)
+
+        # 从LLM推荐动作推断方向
+        llm_direction = 0
+        if '多' in recommended_action or 'LONG' in recommended_action.upper():
+            llm_direction = 1
+        elif '空' in recommended_action or 'SHORT' in recommended_action.upper():
+            llm_direction = -1
+
+        # 计算修正幅度
+        revision_magnitude = abs(llm_direction - base_direction)
+
+        # 判断修正类型
+        if revision_magnitude == 0:
+            revision_type = 'CONFIRM'  # LLM确认基础预测
+        elif llm_direction == 0:
+            revision_type = 'SOFTEN'  # LLM降低信号强度
+        else:
+            revision_type = 'REVERSE'  # LLM反转信号
+
+        trace = {
+            'base_signal': base_signal,
+            'base_direction': base_direction,
+            'llm_direction': llm_direction,
+            'revision_type': revision_type,
+            'revision_magnitude': revision_magnitude,
+            'base_confidence': base_prediction.get('phase_confidence', 0.5),
+            'llm_confidence': llm_revision.get('recommended_confidence', 0),
+            'confidence_change': llm_revision.get('recommended_confidence', 0) - base_prediction.get('phase_confidence', 0.5),
+            'warnings_count': len(llm_revision.get('warnings', [])),
+        }
+
+        return trace
+
+    # ──────────────────────────────────────────
+    # 提示词构建
+    # ──────────────────────────────────────────
+
+    def _build_system_prompt(self) -> str:
+        """构建系统提示词"""
+        return """你是一位资深期货交易分析师。你的职责是提供态势研判、风险提示与操作建议，最终决策权在交易者手中。
+
+## 核心原则
+
+1. **推理优先**：所有建议都必须基于对当前市场状态的理解和推理，而非固定规则。
+2. **以人为本**：提供选项和代价，不替人做决定。
+3. **可解释性**：每个建议都必须附带推理依据。
+4. **不确定性诚实**：明确标注置信度和不确定性区间。
+
+## 输出格式
+
+请以 JSON 格式输出，包含以下字段：
+
+```json
+{
+    "routes": [
+        {
+            "route_id": "A",
+            "name": "路线名称（如：顺势做多）",
+            "action": "具体动作描述",
+            "confidence": 0.75,
+            "reasoning": "详细的推理过程",
+            "constraints": [
+                {
+                    "constraint_type": "POSITION_SIZE",
+                    "value": "建议仓位描述",
+                    "numeric_value": 0.05,
+                    "confidence": 0.7,
+                    "reasoning": "约束的推理依据",
+                    "historical_basis": "历史依据",
+                    "uncertainty_range": "不确定性区间"
+                }
+            ],
+            "risks": ["风险1", "风险2"],
+            "trigger_conditions": ["触发条件1"],
+            "opportunity_cost": "不选这条路的代价",
+            "historical_analog": "历史类比描述",
+            "historical_outcome": "历史结果"
+        }
+    ],
+    "recommended_route": "A",
+    "warnings": ["警告1"],
+    "reasoning_summary": "整体推理总结"
+}
+```
+
+## 重要提醒
+
+- 不要机械地读指标数字，要理解它们在当前市场环境下的含义
+- 考虑市场结构、动量状态、波动率的综合影响
+- 历史经验只是参考，不是预测——市场每次都不一样
+- 如果不确定性很高，诚实地说出来"""
+
+    def _build_user_prompt(
+        self,
+        context: MarketContext,
+        similar_experiences: List[ExperienceMatch],
+        experience_aggregation: dict,
+    ) -> str:
+        """
+        构建用户提示词
+
+        v3.1 增强：添加机制权重信息
+        """
+        parts = []
+
+        # 1. 市场上下文
+        parts.append("# 当前市场状态")
+        parts.append(context.to_prompt_text())
+        parts.append("")
+
+        # 2. 机制权重分析（v3.1 新增）
+        current_phase = context.trend_phase.phase if hasattr(context, 'trend_phase') else 'UNKNOWN'
+        phase_confidence = context.trend_phase.confidence if hasattr(context, 'trend_phase') else 0.5
+
+        parts.append("# 机制权重分析")
+        parts.append(f"当前市场机制：**{current_phase}**（置信度 {phase_confidence:.0%}）")
+        parts.append("")
+
+        # 统计同机制和异机制经验
+        if similar_experiences:
+            same_regime = [m for m in similar_experiences 
+                          if m.experience.trend_phase == current_phase]
+            cross_regime = [m for m in similar_experiences 
+                           if m.experience.trend_phase != current_phase]
+
+            parts.append(f"## 经验分布")
+            parts.append(f"- 同机制经验（{current_phase}）：{len(same_regime)} 条")
+            parts.append(f"- 异机制经验：{len(cross_regime)} 条")
+            parts.append("")
+
+            # 权重建议
+            if len(same_regime) >= 3:
+                parts.append("**建议**：同机制经验充足，优先参考同机制经验。")
+            elif len(same_regime) >= 1:
+                parts.append("**建议**：同机制经验有限，结合异机制经验综合判断。")
+            else:
+                parts.append("**建议**：无同机制经验，谨慎参考异机制经验，注意机制差异。")
+            parts.append("")
+
+        # 3. 相似历史经验
+        if similar_experiences:
+            parts.append("# 相似历史经验")
+            parts.append(f"共找到 {len(similar_experiences)} 条相似情境：")
+            parts.append("")
+
+            for i, match in enumerate(similar_experiences[:5], 1):
+                exp = match.experience
+                # 标记是否为同机制
+                regime_marker = "【同机制】" if exp.trend_phase == current_phase else "【异机制】"
+
+                parts.append(f"## 经验{i}（相似度{int(match.similarity * 100)}%）{regime_marker}")
+                parts.append(f"- 时间：{exp.timestamp}")
+                parts.append(f"- 趋势阶段：{exp.trend_phase}")
+                parts.append(f"- 动作：{exp.action_taken}")
+                parts.append(f"- 结果：收益{exp.pnl_pct:+.2f}%，持仓{exp.holding_days}天")
+                parts.append(f"- 最大回撤：{exp.max_drawdown_pct:.2f}%")
+                if exp.action_reasoning:
+                    parts.append(f"- 当时推理：{exp.action_reasoning}")
+                parts.append("")
+
+        # 4. 经验聚合统计
+        if experience_aggregation:
+            parts.append("# 经验聚合统计")
+            for action, stats in experience_aggregation.items():
+                parts.append(f"- {action}：{stats['count']}次，"
+                           f"平均收益{stats['avg_return']:+.2f}%，"
+                           f"胜率{int(stats['win_rate'] * 100)}%，"
+                           f"风险调整收益{stats['risk_adjusted_return']:+.2f}")
+            parts.append("")
+
+        # 5. 反身性分析框架（v3.2 新增）
+        parts.append("# 反身性分析框架")
+        parts.append("请考虑以下反身性（Reflexivity）问题，这是市场参与者的认知与市场价格之间的自我强化循环：")
+        parts.append("")
+        parts.append("## 自我强化循环")
+        parts.append("当前趋势是否在自我强化？")
+        parts.append("- 上升趋势：价格上涨 → 乐观情绪 → 更多买入 → 价格继续上涨")
+        parts.append("- 下降趋势：价格下跌 → 恐慌情绪 → 更多卖出 → 价格继续下跌")
+        parts.append("")
+        parts.append("## 预期反映度")
+        parts.append("市场参与者的预期是否已经过度反映在价格中？")
+        parts.append("- 如果预期已充分反映，趋势可能接近反转")
+        parts.append("- 如果预期尚未充分反映，趋势可能继续")
+        parts.append("")
+        parts.append("## 反身性周期阶段")
+        parts.append("当前处于反身性周期的哪个阶段？")
+        parts.append("- 早期：趋势刚刚开始自我强化，参与者认知尚未一致")
+        parts.append("- 中期：趋势正在加速自我强化，参与者认知趋于一致")
+        parts.append("- 晚期：趋势可能即将反转，参与者认知高度一致（过度乐观/悲观）")
+        parts.append("")
+        parts.append("## 反转风险")
+        parts.append("如果当前趋势反转，反身性循环会如何加速崩盘？")
+        parts.append("- 上升趋势反转：止损触发 → 强制平仓 → 价格加速下跌 → 更多止损")
+        parts.append("- 下降趋势反转：空头回补 → 价格反弹 → 更多空头回补 → 价格加速上涨")
+
+        # 6. 请求推理
+        parts.append("")
+        parts.append("# 请求")
+        parts.append("基于以上市场状态、历史经验和反身性分析，请给出2-3条操作方案。")
+        parts.append("每条方案都要有具体的约束建议（仓位、止损、入场条件），并附带推理依据。")
+        parts.append("如果有明确推荐，请说明理由。")
+        parts.append("")
+        parts.append("**特别注意**：")
+        parts.append("1. 请考虑机制权重，优先参考同机制的历史经验。")
+        parts.append("2. 请结合反身性分析，评估当前趋势的自我强化程度和反转风险。")
+
+        return "\n".join(parts)
+
+    # ──────────────────────────────────────────
+    # 响应解析
+    # ──────────────────────────────────────────
+
+    def _parse_response(self, response: str) -> dict:
+        """解析 LLM 响应"""
+        # 尝试提取 JSON
+        json_str = self._extract_json(response)
+
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError:
+            # 如果不是 JSON，尝试从文本中提取关键信息
+            data = self._extract_from_text(response)
+
+        # 验证和规范化
+        return self._validate_response(data)
+
+    def _extract_json(self, text: str) -> str:
+        """从文本中提取 JSON"""
+        # 尝试找到 JSON 块
+        import re
+
+        # 找 ```json ... ``` 块
+        json_match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
+        if json_match:
+            return json_match.group(1)
+
+        # 找 { ... } 块
+        brace_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if brace_match:
+            return brace_match.group(0)
+
+        return text
+
+    def _extract_from_text(self, text: str) -> dict:
+        """从纯文本中提取结构化信息（fallback）"""
+        return {
+            "routes": [
+                {
+                    "route_id": "A",
+                    "name": "基于文本分析",
+                    "action": "请参考推理文本",
+                    "confidence": 0.5,
+                    "reasoning": text[:500],
+                    "constraints": [],
+                    "risks": ["文本解析不完整"],
+                }
+            ],
+            "recommended_route": "A",
+            "warnings": ["LLM 响应格式不标准，已降级处理"],
+            "reasoning_summary": text[:200],
+        }
+
+    def _validate_response(self, data: dict) -> dict:
+        """验证和规范化响应"""
+        # 确保 routes 存在
+        if 'routes' not in data:
+            data['routes'] = []
+
+        # 确保每个 route 有必要的字段
+        for route in data['routes']:
+            if 'route_id' not in route:
+                route['route_id'] = 'A'
+            if 'name' not in route:
+                route['name'] = '未命名路线'
+            if 'action' not in route:
+                route['action'] = '无操作'
+            if 'confidence' not in route:
+                route['confidence'] = 0.5
+            if 'reasoning' not in route:
+                route['reasoning'] = '无推理'
+            if 'constraints' not in route:
+                route['constraints'] = []
+            if 'risks' not in route:
+                route['risks'] = []
+
+        # 确保 recommended_route 存在
+        if 'recommended_route' not in data and data['routes']:
+            data['recommended_route'] = data['routes'][0]['route_id']
+
+        # 确保 warnings 存在
+        if 'warnings' not in data:
+            data['warnings'] = []
+
+        return data
+
+    def _emergency_fallback(self, context: MarketContext) -> str:
+        """紧急 fallback（当 LLM 完全不可用时）"""
+        phase = context.trend_phase.phase
+
+        # 基于趋势阶段生成最基本的建议
+        if phase in ("DEVELOPING", "MATURE"):
+            routes = [
+                {
+                    "route_id": "A",
+                    "name": "顺势操作",
+                    "action": "跟随趋势方向操作",
+                    "confidence": 0.6,
+                    "reasoning": "市场处于明确趋势中，顺势操作风险收益比较好",
+                    "constraints": [
+                        {"constraint_type": "POSITION_SIZE", "value": "3-5%", "confidence": 0.5},
+                        {"constraint_type": "STOP_LOSS", "value": "2倍ATR", "confidence": 0.5},
+                    ],
+                    "risks": ["趋势可能接近尾声"],
+                },
+                {
+                    "route_id": "B",
+                    "name": "观望等待回调",
+                    "action": "等待回调后再入场",
+                    "confidence": 0.4,
+                    "reasoning": "等待更好的入场点",
+                    "constraints": [],
+                    "risks": ["可能错过趋势"],
+                },
+            ]
+        elif phase == "CONSOLIDATING":
+            routes = [
+                {
+                    "route_id": "A",
+                    "name": "观望等待",
+                    "action": "暂不操作，等待突破",
+                    "confidence": 0.7,
+                    "reasoning": "市场震荡整理，方向不明，观望是最佳选择",
+                    "constraints": [],
+                    "risks": ["可能错过突破行情"],
+                },
+            ]
+        else:
+            routes = [
+                {
+                    "route_id": "A",
+                    "name": "谨慎观望",
+                    "action": "降低仓位或观望",
+                    "confidence": 0.5,
+                    "reasoning": "市场状态不明朗，风险较高",
+                    "constraints": [
+                        {"constraint_type": "POSITION_SIZE", "value": "1-2%", "confidence": 0.4},
+                    ],
+                    "risks": ["市场可能出现剧烈波动"],
+                },
+            ]
+
+        return json.dumps({
+            "routes": routes,
+            "recommended_route": "A",
+            "warnings": ["紧急 fallback 模式，建议质量有限"],
+            "reasoning_summary": f"市场处于{phase}阶段，使用规则退化建议",
+        }, ensure_ascii=False)
+
+
+class ConstraintGenerator:
+    """
+    动态约束生成器
+
+    基于推理结果和经验数据，生成具体的约束建议。
+    约束不是固定规则，而是"基于当前状态和历史经验，建议这样做"。
+    """
+
+    def generate_from_route(
+        self,
+        route_data: dict,
+        context: MarketContext,
+        experience_aggregation: dict,
+    ) -> List[Constraint]:
+        """从路线数据生成约束"""
+        constraints = []
+
+        # 从 LLM 输出中提取约束
+        for c_data in route_data.get('constraints', []):
+            constraint = Constraint(
+                constraint_type=c_data.get('constraint_type', 'UNKNOWN'),
+                value=c_data.get('value', ''),
+                numeric_value=c_data.get('numeric_value', 0.0),
+                confidence=c_data.get('confidence', 0.5),
+                reasoning=c_data.get('reasoning', ''),
+                historical_basis=c_data.get('historical_basis', ''),
+                uncertainty_range=c_data.get('uncertainty_range', ''),
+            )
+            constraints.append(constraint)
+
+        # 如果 LLM 没有提供足够的约束，用经验数据补充
+        if not constraints:
+            constraints = self._generate_from_experience(
+                context, experience_aggregation
+            )
+
+        return constraints
+
+    def _generate_from_experience(
+        self,
+        context: MarketContext,
+        experience_aggregation: dict,
+    ) -> List[Constraint]:
+        """从经验数据生成约束"""
+        constraints = []
+
+        # 找到最佳动作
+        best_action = None
+        best_score = -float('inf')
+
+        for action, stats in experience_aggregation.items():
+            score = stats.get('risk_adjusted_return', 0) * stats.get('win_rate', 0)
+            if score > best_score:
+                best_score = score
+                best_action = action
+
+        if best_action and best_action in experience_aggregation:
+            stats = experience_aggregation[best_action]
+
+            # 仓位约束
+            if stats['win_rate'] > 0.5:
+                position_pct = min(5, max(1, int(stats['win_rate'] * 8)))
+                constraints.append(Constraint(
+                    constraint_type='POSITION_SIZE',
+                    value=f"{position_pct}%",
+                    numeric_value=position_pct / 100,
+                    confidence=stats['win_rate'],
+                    reasoning=f"历史胜率{int(stats['win_rate'] * 100)}%，风险调整收益{stats['risk_adjusted_return']:+.2f}",
+                    historical_basis=f"基于{stats['count']}次相似情境",
+                ))
+
+            # 止损约束
+            atr = context.snapshot.atr
+            if atr > 0:
+                stop_distance = atr * 2  # 默认 2 倍 ATR
+                stop_price = context.current_price - stop_distance if best_action == 'LONG' else context.current_price + stop_distance
+                constraints.append(Constraint(
+                    constraint_type='STOP_LOSS',
+                    value=f"{stop_price:.0f}（2倍ATR）",
+                    numeric_value=stop_price,
+                    confidence=0.6,
+                    reasoning=f"基于当前ATR({atr:.2f})的2倍设置止损",
+                    historical_basis=f"相似情境平均最大回撤{stats.get('avg_max_drawdown', 0):.2f}%",
+                ))
+
+        return constraints
