@@ -1,373 +1,426 @@
+#!/usr/bin/env python3
 """
-Agent 健康检查和错误处理模块
+系统健康检查脚本
 
-功能：
-- Agent 健康检查（检测崩溃、超时）
-- TqSdk 连接失败自动降级到通达信 MCP
-- 脚本执行超时重试机制
-- 错误统计和报告
+检查项目：
+1. 进程状态
+2. 数据库状态
+3. 数据源状态
+4. 磁盘空间
+5. 内存使用
+6. 最近错误
 
 使用方式：
-    from health_check import HealthChecker
-    
-    checker = HealthChecker()
-    
-    # 检查数据源健康状态
-    source_status = checker.check_data_source()
-    
-    # 执行带重试的脚本
-    result = checker.run_with_retry("python tools/scan_opportunities.py", max_retries=2)
-    
-    # 获取健康报告
-    report = checker.get_health_report()
+    python tools/health_check.py
+    python tools/health_check.py --json  # JSON 格式输出
 """
 
-import json
 import os
 import sys
-import time
-import subprocess
+import json
+import psutil
+import sqlite3
+from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Dict, List, Any
 
-# 文件路径
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
-HEALTH_FILE = os.path.join(DATA_DIR, 'health_status.json')
-ERROR_LOG_FILE = os.path.join(DATA_DIR, 'error_log.json')
+# 添加模块路径
+sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
 
 
 class HealthChecker:
-    """Agent 健康检查器"""
+    """系统健康检查器"""
     
-    def __init__(self):
-        """初始化"""
-        self.health_status = self._load_health_status()
-        self.error_log = self._load_error_log()
+    def __init__(self, project_root: str = None):
+        """
+        初始化健康检查器
+        
+        Args:
+            project_root: 项目根目录
+        """
+        self.project_root = Path(project_root) if project_root else Path(__file__).parent.parent
+        self.results = {}
     
-    def _load_health_status(self) -> Dict[str, Any]:
-        """加载健康状态"""
-        if not os.path.exists(HEALTH_FILE):
-            return {
-                "last_check": None,
-                "data_source": {"status": "UNKNOWN", "last_success": None},
-                "agents": {},
-                "scripts": {}
-            }
-        with open(HEALTH_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+    def check_all(self) -> Dict[str, Any]:
+        """
+        执行所有检查
+        
+        Returns:
+            检查结果字典
+        """
+        self.results = {
+            'timestamp': datetime.now().isoformat(),
+            'checks': {}
+        }
+        
+        # 执行各项检查
+        self.results['checks']['process'] = self.check_process()
+        self.results['checks']['database'] = self.check_database()
+        self.results['checks']['data_source'] = self.check_data_source()
+        self.results['checks']['disk'] = self.check_disk()
+        self.results['checks']['memory'] = self.check_memory()
+        self.results['checks']['logs'] = self.check_logs()
+        self.results['checks']['config'] = self.check_config()
+        
+        # 计算总体状态
+        self.results['status'] = self._calculate_overall_status()
+        
+        return self.results
     
-    def _save_health_status(self):
-        """保存健康状态"""
-        os.makedirs(DATA_DIR, exist_ok=True)
-        self.health_status["last_check"] = datetime.now().isoformat()
-        with open(HEALTH_FILE, 'w', encoding='utf-8') as f:
-            json.dump(self.health_status, f, ensure_ascii=False, indent=2)
+    def check_process(self) -> Dict[str, Any]:
+        """检查进程状态"""
+        result = {
+            'status': 'OK',
+            'details': {}
+        }
+        
+        # 检查 Orchestrator
+        orchestrator_pid_file = self.project_root / 'data' / 'orchestrator.pid'
+        if orchestrator_pid_file.exists():
+            try:
+                pid = int(orchestrator_pid_file.read_text().strip())
+                process = psutil.Process(pid)
+                result['details']['orchestrator'] = {
+                    'status': 'running',
+                    'pid': pid,
+                    'cpu_percent': process.cpu_percent(),
+                    'memory_mb': process.memory_info().rss / 1024 / 1024
+                }
+            except (ValueError, psutil.NoSuchProcess):
+                result['details']['orchestrator'] = {'status': 'stopped'}
+                result['status'] = 'WARNING'
+        else:
+            result['details']['orchestrator'] = {'status': 'not_started'}
+        
+        # 检查自动 Git 推送
+        git_pid_file = self.project_root / 'data' / 'auto_git_push.pid'
+        if git_pid_file.exists():
+            try:
+                pid = int(git_pid_file.read_text().strip())
+                process = psutil.Process(pid)
+                result['details']['auto_git_push'] = {
+                    'status': 'running',
+                    'pid': pid
+                }
+            except (ValueError, psutil.NoSuchProcess):
+                result['details']['auto_git_push'] = {'status': 'stopped'}
+        else:
+            result['details']['auto_git_push'] = {'status': 'not_started'}
+        
+        return result
     
-    def _load_error_log(self) -> List[Dict[str, Any]]:
-        """加载错误日志"""
-        if not os.path.exists(ERROR_LOG_FILE):
-            return []
-        with open(ERROR_LOG_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    
-    def _save_error_log(self):
-        """保存错误日志（只保留最近 100 条）"""
-        os.makedirs(DATA_DIR, exist_ok=True)
-        self.error_log = self.error_log[-100:]
-        with open(ERROR_LOG_FILE, 'w', encoding='utf-8') as f:
-            json.dump(self.error_log, f, ensure_ascii=False, indent=2)
-    
-    def _record_error(self, component: str, error_type: str, message: str, context: Dict[str, Any] = None):
-        """记录错误"""
-        self.error_log.append({
-            "timestamp": datetime.now().isoformat(),
-            "component": component,
-            "error_type": error_type,
-            "message": message,
-            "context": context or {}
-        })
-        self._save_error_log()
+    def check_database(self) -> Dict[str, Any]:
+        """检查数据库状态"""
+        result = {
+            'status': 'OK',
+            'details': {}
+        }
+        
+        # 检查 SQLite
+        sqlite_path = self.project_root / 'data' / 'memory.db'
+        if sqlite_path.exists():
+            try:
+                size_mb = sqlite_path.stat().st_size / 1024 / 1024
+                
+                # 检查数据库完整性
+                conn = sqlite3.connect(str(sqlite_path))
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA integrity_check")
+                integrity = cursor.fetchone()[0]
+                conn.close()
+                
+                result['details']['sqlite'] = {
+                    'status': 'OK',
+                    'size_mb': round(size_mb, 2),
+                    'integrity': integrity
+                }
+                
+                if integrity != 'ok':
+                    result['status'] = 'WARNING'
+                    
+            except Exception as e:
+                result['details']['sqlite'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+                result['status'] = 'ERROR'
+        else:
+            result['details']['sqlite'] = {'status': 'not_found'}
+        
+        # 检查 DuckDB
+        duckdb_path = self.project_root / 'data' / 'analytics.duckdb'
+        if duckdb_path.exists():
+            try:
+                size_mb = duckdb_path.stat().st_size / 1024 / 1024
+                result['details']['duckdb'] = {
+                    'status': 'OK',
+                    'size_mb': round(size_mb, 2)
+                }
+            except Exception as e:
+                result['details']['duckdb'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+        else:
+            result['details']['duckdb'] = {'status': 'not_found'}
+        
+        return result
     
     def check_data_source(self) -> Dict[str, Any]:
-        """
-        检查数据源健康状态
-        
-        检查顺序：
-        1. TqSdk 连接
-        2. 通达信 MCP（如果 TqSdk 失败）
-        
-        返回:
-            数据源状态字典
-        """
+        """检查数据源状态"""
         result = {
-            "tqsdk": {"status": "UNKNOWN", "latency_ms": None, "error": None},
-            "tdx": {"status": "UNKNOWN", "latency_ms": None, "error": None},
-            "recommended": "tqsdk"
+            'status': 'OK',
+            'details': {}
         }
         
-        # 检查 TqSdk
-        try:
-            start_time = time.time()
-            sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
-            from trend_scanner.data_source import DataSourceFactory
-            
-            ds = DataSourceFactory.create(source="tqsdk", force_new=True)
-            if ds.is_available():
-                # 尝试获取数据
-                df = ds.get_kline("RB", days=10)
-                if df is not None and len(df) > 0:
-                    latency = (time.time() - start_time) * 1000
-                    result["tqsdk"] = {"status": "OK", "latency_ms": round(latency), "error": None}
-                    self.health_status["data_source"] = {
-                        "status": "OK",
-                        "last_success": datetime.now().isoformat(),
-                        "type": "tqsdk"
-                    }
-                else:
-                    result["tqsdk"] = {"status": "ERROR", "latency_ms": None, "error": "数据获取失败"}
-                    self._record_error("data_source", "DATA_FETCH_FAILED", "TqSdk 数据获取失败")
-            else:
-                result["tqsdk"] = {"status": "ERROR", "latency_ms": None, "error": "认证失败"}
-                self._record_error("data_source", "AUTH_FAILED", "TqSdk 认证失败")
+        # 检查 TqSdk 环境变量
+        tq_user = os.environ.get('TQ_USER', '')
+        tq_password = os.environ.get('TQ_PASSWORD', '')
         
-        except Exception as e:
-            result["tqsdk"] = {"status": "ERROR", "latency_ms": None, "error": str(e)}
-            self._record_error("data_source", "CONNECTION_FAILED", f"TqSdk 连接失败: {e}")
+        if tq_user and tq_password:
+            result['details']['tqsdk_env'] = {'status': 'configured'}
+        else:
+            result['details']['tqsdk_env'] = {'status': 'not_configured'}
+            result['status'] = 'WARNING'
         
-        # 如果 TqSdk 失败，检查通达信 MCP
-        if result["tqsdk"]["status"] != "OK":
-            result["recommended"] = "tdx"
-            # 通达信 MCP 通过 connector 检查，这里只标记为可用
-            result["tdx"] = {"status": "AVAILABLE", "latency_ms": None, "error": None}
+        # 检查 CSV 数据源
+        csv_dir = self.project_root / 'data' / 'klines'
+        if csv_dir.exists():
+            csv_files = list(csv_dir.glob('*.csv'))
+            result['details']['csv_source'] = {
+                'status': 'OK',
+                'file_count': len(csv_files)
+            }
+        else:
+            result['details']['csv_source'] = {'status': 'not_found'}
         
-        self._save_health_status()
         return result
     
-    def run_with_retry(self, command: str, max_retries: int = 2, timeout: int = 60) -> Dict[str, Any]:
-        """
-        执行带重试的脚本
-        
-        参数:
-            command: 要执行的命令
-            max_retries: 最大重试次数
-            timeout: 超时时间（秒）
-        
-        返回:
-            执行结果字典
-        """
+    def check_disk(self) -> Dict[str, Any]:
+        """检查磁盘空间"""
         result = {
-            "command": command,
-            "attempts": 0,
-            "success": False,
-            "output": None,
-            "error": None,
-            "total_time_ms": 0
+            'status': 'OK',
+            'details': {}
         }
         
-        start_time = time.time()
-        
-        for attempt in range(max_retries + 1):
-            result["attempts"] = attempt + 1
+        try:
+            usage = psutil.disk_usage(str(self.project_root))
             
-            try:
-                proc = subprocess.run(
-                    command,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                    cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                )
+            result['details'] = {
+                'total_gb': round(usage.total / 1024 / 1024 / 1024, 2),
+                'used_gb': round(usage.used / 1024 / 1024 / 1024, 2),
+                'free_gb': round(usage.free / 1024 / 1024 / 1024, 2),
+                'percent': usage.percent
+            }
+            
+            # 磁盘空间不足警告
+            if usage.percent > 90:
+                result['status'] = 'WARNING'
+            elif usage.percent > 95:
+                result['status'] = 'ERROR'
                 
-                if proc.returncode == 0:
-                    result["success"] = True
-                    result["output"] = proc.stdout
-                    result["total_time_ms"] = round((time.time() - start_time) * 1000)
-                    return result
-                else:
-                    result["error"] = proc.stderr
-                    if attempt < max_retries:
-                        time.sleep(2)  # 等待 2 秒后重试
-            
-            except subprocess.TimeoutExpired:
-                result["error"] = f"超时（{timeout}秒）"
-                self._record_error("script", "TIMEOUT", f"脚本超时: {command}", {"timeout": timeout})
-                if attempt < max_retries:
-                    time.sleep(2)
-            
-            except Exception as e:
-                result["error"] = str(e)
-                self._record_error("script", "EXECUTION_FAILED", f"脚本执行失败: {command}", {"error": str(e)})
-                if attempt < max_retries:
-                    time.sleep(2)
+        except Exception as e:
+            result['status'] = 'ERROR'
+            result['error'] = str(e)
         
-        result["total_time_ms"] = round((time.time() - start_time) * 1000)
         return result
     
-    def check_script_health(self, script_name: str) -> Dict[str, Any]:
-        """
-        检查脚本健康状态
+    def check_memory(self) -> Dict[str, Any]:
+        """检查内存使用"""
+        result = {
+            'status': 'OK',
+            'details': {}
+        }
         
-        参数:
-            script_name: 脚本名称（如 scan_opportunities.py）
-        
-        返回:
-            脚本健康状态
-        """
-        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), script_name)
-        
-        if not os.path.exists(script_path):
-            return {
-                "script": script_name,
-                "status": "NOT_FOUND",
-                "error": f"脚本不存在: {script_path}"
-            }
-        
-        # 检查脚本语法
         try:
-            result = subprocess.run(
-                [sys.executable, "-m", "py_compile", script_path],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
+            memory = psutil.virtual_memory()
             
-            if result.returncode != 0:
-                return {
-                    "script": script_name,
-                    "status": "SYNTAX_ERROR",
-                    "error": result.stderr
-                }
-        
-        except Exception as e:
-            return {
-                "script": script_name,
-                "status": "CHECK_FAILED",
-                "error": str(e)
+            result['details'] = {
+                'total_gb': round(memory.total / 1024 / 1024 / 1024, 2),
+                'available_gb': round(memory.available / 1024 / 1024 / 1024, 2),
+                'used_gb': round(memory.used / 1024 / 1024 / 1024, 2),
+                'percent': memory.percent
             }
+            
+            # 内存不足警告
+            if memory.percent > 80:
+                result['status'] = 'WARNING'
+            elif memory.percent > 90:
+                result['status'] = 'ERROR'
+                
+        except Exception as e:
+            result['status'] = 'ERROR'
+            result['error'] = str(e)
         
-        return {
-            "script": script_name,
-            "status": "OK",
-            "error": None
-        }
+        return result
     
-    def get_health_report(self) -> Dict[str, Any]:
-        """获取完整健康报告"""
-        # 检查各脚本健康状态
-        scripts_to_check = [
-            "scan_opportunities.py",
-            "heartbeat.py",
-            "monitor_positions.py",
-            "run_reasoner.py",
-            "run_debater.py",
-            "run_evolver.py",
-            "orchestrator.py"
-        ]
-        
-        script_status = {}
-        for script in scripts_to_check:
-            script_status[script] = self.check_script_health(script)
-        
-        # 统计错误
-        recent_errors = [e for e in self.error_log 
-                        if datetime.fromisoformat(e["timestamp"]) > datetime.now() - timedelta(hours=24)]
-        
-        error_by_component = {}
-        for error in recent_errors:
-            comp = error["component"]
-            if comp not in error_by_component:
-                error_by_component[comp] = 0
-            error_by_component[comp] += 1
-        
-        report = {
-            "report_time": datetime.now().isoformat(),
-            "data_source": self.health_status.get("data_source", {}),
-            "scripts": script_status,
-            "recent_errors": {
-                "total": len(recent_errors),
-                "by_component": error_by_component
-            },
-            "overall_status": "HEALTHY" if len(recent_errors) < 5 else "DEGRADED"
+    def check_logs(self) -> Dict[str, Any]:
+        """检查日志文件"""
+        result = {
+            'status': 'OK',
+            'details': {}
         }
         
-        return report
+        logs_dir = self.project_root / 'logs'
+        if logs_dir.exists():
+            log_files = list(logs_dir.glob('*.log'))
+            
+            recent_errors = []
+            for log_file in log_files:
+                try:
+                    # 检查最近 24 小时的错误
+                    cutoff = datetime.now() - timedelta(hours=24)
+                    
+                    with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        for line in f:
+                            if 'ERROR' in line or 'FAILED' in line:
+                                recent_errors.append({
+                                    'file': log_file.name,
+                                    'message': line.strip()[:200]
+                                })
+                except:
+                    pass
+            
+            result['details'] = {
+                'log_count': len(log_files),
+                'recent_errors': recent_errors[:10]  # 最多显示 10 条
+            }
+            
+            if recent_errors:
+                result['status'] = 'WARNING'
+        else:
+            result['details'] = {'status': 'logs_dir_not_found'}
+        
+        return result
+    
+    def check_config(self) -> Dict[str, Any]:
+        """检查配置文件"""
+        result = {
+            'status': 'OK',
+            'details': {}
+        }
+        
+        config_file = self.project_root / 'config' / 'config.json'
+        if config_file.exists():
+            try:
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                
+                result['details'] = {
+                    'status': 'OK',
+                    'sections': list(config.keys())
+                }
+            except json.JSONDecodeError as e:
+                result['details'] = {
+                    'status': 'ERROR',
+                    'error': f'JSON 解析错误: {e}'
+                }
+                result['status'] = 'ERROR'
+        else:
+            result['details'] = {'status': 'not_found'}
+            result['status'] = 'WARNING'
+        
+        # 检查持仓文件
+        positions_file = self.project_root / 'config' / 'positions.json'
+        if positions_file.exists():
+            try:
+                with open(positions_file, 'r', encoding='utf-8') as f:
+                    positions = json.load(f)
+                
+                result['details']['positions'] = {
+                    'status': 'OK',
+                    'count': len(positions.get('positions', []))
+                }
+            except:
+                result['details']['positions'] = {'status': 'ERROR'}
+        else:
+            result['details']['positions'] = {'status': 'not_found'}
+        
+        return result
+    
+    def _calculate_overall_status(self) -> str:
+        """计算总体状态"""
+        statuses = []
+        for check_name, check_result in self.results['checks'].items():
+            statuses.append(check_result.get('status', 'UNKNOWN'))
+        
+        if 'ERROR' in statuses:
+            return 'ERROR'
+        elif 'WARNING' in statuses:
+            return 'WARNING'
+        else:
+            return 'OK'
+
+
+def print_report(results: Dict[str, Any]):
+    """打印检查报告"""
+    status_colors = {
+        'OK': '\033[92m',      # 绿色
+        'WARNING': '\033[93m', # 黄色
+        'ERROR': '\033[91m',   # 红色
+    }
+    reset_color = '\033[0m'
+    
+    print("\n" + "=" * 60)
+    print("Trend-scanner-Agent 健康检查报告")
+    print("=" * 60)
+    print(f"时间: {results['timestamp']}")
+    
+    # 总体状态
+    overall_status = results['status']
+    color = status_colors.get(overall_status, '')
+    print(f"总体状态: {color}{overall_status}{reset_color}")
+    
+    print("\n" + "-" * 60)
+    
+    # 各项检查结果
+    for check_name, check_result in results['checks'].items():
+        status = check_result.get('status', 'UNKNOWN')
+        color = status_colors.get(status, '')
+        
+        print(f"\n[{check_name.upper()}]")
+        print(f"  状态: {color}{status}{reset_color}")
+        
+        # 打印详细信息
+        details = check_result.get('details', {})
+        for key, value in details.items():
+            if isinstance(value, dict):
+                print(f"  {key}:")
+                for k, v in value.items():
+                    print(f"    {k}: {v}")
+            else:
+                print(f"  {key}: {value}")
+    
+    print("\n" + "=" * 60)
 
 
 def main():
-    """命令行工具"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Agent 健康检查")
-    subparsers = parser.add_subparsers(dest="command", help="子命令")
-    
-    # check 命令
-    subparsers.add_parser("check", help="检查数据源健康状态")
-    
-    # report 命令
-    subparsers.add_parser("report", help="获取完整健康报告")
-    
-    # test 命令
-    test_parser = subparsers.add_parser("test", help="测试脚本执行")
-    test_parser.add_argument("--command", required=True, help="要执行的命令")
-    test_parser.add_argument("--retries", type=int, default=2, help="最大重试次数")
-    test_parser.add_argument("--timeout", type=int, default=60, help="超时时间（秒）")
+    parser = argparse.ArgumentParser(description='系统健康检查')
+    parser.add_argument('--json', action='store_true', help='JSON 格式输出')
+    parser.add_argument('--project-root', type=str, help='项目根目录')
     
     args = parser.parse_args()
     
-    checker = HealthChecker()
+    # 执行检查
+    checker = HealthChecker(args.project_root)
+    results = checker.check_all()
     
-    if args.command == "check":
-        print("数据源健康检查")
-        print("=" * 50)
-        result = checker.check_data_source()
-        
-        tqsdk = result["tqsdk"]
-        print(f"\nTqSdk:")
-        print(f"  状态: {tqsdk['status']}")
-        if tqsdk['latency_ms']:
-            print(f"  延迟: {tqsdk['latency_ms']}ms")
-        if tqsdk['error']:
-            print(f"  错误: {tqsdk['error']}")
-        
-        tdx = result["tdx"]
-        print(f"\n通达信 MCP:")
-        print(f"  状态: {tdx['status']}")
-        
-        print(f"\n推荐数据源: {result['recommended']}")
+    # 输出结果
+    if args.json:
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+    else:
+        print_report(results)
     
-    elif args.command == "report":
-        print("Agent 健康报告")
-        print("=" * 50)
-        report = checker.get_health_report()
-        
-        print(f"\n数据源状态: {report['data_source'].get('status', 'UNKNOWN')}")
-        
-        print(f"\n脚本状态:")
-        for script, status in report['scripts'].items():
-            status_mark = {'OK': '✓', 'NOT_FOUND': '✗', 'SYNTAX_ERROR': '✗'}.get(status['status'], '?')
-            print(f"  {status_mark} {script}: {status['status']}")
-        
-        print(f"\n最近 24 小时错误: {report['recent_errors']['total']} 个")
-        for comp, count in report['recent_errors']['by_component'].items():
-            print(f"  {comp}: {count} 个")
-        
-        print(f"\n整体状态: {report['overall_status']}")
-    
-    elif args.command == "test":
-        print(f"测试脚本执行: {args.command}")
-        print("=" * 50)
-        result = checker.run_with_retry(args.command, max_retries=args.retries, timeout=args.timeout)
-        
-        print(f"尝试次数: {result['attempts']}")
-        print(f"成功: {result['success']}")
-        print(f"总耗时: {result['total_time_ms']}ms")
-        
-        if result['success']:
-            print(f"\n输出:\n{result['output'][:500]}...")
-        else:
-            print(f"\n错误: {result['error']}")
+    # 返回状态码
+    if results['status'] == 'ERROR':
+        sys.exit(1)
+    elif results['status'] == 'WARNING':
+        sys.exit(0)
+    else:
+        sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
