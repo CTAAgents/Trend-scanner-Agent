@@ -245,10 +245,187 @@ def fetch_quote(symbol: str) -> dict:
         }
 
 
+def fetch_all_symbols(exchanges: list = None) -> dict:
+    """
+    获取所有主力合约品种
+    
+    Args:
+        exchanges: 交易所列表，默认 ['SHFE', 'DCE', 'CZCE', 'INE', 'CFFEX']
+    
+    Returns:
+        {success, error, data: {symbols: [...]}}
+    """
+    try:
+        from tqsdk import TqApi, TqAuth
+        
+        tq_user = os.environ.get('TQ_USER', '')
+        tq_password = os.environ.get('TQ_PASSWORD', '')
+        
+        if not tq_user or not tq_password:
+            return {
+                'success': False,
+                'error': 'TQ_USER 或 TQ_PASSWORD 环境变量未设置',
+                'data': None
+            }
+        
+        if exchanges is None:
+            exchanges = ['SHFE', 'DCE', 'CZCE', 'INE', 'CFFEX']
+        
+        auth = TqAuth(tq_user, tq_password)
+        api = TqApi(auth=auth)
+        
+        all_symbols = []
+        
+        for exchange in exchanges:
+            try:
+                instruments = api.query_quotes(ins_class='FUTURE', exchange_id=exchange)
+                
+                # 提取品种代码（去掉到期月份）
+                variety_set = set()
+                for inst in instruments:
+                    parts = inst.split('.')
+                    if len(parts) == 2:
+                        contract = parts[1]
+                        variety = ''.join([c for c in contract if c.isalpha()])
+                        variety_set.add(variety)
+                
+                # 创建主力合约代码
+                for variety in variety_set:
+                    main_contract = f'KQ.m@{exchange}.{variety}'
+                    symbol_code = variety.upper()
+                    all_symbols.append({
+                        'symbol': symbol_code,
+                        'tq_symbol': main_contract,
+                        'exchange': exchange,
+                        'variety': variety
+                    })
+                    
+            except Exception as e:
+                print(f"获取 {exchange} 品种失败: {e}", file=sys.stderr)
+                continue
+        
+        api.close()
+        
+        return {
+            'success': True,
+            'error': None,
+            'data': {
+                'symbols': all_symbols,
+                'count': len(all_symbols)
+            }
+        }
+        
+    except SystemExit as e:
+        return {
+            'success': False,
+            'error': f'TqSdk sys.exit: {e}',
+            'data': None
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'data': None
+        }
+
+
+def fetch_quotes_batch(tq_symbols: list) -> dict:
+    """
+    批量获取行情数据
+    
+    Args:
+        tq_symbols: TqSdk 品种代码列表
+    
+    Returns:
+        {success, error, data: {quotes: {...}}}
+    """
+    try:
+        from tqsdk import TqApi, TqAuth
+        
+        tq_user = os.environ.get('TQ_USER', '')
+        tq_password = os.environ.get('TQ_PASSWORD', '')
+        
+        if not tq_user or not tq_password:
+            return {
+                'success': False,
+                'error': 'TQ_USER 或 TQ_PASSWORD 环境变量未设置',
+                'data': None
+            }
+        
+        auth = TqAuth(tq_user, tq_password)
+        api = TqApi(auth=auth)
+        
+        quotes = {}
+        
+        # 分批获取行情（每批最多20个）
+        batch_size = 20
+        for i in range(0, len(tq_symbols), batch_size):
+            batch = tq_symbols[i:i+batch_size]
+            
+            try:
+                # 获取行情
+                quote_objs = {}
+                for tq_symbol in batch:
+                    try:
+                        quote_objs[tq_symbol] = api.get_quote(tq_symbol)
+                    except:
+                        continue
+                
+                # 等待数据更新
+                api.wait_update()
+                
+                # 提取数据
+                for tq_symbol, quote in quote_objs.items():
+                    try:
+                        oi = getattr(quote, 'open_interest', 0) or 0
+                        quotes[tq_symbol] = {
+                            'tq_symbol': tq_symbol,
+                            'last_price': getattr(quote, 'last_price', 0),
+                            'open_interest': oi,
+                            'volume': getattr(quote, 'volume', 0),
+                            'bid_price1': getattr(quote, 'bid_price1', 0),
+                            'ask_price1': getattr(quote, 'ask_price1', 0),
+                            'highest': getattr(quote, 'highest', 0),
+                            'lowest': getattr(quote, 'lowest', 0),
+                            'pre_close': getattr(quote, 'pre_close', 0),
+                        }
+                    except:
+                        continue
+                        
+            except Exception as e:
+                print(f"批量获取行情失败: {e}", file=sys.stderr)
+                continue
+        
+        api.close()
+        
+        return {
+            'success': True,
+            'error': None,
+            'data': {
+                'quotes': quotes,
+                'count': len(quotes)
+            }
+        }
+        
+    except SystemExit as e:
+        return {
+            'success': False,
+            'error': f'TqSdk sys.exit: {e}',
+            'data': None
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'data': None
+        }
+
+
 def main():
     parser = argparse.ArgumentParser(description='TqSdk 工作进程')
-    parser.add_argument('--action', choices=['kline', 'quote'], required=True, help='操作类型')
-    parser.add_argument('--symbol', type=str, required=True, help='品种代码')
+    parser.add_argument('--action', choices=['kline', 'quote', 'symbols', 'quotes_batch'], required=True, help='操作类型')
+    parser.add_argument('--symbol', type=str, help='品种代码')
+    parser.add_argument('--symbols', type=str, help='品种列表（逗号分隔）')
     parser.add_argument('--days', type=int, default=120, help='获取天数')
     parser.add_argument('--period', type=str, default='daily', help='周期')
     parser.add_argument('--output', type=str, required=True, help='输出文件路径')
