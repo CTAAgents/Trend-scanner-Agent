@@ -205,22 +205,13 @@ class EvolverAgent:
         """
         try:
             # EvolutionManager 没有 get_evolution_history 方法
-            # 使用经验记忆池获取历史经验
-            experiences = self.evolution_manager.experience_memory.get_all_experiences()
-            
+            # 返回基本状态信息
             return {
                 'timestamp': datetime.now().isoformat(),
-                'experiences': [
-                    {
-                        'experience_id': exp.experience_id,
-                        'symbol': exp.symbol,
-                        'pnl_pct': exp.pnl_pct,
-                        'holding_days': exp.holding_days,
-                        'timestamp': exp.timestamp
-                    }
-                    for exp in experiences
-                ] if experiences else [],
-                'total_count': len(experiences) if experiences else 0
+                'status': 'EvolutionManager 已初始化',
+                'evolution_history_count': len(self.evolution_manager.evolution_history) if hasattr(self.evolution_manager, 'evolution_history') else 0,
+                'last_evolution_time': self.evolution_manager.last_evolution_time if hasattr(self.evolution_manager, 'last_evolution_time') else None,
+                'evolution_count': self.evolution_manager.evolution_count if hasattr(self.evolution_manager, 'evolution_count') else 0
             }
             
         except Exception as e:
