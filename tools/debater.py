@@ -146,10 +146,11 @@ class DebaterAgent:
                 trend_phase=trend_phase
             )
             
-            # 执行辩论
-            debate_result = self.debate_engine.debate(
-                brief=brief,
-                context=context
+            # 执行辩论（使用 reason 方法）
+            debate_result = self.debate_engine.reason(
+                context=context,
+                similar_experiences=[],  # 辩论不需要经验
+                experience_aggregation={}
             )
             
             # 构建结果
