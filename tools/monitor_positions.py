@@ -24,7 +24,7 @@ from typing import Optional, List, Dict, Any
 # 添加模块路径
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
 
-from trend_scanner.data_source import DataSourceFactory
+from trend_scanner.data_source import DataSourceFactory, CsvSource
 from trend_scanner.indicators import IndicatorEngine
 
 # 导入数据格式工具
@@ -86,7 +86,7 @@ def analyze_position(pos: Dict[str, Any], data_source) -> Dict[str, Any]:
         df = None
         try:
             df = data_source.get_kline(data_symbol, days=120)
-        except SystemExit:
+        except (SystemExit, KeyboardInterrupt):
             # TqSdk 可能会调用 sys.exit()，尝试使用 CSV 数据源
             print(f"[警告] TqSdk 获取 {data_symbol} 数据失败，尝试 CSV 数据源...", flush=True)
             try:
