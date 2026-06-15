@@ -191,12 +191,15 @@ class TqSdkSource(DataSource):
     def get_kline(self, symbol: str, days: int = 120, period: str = "daily") -> Optional[pd.DataFrame]:
         """获取K线数据"""
         if not self.is_available():
+            print(f"[调试] TqSdk 不可用", flush=True)
             return None
         
+        print(f"[调试] TqSdk.get_kline 开始: {symbol}", flush=True)
         try:
             from tqsdk import TqApi
             
             tq_symbol = self._get_tq_symbol(symbol)
+            print(f"[调试] TqSdk 符号: {tq_symbol}", flush=True)
             
             # 周期映射
             period_map = {
@@ -208,12 +211,19 @@ class TqSdkSource(DataSource):
             }
             dur_sec = period_map.get(period, 86400)
             
+            print(f"[调试] 创建 TqApi...", flush=True)
             with TqApi(auth=self._auth) as api:
+                print(f"[调试] TqApi 创建成功，获取K线...", flush=True)
                 klines = api.get_kline_serial(tq_symbol, dur_sec, data_length=days)
+                print(f"[调试] wait_update...", flush=True)
                 api.wait_update()
+                print(f"[调试] wait_update 完成", flush=True)
                 
                 if klines is None or len(klines) == 0:
+                    print(f"[调试] K线数据为空", flush=True)
                     return None
+                
+                print(f"[调试] K线数据长度: {len(klines)}", flush=True)
                 
                 # 转换为标准格式
                 df = pd.DataFrame({
@@ -230,14 +240,17 @@ class TqSdkSource(DataSource):
                 df = df.dropna()
                 df = df[df['close'] > 0]
                 
+                print(f"[调试] K线数据处理完成，有效行数: {len(df)}", flush=True)
                 return df
                 
         except SystemExit as e:
             # TqSdk 可能会调用 sys.exit()，捕获并返回 None
-            print(f"TqSdk sys.exit: {e}")
+            print(f"[警告] TqSdk sys.exit: {e}", flush=True)
             return None
         except Exception as e:
-            print(f"TqSdk 获取K线失败: {e}")
+            print(f"[错误] TqSdk 获取K线失败: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
             return None
     
     def get_quote(self, symbol: str) -> Optional[Dict[str, Any]]:
