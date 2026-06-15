@@ -83,6 +83,9 @@ class UnifiedMemoryManager:
         llm_config = config.get('llm', {'provider': 'workbuddy'})
         self.llm_provider = LLMProviderFactory.create(llm_config)
         
+        # 初始化多路召回检索器
+        self.retriever = MultiPathRetriever(self)
+        
         # 短期记忆（内存）
         self.short_term: Dict[str, Any] = {}
         
