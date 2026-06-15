@@ -1,13 +1,139 @@
-# CLAUDE.md - 代码规范
+# 编码行为准则
 
-> 来源：F:/Skills/CLAUDE.md
-> 应用日期：2026-06-15
+> 来源：CLAUDE.md + trend-tracking-scanner coding-guidelines.md
+> 版本：v1.2 | 创建日期：2026-06-15 | 更新日期：2026-06-15
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+---
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+## 核心原则
 
-## 1. Think Before Coding
+**减少常见的 LLM 编码错误，偏向谨慎而非速度。**
+
+> Tradeoff: 这些准则偏向谨慎而非速度。对于简单任务，自行判断。
+
+---
+
+## 1. 先思考再编码
+
+**不要假设。不要隐藏困惑。暴露权衡。**
+
+实施前：
+- **明确说明假设**，不确定时提问
+- 存在多种解释时，**全部列出**，不要默默选择
+- 有更简单方案时，**主动提出**，必要时反驳
+- 遇到不清楚的地方，**停下来**，说明困惑，提问
+
+---
+
+## 2. 简单优先
+
+**最少代码解决问题。不做投机性开发。**
+
+- **不添加未要求的功能**
+- **不为单次使用代码创建抽象**
+- 不为未要求的"灵活性"或"可配置性"设计
+- **不为不可能的场景添加错误处理**
+- 200 行能 50 行完成的，**重写**
+
+**自问**：资深工程师会觉得这过于复杂吗？如果是，简化。
+
+---
+
+## 3. 外科手术式修改
+
+**只修改必须修改的部分。只清理自己制造的混乱。**
+
+编辑现有代码时：
+- **不"改进"相邻代码、注释或格式**
+- **不重构没有问题的代码**
+- **匹配现有风格**，即使你会做得不同
+- 发现无关死代码时，**提及但不删除**
+
+修改产生孤立代码时：
+- **删除你的修改导致的**未使用导入/变量/函数
+- **不删除预存在的死代码**，除非被要求
+
+**测试**：每一行修改都应该直接追溯到用户请求。
+
+---
+
+## 4. 目标驱动执行
+
+**定义成功标准。循环直到验证通过。**
+
+将任务转化为可验证的目标：
+- "添加验证" → "为无效输入编写测试，然后使其通过"
+- "修复 bug" → "编写复现测试，然后使其通过"
+- "重构 X" → "确保重构前后测试通过"
+
+多步骤任务，先陈述简要计划：
+```
+1. [步骤] → 验证：[检查]
+2. [步骤] → 验证：[检查]
+3. [步骤] → 验证：[检查]
+```
+
+**强成功标准**支持独立循环，**弱标准**需要反复确认。
+
+---
+
+## 有效性标志
+
+这些准则有效的标志：
+- diff 中不必要的更改更少
+- 因过度复杂导致的重写更少
+- 澄清问题在实施前而非错误后提出
+
+---
+
+## 与工作流程的集成
+
+```
+1. 更新文档（明确需求和接口）
+   ↓
+2. 编写测试（定义成功标准）
+   ↓
+3. 实施代码（遵循本准则）
+   ↓
+4. 运行测试（验证成功标准）
+   ↓
+5. 更新所有文档（同步变更）
+   ↓
+6. 提交 GitHub（记录更改）
+```
+
+### 各步骤说明
+
+| 步骤 | 产出物 | 检查点 |
+|------|--------|--------|
+| 1. 更新文档 | SKILL.md、docs/设计文档 | 需求明确、接口定义清晰 |
+| 2. 编写测试 | test_*.py | 测试覆盖正常/边界/异常场景 |
+| 3. 实施代码 | *.py | 遵循本准则四条原则 |
+| 4. 运行测试 | 测试报告 | 所有测试通过、覆盖率达标 |
+| 5. 更新文档 | SKILL.md、docs/TESTING.md、memory/MEMORY.md | 文档与代码一致 |
+| 6. 提交 GitHub | Git commit | 提交信息清晰描述更改 |
+
+### 文档更新清单
+
+步骤 5 必须更新以下文档：
+
+- **SKILL.md**：模块列表、测试状态、版本号（用户手册 + 技术规范的唯一来源）
+- **docs/TESTING.md**：测试数量、覆盖率、测试文件列表
+- **memory/MEMORY.md**：项目记忆、关键决策
+- **memory/YYYY-MM-DD.md**：工作日志
+
+### 在步骤 3 实施代码时，严格遵循本准则的四条原则
+
+1. **先思考再编码**：明确假设，列出多种解释，主动提出更简单方案
+2. **简单优先**：最少代码解决问题，不添加未要求功能
+3. **外科手术式修改**：只改必须改的，不改进相邻代码
+4. **目标驱动执行**：定义成功标准，循环直到验证通过
+
+---
+
+## 原版英文参考
+
+### 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
@@ -17,7 +143,7 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 2. Simplicity First
+### 2. Simplicity First
 
 **Minimum code that solves the problem. Nothing speculative.**
 
@@ -29,7 +155,7 @@ Before implementing:
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-## 3. Surgical Changes
+### 3. Surgical Changes
 
 **Touch only what you must. Clean up only your own mess.**
 
@@ -45,7 +171,7 @@ When your changes create orphans:
 
 The test: Every changed line should trace directly to the user's request.
 
-## 4. Goal-Driven Execution
+### 4. Goal-Driven Execution
 
 **Define success criteria. Loop until verified.**
 
@@ -66,3 +192,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+*本准则是 Trend-scanner-Agent 项目开发的约束条件之一。*
