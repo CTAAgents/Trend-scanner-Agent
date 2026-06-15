@@ -1,0 +1,274 @@
+"""
+LLM 提供者工厂
+
+职责：
+- 提供统一的 LLM 调用接口
+- 支持多种 LLM 提供者（OpenAI/Anthropic/本地模型/WorkBuddy）
+- 处理降级和错误恢复
+
+支持的提供者：
+- openai: OpenAI GPT-4
+- anthropic: Anthropic Claude
+- local: 本地模型（Ollama）
+- workbuddy: WorkBuddy Agent（默认）
+"""
+
+import os
+import json
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, Any
+
+
+class LLMProvider(ABC):
+    """LLM 提供者抽象基类"""
+    
+    @abstractmethod
+    def generate(self, prompt: str, **kwargs) -> str:
+        """
+        生成文本
+        
+        Args:
+            prompt: 输入提示
+            **kwargs: 额外参数（temperature, max_tokens 等）
+        
+        Returns:
+            生成的文本
+        """
+        pass
+    
+    @abstractmethod
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        """
+        对话模式
+        
+        Args:
+            messages: 消息列表，格式 [{"role": "user", "content": "..."}]
+            **kwargs: 额外参数
+        
+        Returns:
+            回复文本
+        """
+        pass
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """提供者名称"""
+        pass
+    
+    @property
+    @abstractmethod
+    def model(self) -> str:
+        """模型名称"""
+        pass
+
+
+class OpenAIProvider(LLMProvider):
+    """OpenAI 提供者"""
+    
+    def __init__(self, api_key: str, model: str = "gpt-4"):
+        try:
+            import openai
+            self.client = openai.OpenAI(api_key=api_key)
+        except ImportError:
+            raise ImportError("请安装 openai: pip install openai")
+        
+        self._model = model
+    
+    def generate(self, prompt: str, **kwargs) -> str:
+        response = self.client.chat.completions.create(
+            model=self._model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=kwargs.get('temperature', 0.3),
+            max_tokens=kwargs.get('max_tokens', 2000)
+        )
+        return response.choices[0].message.content
+    
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        response = self.client.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            temperature=kwargs.get('temperature', 0.3),
+            max_tokens=kwargs.get('max_tokens', 2000)
+        )
+        return response.choices[0].message.content
+    
+    @property
+    def name(self) -> str:
+        return "openai"
+    
+    @property
+    def model(self) -> str:
+        return self._model
+
+
+class AnthropicProvider(LLMProvider):
+    """Anthropic 提供者"""
+    
+    def __init__(self, api_key: str, model: str = "claude-3-sonnet-20240229"):
+        try:
+            import anthropic
+            self.client = anthropic.Anthropic(api_key=api_key)
+        except ImportError:
+            raise ImportError("请安装 anthropic: pip install anthropic")
+        
+        self._model = model
+    
+    def generate(self, prompt: str, **kwargs) -> str:
+        response = self.client.messages.create(
+            model=self._model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=kwargs.get('max_tokens', 2000)
+        )
+        return response.content[0].text
+    
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        response = self.client.messages.create(
+            model=self._model,
+            messages=messages,
+            max_tokens=kwargs.get('max_tokens', 2000)
+        )
+        return response.content[0].text
+    
+    @property
+    def name(self) -> str:
+        return "anthropic"
+    
+    @property
+    def model(self) -> str:
+        return self._model
+
+
+class LocalLLMProvider(LLMProvider):
+    """本地 LLM 提供者（Ollama）"""
+    
+    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama2"):
+        try:
+            import requests
+            self.requests = requests
+        except ImportError:
+            raise ImportError("请安装 requests: pip install requests")
+        
+        self.base_url = base_url
+        self._model = model
+    
+    def generate(self, prompt: str, **kwargs) -> str:
+        response = self.requests.post(
+            f"{self.base_url}/api/generate",
+            json={
+                "model": self._model,
+                "prompt": prompt,
+                "stream": False
+            },
+            timeout=kwargs.get('timeout', 60)
+        )
+        response.raise_for_status()
+        return response.json()['response']
+    
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        response = self.requests.post(
+            f"{self.base_url}/api/chat",
+            json={
+                "model": self._model,
+                "messages": messages,
+                "stream": False
+            },
+            timeout=kwargs.get('timeout', 60)
+        )
+        response.raise_for_status()
+        return response.json()['message']['content']
+    
+    @property
+    def name(self) -> str:
+        return "local"
+    
+    @property
+    def model(self) -> str:
+        return self._model
+
+
+class WorkBuddyProvider(LLMProvider):
+    """WorkBuddy Agent 提供者（默认）"""
+    
+    def __init__(self, model: str = "default"):
+        self._model = model
+    
+    def generate(self, prompt: str, **kwargs) -> str:
+        # 在 WorkBuddy 环境中，这个调用会被 Agent 系统处理
+        # 这里提供一个 fallback 实现
+        return self._fallback(prompt)
+    
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        # 合并消息为单个 prompt
+        prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        return self.generate(prompt, **kwargs)
+    
+    def _fallback(self, prompt: str) -> str:
+        """降级响应"""
+        return json.dumps({
+            "routes": [{
+                "route_id": "A",
+                "name": "观望等待",
+                "action": "暂不操作，等待更明确的信号",
+                "confidence": 0.5,
+                "reasoning": "LLM 不可用，使用规则退化建议"
+            }],
+            "warnings": ["当前使用规则退化模式"]
+        }, ensure_ascii=False)
+    
+    @property
+    def name(self) -> str:
+        return "workbuddy"
+    
+    @property
+    def model(self) -> str:
+        return self._model
+
+
+class LLMProviderFactory:
+    """LLM 提供者工厂"""
+    
+    @staticmethod
+    def create(config: Dict[str, Any]) -> LLMProvider:
+        """
+        创建 LLM 提供者
+        
+        Args:
+            config: 配置字典，包含：
+                - provider: 提供者名称（openai/anthropic/local/workbuddy）
+                - api_key: API 密钥（OpenAI/Anthropic 需要）
+                - model: 模型名称
+                - base_url: 本地模型 URL
+        
+        Returns:
+            LLMProvider 实例
+        """
+        provider = config.get('provider', 'workbuddy')
+        
+        # 支持环境变量替换
+        api_key = config.get('api_key', '')
+        if api_key.startswith('${') and api_key.endswith('}'):
+            env_var = api_key[2:-1]
+            api_key = os.environ.get(env_var, '')
+        
+        if provider == 'openai':
+            return OpenAIProvider(
+                api_key=api_key,
+                model=config.get('model', 'gpt-4')
+            )
+        elif provider == 'anthropic':
+            return AnthropicProvider(
+                api_key=api_key,
+                model=config.get('model', 'claude-3-sonnet-20240229')
+            )
+        elif provider == 'local':
+            return LocalLLMProvider(
+                base_url=config.get('base_url', 'http://localhost:11434'),
+                model=config.get('model', 'llama2')
+            )
+        elif provider == 'workbuddy':
+            return WorkBuddyProvider(
+                model=config.get('model', 'default')
+            )
+        else:
+            raise ValueError(f"不支持的 LLM 提供者: {provider}")
