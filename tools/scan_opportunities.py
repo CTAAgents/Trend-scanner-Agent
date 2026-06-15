@@ -35,6 +35,8 @@ from data_formats import (
     write_scan_result, load_config, get_signal_filter
 )
 
+logger = logging.getLogger(__name__)
+
 
 def normalize_symbol(symbol: str) -> str:
     """
