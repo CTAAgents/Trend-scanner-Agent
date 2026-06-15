@@ -100,7 +100,7 @@ def main():
         print(f"\n开始同步K线数据（{args.days}天，持仓量≥{args.min_oi}）...")
         
         # 获取活跃品种
-        active_symbols = manager.get_active_symbols(min_args.min_oi)
+        active_symbols = manager.get_active_symbols(min_oi=args.min_oi)
         symbol_codes = [s['symbol'] for s in active_symbols]
         
         if not symbol_codes:

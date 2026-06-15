@@ -3,7 +3,7 @@ name: trend-scanner-agent
 description: >
   推理重于规则的期货趋势跟踪 Agent v4.0。
   脚本+Agent 混合架构，动态因子生成，多角色协作，RL 接口自设计。
-  数据源：TqSdk（首选）+ 通达信 MCP（备选）。
+  数据源：TqSdk（首选）+ 通达信 MCP（备选）+ 本地数据库缓存。
 ---
 
 # Trend Scanner Agent
@@ -20,72 +20,107 @@ description: >
 
 ## 工作机制
 
-### 整体架构（五层管线）
+### 整体架构（六层管线）
 
 ```
 定时触发 (08:40 / 15:20 / 20:40)
     │
     ▼
-┌─────────────────────────────────────────────┐
-│  ① Scanner 脚本（纯 Python，无 LLM）         │
-│  - TqSdk 拉取所有非僵尸品种 120 日 K 线       │
-│  - 计算 ER / TSI / R² / Hurst / RSI / ADX   │
-│  - 复合趋势强度打分                           │
-│  - 筛选条件过滤 → 有信号的品种才进入下一步     │
-│  - 可选：加载动态因子（--use-dynamic-factors） │
-│  输出 → data/latest_scan.json                │
-└────────────────────┬────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ① 数据采集层（纯 Python）                       │
+│  - TqSdk 拉取所有非僵尸品种 120 日 K 线          │
+│  - 写入本地 DuckDB 数据库（data/market.duckdb）   │
+│  - 增量更新：只拉取新数据，避免重复下载            │
+│  - 降级策略：TqSdk → 通达信 MCP → 本地数据库      │
+└────────────────────┬────────────────────────────┘
+                     │ 数据就绪
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  ② Scanner 脚本（纯 Python，无 LLM）             │
+│  - 从本地数据库读取 K 线数据                      │
+│  - 计算 ER / TSI / R² / Hurst / RSI / ADX       │
+│  - 复合趋势强度打分                               │
+│  - 筛选条件过滤（OR/AND 可配置）                  │
+│  - 可选：加载动态因子（--use-dynamic-factors）     │
+│  输出 → data/latest_scan.json                    │
+└────────────────────┬────────────────────────────┘
                      │ 有信号
                      ▼
-┌─────────────────────────────────────────────┐
-│  ② Reasoner Agent（LLM 推理）                │
-│  - 接收信号 + 市场上下文 + 历史经验           │
-│  - 生成交易决策简报：                         │
-│    市场评估 → 操作方案 → 约束建议 → 置信度    │
-│  - 置信度 < 0.7 时触发 Debater               │
-│  输出 → data/latest_reasoning.json           │
-└────────────────────┬────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ③ Reasoner Agent（LLM 推理）                    │
+│  - 接收信号 + 市场上下文 + 历史经验               │
+│  - 生成交易决策简报：                             │
+│    市场评估 → 操作方案 → 约束建议 → 置信度        │
+│  - 置信度 < 0.7 时触发 Debater                   │
+│  输出 → data/latest_reasoning.json               │
+└────────────────────┬────────────────────────────┘
                      │ 置信度不足
                      ▼
-┌─────────────────────────────────────────────┐
-│  ③ Debater Agent（多角色协作，FinCon 思想）   │
-│  四个角色独立分析后汇总辩论：                  │
-│  - 分析师：技术面（趋势/动量/形态）           │
-│  - 风控官：风险收益比/止损/仓位               │
-│  - 基本面研究员：供需/政策/产业链              │
-│  - 协调者：汇总分歧，修正方案                 │
-│  角色间通过「概念性语言反馈」互相教学          │
-│  输出 → data/latest_debate.json              │
-└────────────────────┬────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ④ Debater Agent（多角色协作，FinCon 思想）       │
+│  四个角色独立分析后汇总辩论：                      │
+│  - 分析师：技术面（趋势/动量/形态）               │
+│  - 风控官：风险收益比/止损/仓位                   │
+│  - 基本面研究员：供需/政策/产业链                  │
+│  - 协调者：汇总分歧，修正方案                     │
+│  角色间通过「概念性语言反馈」互相教学              │
+│  输出 → data/latest_debate.json                  │
+└────────────────────┬────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────┐
-│  ④ Monitor 脚本（纯 Python，每 30 分钟）      │
-│  - 读取持仓数据 config/positions.json         │
-│  - 监控趋势强度下降 / ER 骤降 / RSI 超买     │
-│  - 分级预警：HIGH / MEDIUM / LOW             │
-│  输出 → data/latest_monitor.json             │
-└────────────────────┬────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ⑤ Monitor 脚本（纯 Python，每 30 分钟）          │
+│  - 读取持仓数据 config/positions.json             │
+│  - 从本地数据库获取最新指标                       │
+│  - 监控趋势强度下降 / ER 骤降 / RSI 超买         │
+│  - 分级预警：HIGH / MEDIUM / LOW                 │
+│  输出 → data/latest_monitor.json                 │
+└────────────────────┬────────────────────────────┘
                      │ 交易结束后
                      ▼
-┌─────────────────────────────────────────────┐
-│  ⑤ Evolver Agent（LLM 引导的 RL，GIFT 思想） │
-│  - 轨迹分析：从交易历史提取成功/失败模式      │
-│  - 失败学习：生成「避免规则」                 │
-│  - RL 接口设计：LLM 设计状态空间和奖励函数    │
-│  - 诊断修正：基于回滚诊断优化策略参数          │
-│  - 信念更新：将学习成果写入投资信念库          │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ⑥ Evolver Agent（LLM 引导的 RL，GIFT 思想）     │
+│  - 轨迹分析：从交易历史提取成功/失败模式          │
+│  - 失败学习：生成「避免规则」                     │
+│  - RL 接口设计：LLM 设计状态空间和奖励函数        │
+│  - 诊断修正：基于回滚诊断优化策略参数              │
+│  - 信念更新：将学习成果写入投资信念库              │
+└─────────────────────────────────────────────────┘
+```
+
+### 数据存储架构
+
+```
+┌─────────────────────────────────────────────────┐
+│                 本地数据存储层                     │
+│                                                   │
+│  ┌──────────────────┐  ┌──────────────────┐      │
+│  │  DuckDB           │  │  SQLite           │      │
+│  │  (分析型存储)      │  │  (事务型存储)      │      │
+│  │                    │  │                    │      │
+│  │  - klines          │  │  - experiences     │      │
+│  │    K线时序数据      │  │    交易经验         │      │
+│  │  - indicators      │  │  - strategy_rules  │      │
+│  │    技术指标历史      │  │    策略规则         │      │
+│  │  - factor_library  │  │  - trade_journal   │      │
+│  │    因子库          │  │    交易日志         │      │
+│  │                    │  │  - evolution_log   │      │
+│  │  data/market.db    │  │    进化记录         │      │
+│  │                    │  │                    │      │
+│  │                    │  │  data/memory.db    │      │
+│  └──────────────────┘  └──────────────────┘      │
+└─────────────────────────────────────────────────┘
 ```
 
 ### 数据流
 
 | 阶段 | 输入 | 处理 | 输出 |
 |------|------|------|------|
-| Scanner | TqSdk K 线数据 | 指标计算 + 因子筛选 | `data/latest_scan.json` |
+| 数据采集 | TqSdk API | 增量拉取 + 写入 DuckDB | `data/market.duckdb` |
+| Scanner | 本地 DuckDB | 指标计算 + 因子筛选 | `data/latest_scan.json` |
 | Reasoner | 信号 + 经验库 | LLM 推理 | `data/latest_reasoning.json` |
 | Debater | 决策简报 | 四角色辩论 | `data/latest_debate.json` |
-| Monitor | 持仓数据 | 风险监控 | `data/latest_monitor.json` |
+| Monitor | 持仓 + 本地指标 | 风险监控 | `data/latest_monitor.json` |
 | Evolver | 交易结果 | 轨迹分析 + RL 优化 | 进化报告 |
 
 ### 设计原则
@@ -94,16 +129,24 @@ description: >
 
 **2. 计算用脚本，推理用 Agent** — Scanner/Monitor 是纯 Python 脚本（不调用 LLM），Reasoner/Debater/Evolver 是 LLM Agent
 
-**3. 因子即代码（FactorEngine）** — 因子不是固定公式，而是 LLM 生成的可执行 Python 代码
+**3. 数据本地化** — TqSdk 拉取的数据写入本地 DuckDB，后续计算从本地读取，避免重复 API 调用
 
-**4. 概念性语言反馈（FinCon）** — Agent 间用自然语言反馈互相教学，而非数值奖励
+**4. 因子即代码（FactorEngine）** — 因子不是固定公式，而是 LLM 生成的可执行 Python 代码
 
-**5. RL 接口自设计（GIFT）** — LLM 设计状态空间和奖励函数，选定后固定，测试时不再查询 LLM
+**5. 概念性语言反馈（FinCon）** — Agent 间用自然语言反馈互相教学，而非数值奖励
+
+**6. RL 接口自设计（GIFT）** — LLM 设计状态空间和奖励函数，选定后固定，测试时不再查询 LLM
 
 ## 架构
 
 ```
 Orchestrator Agent（主协调）
+  │
+  ├── 数据采集层
+  │     ├── TqSdk 数据源（首选）
+  │     ├── 通达信 MCP（备选）
+  │     └── 本地 DuckDB（缓存 + 兜底）
+  │
   ├── Scanner 脚本（纯 Python）
   │     ├── 传统技术指标计算
   │     └── 动态因子生成器（LLM 引导）  ← FactorEngine
@@ -121,6 +164,10 @@ Orchestrator Agent（主协调）
   ├── Monitor 脚本（纯 Python）
   │     └── 持仓风险监控
   │
+  ├── 记忆系统
+  │     ├── SQLite（经验/规则/日志）
+  │     └── DuckDB（K线/指标/因子库）
+  │
   └── Evolver Agent（LLM 引导的 RL）  ← GIFT
         ├── 轨迹感知优化器
         ├── 状态空间设计
@@ -130,6 +177,7 @@ Orchestrator Agent（主协调）
 
 ## 特性
 
+- **数据本地化**：TqSdk 数据写入本地 DuckDB，增量更新，离线可用
 - **动态因子生成**：LLM 引导生成可执行因子代码，因子即代码（FactorEngine）
 - **轨迹感知优化**：从交易历史中提取成功/失败模式，生成优化规则
 - **研报知识注入**：研报 → 多 Agent 提取 → 验证 → 可执行因子程序
@@ -138,14 +186,15 @@ Orchestrator Agent（主协调）
 - **概念性语言反馈**：Agent 间用自然语言反馈相互"教学"
 - **心跳监控**：每 5 分钟检查市场状态变化，只在有信号时触发推理
 - **Token 预算**：每日 850K token 预算，三级降级策略
-- **健康检查**：数据源自动降级（TqSdk → 通达信 MCP）
+- **健康检查**：数据源自动降级（TqSdk → 通达信 MCP → 本地数据库）
 
 ## 核心模块
 
 | 模块 | 路径 | 说明 |
 |-----|------|------|
+| 数据源适配器 | `scripts/trend_scanner/data_source.py` | TqSdk/通达信/CSV 统一接口 |
 | 因子生成器 | `scripts/trend_scanner/factor_generator.py` | LLM 引导生成可执行因子代码 |
-| LLM 客户端 | `scripts/trend_scanner/llm_factor_client.py` | 支持 OpenAI/Anthropic/本地/Mock |
+| LLM 客户端 | `scripts/trend_scanner/llm_factor_client.py` | WorkBuddy Mimo/本地/Mock |
 | 因子验证器 | `scripts/trend_scanner/factor_validator.py` | 语法/结构/安全/性能验证 |
 | 因子知识库 | `data/factor_knowledge.json` | 预置+动态因子存储 |
 | 轨迹分析器 | `scripts/trend_scanner/trajectory_analyzer.py` | 失败模式识别/优化规则生成 |
@@ -153,11 +202,15 @@ Orchestrator Agent（主协调）
 | 概念反馈 | `scripts/trend_scanner/conceptual_feedback.py` | 自然语言反馈/信念管理 |
 | 信念传播 | `scripts/trend_scanner/belief_propagation.py` | 信念更新/跨 Agent 传播 |
 | RL 接口设计 | `scripts/trend_scanner/rl_interface_designer.py` | 状态空间/奖励函数/诊断修正 |
+| DuckDB 存储 | `scripts/trend_scanner/memory/duckdb_store.py` | K线/指标/因子库存储 |
+| SQLite 存储 | `scripts/trend_scanner/memory/sqlite_store.py` | 经验/规则/日志存储 |
+| 记忆管理器 | `scripts/trend_scanner/memory/manager.py` | 统一记忆管理 |
 
 ## 工具脚本
 
 | 工具 | 用途 | 脚本 |
 |------|------|------|
+| DataSync | 数据同步 | `tools/data_sync.py` |
 | Scanner | 全品种扫描 | `tools/scan_opportunities.py` |
 | Heartbeat | 心跳监控 | `tools/heartbeat.py` |
 | Monitor | 持仓分析 | `tools/monitor_positions.py` |
@@ -210,14 +263,22 @@ Trend-scanner-Agent/
 │   ├── config.json             # 统一配置
 │   └── positions.json          # 持仓数据
 ├── scripts/trend_scanner/      # 核心计算包
+│   ├── data_source.py          # 数据源适配器
 │   ├── factor_generator.py     # 动态因子生成
-│   ├── llm_factor_client.py    # LLM 客户端抽象层
+│   ├── llm_factor_client.py    # LLM 客户端
 │   ├── factor_validator.py     # 因子验证器
 │   ├── trajectory_analyzer.py  # 轨迹感知优化器
 │   ├── report_parser.py        # 研报知识注入
 │   ├── conceptual_feedback.py  # 概念性语言反馈
 │   ├── belief_propagation.py   # 信念传播
-│   └── rl_interface_designer.py # RL 接口设计
+│   ├── rl_interface_designer.py # RL 接口设计
+│   └── memory/                 # 记忆系统
+│       ├── manager.py          # 统一记忆管理器
+│       ├── sqlite_store.py     # SQLite 存储
+│       ├── duckdb_store.py     # DuckDB 存储
+│       ├── llm_factory.py      # LLM 提供者工厂
+│       ├── retriever.py        # 多路召回检索器
+│       └── evolution.py        # 自优化闭环
 ├── tools/
 │   ├── scan_opportunities.py   # Scanner（支持 --use-dynamic-factors）
 │   ├── monitor_positions.py    # Monitor 持仓风险监控
@@ -239,9 +300,12 @@ Trend-scanner-Agent/
 │   ├── test_multi_debater.py
 │   ├── test_rl_interface.py
 │   ├── test_e2e_pipeline.py
+│   ├── test_memory_system.py
 │   ├── integration/test_full_pipeline.py
 │   └── benchmark/test_performance.py
 ├── data/
+│   ├── market.duckdb           # 本地 K 线数据库（DuckDB）
+│   ├── memory.db               # 记忆系统数据库（SQLite）
 │   ├── factor_knowledge.json   # 因子知识库
 │   ├── latest_scan.json        # 最新扫描结果
 │   ├── latest_reasoning.json   # 最新推理结果
@@ -278,18 +342,29 @@ pip install -r requirements.txt
   "scanner": {
     "symbols": ["SHFE.rb", "DCE.jm", "INE.sc"],
     "signal_filter": {
+      "filter_mode": "or",
       "er_min": 0.6,
       "tsi_min": 20,
       "trend_strength_min": 0.5
     }
+  },
+  "llm": {
+    "provider": "workbuddy",
+    "model": "mimo-v2.5-pro",
+    "base_url": "https://token-plan-cn.xiaomimimo.com/v1",
+    "api_key_env": "WORKBUDDY_API_KEY"
   }
 }
 ```
 
-### 提交持仓
+### 同步数据
 
 ```bash
-python tools/positions_manager.py add --symbol DCE.jm2609 --direction LONG --price 1350
+# 首次运行：从 TqSdk 拉取数据并写入本地数据库
+python tools/data_sync.py --init
+
+# 增量更新：只拉取新数据
+python tools/data_sync.py --update
 ```
 
 ### 运行扫描
@@ -312,9 +387,9 @@ python tools/orchestrator.py full
 
 | 时间 | 任务 | 说明 |
 |------|------|------|
-| 08:40 | 盘前准备 | 全品种扫描 + 输出结果 |
-| 15:20 | 日盘收盘 | 全品种扫描 + 输出总结 |
-| 20:40 | 夜盘开盘 | 全品种扫描 + 输出结果 |
+| 08:40 | 盘前准备 | 数据同步 + 全品种扫描 |
+| 15:20 | 日盘收盘 | 数据同步 + 全品种扫描 + 输出总结 |
+| 20:40 | 夜盘开盘 | 数据同步 + 全品种扫描 |
 
 ### 心跳监控
 
@@ -335,13 +410,19 @@ python tools/orchestrator.py full
 
 ## 数据源
 
-- **首选**：TqSdk（期货实时行情、主力合约）
+- **首选**：TqSdk（期货实时行情、主力合约）→ 写入本地 DuckDB
 - **备选**：通达信 MCP（A股/港股/美股/期货）
+- **缓存**：本地 DuckDB（离线可用，增量更新）
 - **兜底**：本地 CSV
 
 ## 常用命令
 
 ```bash
+# 数据同步
+python tools/data_sync.py --init          # 首次初始化
+python tools/data_sync.py --update        # 增量更新
+python tools/data_sync.py --status        # 查看数据状态
+
 # 健康检查
 python tools/health_check.py check
 python tools/health_check.py report
@@ -406,6 +487,7 @@ python tools/orchestrator.py full
 
 | 方向 | 状态 | 说明 |
 |------|------|------|
+| 数据本地化 | ✅ | DuckDB 存储 K 线/指标/因子库 |
 | 动态因子生成 | ✅ | LLM 生成因子代码 |
 | 轨迹感知优化 | ✅ | 从交易历史提取模式 |
 | 研报知识注入 | ✅ | 研报→因子→验证→入库 |
@@ -413,13 +495,13 @@ python tools/orchestrator.py full
 | RL 接口自设计 | ✅ | LLM 设计状态/奖励 |
 | 集成测试 | ✅ | 154 测试全部通过 |
 | 部署脚本 | ✅ | deploy_v4.sh |
-| 真实 LLM 集成 | ✅ | WorkBuddy Mimo-V2.5-Pro（OpenAI 兼容接口） |
+| 真实 LLM 集成 | ✅ | WorkBuddy Mimo-V2.5-Pro |
 
 ## 与 v1 Skill 的关系
 
 - **共享模块**：`scripts/trend_scanner/` 是核心计算包，v1 和 v4 共用
 - **v1 保留**：原 Skill 继续可用，作为回退方案
-- **v4 增量**：新增动态因子/轨迹分析/研报注入/多角色/RL 接口五个模块
+- **v4 增量**：新增数据本地化/动态因子/轨迹分析/研报注入/多角色/RL 接口
 
 ## 文档
 
