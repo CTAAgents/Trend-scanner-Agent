@@ -1,9 +1,10 @@
 ---
 name: orchestrator
 description: "期货趋势跟踪主协调器 —— 接收用户指令，分发任务，汇总结果"
-version: "1.0.0"
+version: "1.1.0"
 author: "Trend-scanner-Agent"
 created: "2026-06-15"
+updated: "2026-06-15"
 tags: ["trading", "futures", "orchestrator", "agent"]
 ---
 
@@ -14,6 +15,8 @@ tags: ["trading", "futures", "orchestrator", "agent"]
 Orchestrator Agent 是 Trend-scanner-Agent 系统的主协调器。它接收用户自然语言指令，解析意图，分发任务给专业 Agent，汇总结果，生成最终输出。
 
 ## 核心理念
+
+参见 [共享架构文档 - 整体架构](../shared/ARCHITECTURE.md#11-整体架构)
 
 **协调一切，但不做具体工作。**
 
@@ -46,89 +49,50 @@ Orchestrator 是系统的"大脑"，负责：
 
 ### Scanner 信号
 
-```json
-{
-  "scan_time": "2026-06-15T10:30:00",
-  "total_scanned": 30,
-  "signals": [
-    {
-      "symbol": "SHFE.rb2510",
-      "trend_phase": "DEVELOPING",
-      "trend_strength_composite": 0.72,
-      "tsi": 25.3,
-      "er": 0.65,
-      "r_squared": 0.68,
-      "direction": "LONG",
-      "signal_strength": "STRONG",
-      "trigger_reason": "ER>0.6 且 TSI>20 且 趋势发展阶段"
-    }
-  ],
-  "no_signal_symbols": ["DCE.i2510", "CZCE.CF509"]
-}
-```
+参见 [统一数据格式 - 信号格式](../shared/DATA_FORMATS.md#11-信号格式signal)
 
 ### Monitor 预警
 
-```json
-{
-  "monitor_time": "2026-06-15T10:30:00",
-  "positions_monitored": 5,
-  "alerts": [
-    {
-      "symbol": "DCE.jm2609",
-      "type": "TREND_REVERSAL",
-      "severity": "HIGH",
-      "indicators": {
-        "tsi": -15.2,
-        "tsi_prev_high": 28.5,
-        "er": 0.35,
-        "er_prev": 0.62
-      },
-      "trigger_reason": "TSI 顶背离 + ER 骤降"
-    }
-  ],
-  "no_alert_positions": ["DCE.cs2607", "CZCE.CF609"]
-}
-```
+参见 [统一数据格式 - 预警格式](../shared/DATA_FORMATS.md#14-预警格式alert)
 
 ## 输出格式
 
 ### 扫描结果
 
 ```
-📊 黑色系扫描结果
+[扫描结果]
 
 扫描时间: 2026-06-15 10:30
 扫描品种: 30 个
 发现信号: 3 个
 
-🔴 STRONG 信号:
-  • SHFE.rb2510 (LONG) - 趋势发展阶段，ER>0.6，TSI>20
-  • DCE.jm2609 (LONG) - 趋势确认，均线多头排列
+[STRONG] 信号:
+  - SHFE.rb2510 (LONG) - 趋势发展阶段，ER>0.6，TSI>20
+  - DCE.jm2609 (LONG) - 趋势确认，均线多头排列
 
-🟡 MEDIUM 信号:
-  • DCE.i2510 (LONG) - 趋势萌芽，等待确认
+[MEDIUM] 信号:
+  - DCE.i2510 (LONG) - 趋势萌芽，等待确认
 
-⚪ 无信号: 27 个品种
+无信号: 27 个品种
 ```
 
 ### 分析结果
 
 ```
-📈 焦煤 (DCE.jm2609) 分析报告
+[分析报告] 焦煤 (DCE.jm2609)
 
 趋势阶段: 趋势发展 (置信度: 75%)
 当前价格: 1385
 推荐方案: 顺势做多 (置信度: 72%)
 
 操作建议:
-  • 在回调至支撑位时入场做多
-  • 止损: 1320 (ATR 止损)
-  • 仓位: 30% (中等仓位)
+  - 在回调至支撑位时入场做多
+  - 止损: 1320 (ATR 止损)
+  - 仓位: 30% (中等仓位)
 
 风险提示:
-  • RSI 接近超买
-  • 波动率扩张
+  - RSI 接近超买
+  - 波动率扩张
 
 辩论修正: 无 (置信度足够高)
 ```
@@ -136,13 +100,13 @@ Orchestrator 是系统的"大脑"，负责：
 ### 持仓概览
 
 ```
-📋 持仓概览
+[持仓概览]
 
 更新时间: 2026-06-15 15:30
 持仓数量: 5 个
 
 品种        方向    入场价    当前价    盈亏    持仓天数
-──────────────────────────────────────────────────────
+------------------------------------------------------------
 DCE.jm2609  LONG    1350      1385      +2.59%  3
 CZCE.CF609  SHORT   15000     14800     +1.33%  5
 DCE.cs2607  LONG    2800      2850      +1.79%  2
@@ -190,6 +154,8 @@ DCE.y2609   SHORT   8500      8400      +1.18%  4
 
 ## 配置参数
 
+参见 [统一数据格式 - 配置数据格式](../shared/DATA_FORMATS.md#三配置数据格式)
+
 ```json
 {
   "orchestrator": {
@@ -204,10 +170,11 @@ DCE.y2609   SHORT   8500      8400      +1.18%  4
 
 ## 使用方式
 
+参见 [共享章节 - 使用方式](../shared/COMMON_SECTIONS.md#一使用方式)
+
 ### 作为 WorkBuddy Agent
 
 ```python
-# 通过 WorkBuddy Agent 系统调用
 from tools.orchestrator import OrchestratorAgent
 
 agent = OrchestratorAgent()
@@ -230,6 +197,8 @@ python tools/orchestrator.py --scan
 
 ## 依赖模块
 
+参见 [依赖模块文档](../shared/DEPENDENCIES.md)
+
 - `tools/reasoner.py` - Reasoner Agent
 - `tools/debater.py` - Debater Agent
 - `tools/evolver.py` - Evolver Agent
@@ -237,6 +206,8 @@ python tools/orchestrator.py --scan
 - `scripts/trend_scanner/data_source.py` - 数据源
 
 ## 错误处理
+
+参见 [共享章节 - 错误处理](../shared/COMMON_SECTIONS.md#二错误处理)
 
 - **Agent 调用失败**：返回错误信息给用户
 - **数据源不可用**：提示用户检查数据源配置
