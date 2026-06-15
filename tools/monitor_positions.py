@@ -264,8 +264,12 @@ def main():
     elif args.symbols:
         symbols = [s.strip() for s in args.symbols.split(",")]
     
+    print(f"[调试] 品种列表: {symbols}", flush=True)
+    
     # 执行分析
+    print("[调试] 开始执行分析...", flush=True)
     results = monitor_positions(symbols=symbols)
+    print(f"[调试] 分析完成，结果数量: {len(results)}", flush=True)
     
     # 输出结果
     if args.output == "json":
