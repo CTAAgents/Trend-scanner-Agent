@@ -361,12 +361,12 @@ class OrchestratorAgent:
         Returns:
             状态文本
         """
-        lines = ["📊 系统状态", ""]
+        lines = ["[系统状态]", ""]
         
         # 检查数据源
         lines.append("数据源:")
-        lines.append(f"  • TqSdk: {'可用' if self._check_tqsdk() else '不可用'}")
-        lines.append(f"  • CSV: {'可用' if self._check_csv() else '不可用'}")
+        lines.append(f"  - TqSdk: {'可用' if self._check_tqsdk() else '不可用'}")
+        lines.append(f"  - CSV: {'可用' if self._check_csv() else '不可用'}")
         lines.append("")
         
         # 检查配置
@@ -386,9 +386,9 @@ class OrchestratorAgent:
         # 检查 Agent
         lines.append("")
         lines.append("Agent 状态:")
-        lines.append(f"  • Reasoner: {'就绪' if (self.tools_dir / 'reasoner.py').exists() else '未就绪'}")
-        lines.append(f"  • Debater: {'就绪' if (self.tools_dir / 'debater.py').exists() else '未就绪'}")
-        lines.append(f"  • Evolver: {'就绪' if (self.tools_dir / 'evolver.py').exists() else '未就绪'}")
+        lines.append(f"  - Reasoner: {'就绪' if (self.tools_dir / 'reasoner.py').exists() else '未就绪'}")
+        lines.append(f"  - Debater: {'就绪' if (self.tools_dir / 'debater.py').exists() else '未就绪'}")
+        lines.append(f"  - Evolver: {'就绪' if (self.tools_dir / 'evolver.py').exists() else '未就绪'}")
         
         return "\n".join(lines)
     
