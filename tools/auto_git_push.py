@@ -245,4 +245,5 @@ def main():
 
 
 if __name__ == '__main__':
+    print("[调试] 进入 main 函数")
     main()
