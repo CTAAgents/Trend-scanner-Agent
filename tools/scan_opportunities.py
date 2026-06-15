@@ -142,32 +142,29 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any], use_dyn
         tsi_max = signal_filter.get('tsi_max', -20)
         trend_strength_min = signal_filter.get('trend_strength_min', 0.5)
         r2_min = signal_filter.get('r2_min', 0.4)
-        
-        # 多头信号筛选
-        if direction == "LONG":
-            if er < er_min:
-                return None
-            if tsi < tsi_min:
-                return None
-            if trend_strength < trend_strength_min:
-                return None
-            if r_squared < r2_min:
-                return None
-        
-        # 空头信号筛选
-        elif direction == "SHORT":
-            if er < er_min:
-                return None
-            if tsi > tsi_max:
-                return None
-            if trend_strength < trend_strength_min:
-                return None
-            if r_squared < r2_min:
-                return None
+        filter_mode = signal_filter.get('filter_mode', 'or')  # 'and' 或 'or'
         
         # 中性方向不产生信号
-        else:
+        if direction == "NEUTRAL":
             return None
+        
+        # 逐项判断是否达标
+        er_ok = er >= er_min
+        if direction == "LONG":
+            tsi_ok = tsi >= tsi_min
+        else:
+            tsi_ok = tsi <= tsi_max
+        trend_ok = trend_strength >= trend_strength_min
+        r2_ok = r_squared >= r2_min
+        
+        if filter_mode == 'and':
+            # 严格模式：所有条件必须同时满足
+            if not (er_ok and tsi_ok and trend_ok and r2_ok):
+                return None
+        else:
+            # 宽松模式（默认）：任一条件满足即触发推理
+            if not (er_ok or tsi_ok or trend_ok or r2_ok):
+                return None
         
         # 判断趋势阶段
         try:
