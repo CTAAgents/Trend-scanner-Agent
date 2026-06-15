@@ -1,29 +1,50 @@
 # Trend Scanner Agent
 
-推理重于规则的期货趋势跟踪决策辅助系统。
+推理重于规则的期货趋势跟踪决策辅助系统 v4.0。
 
 ## 核心理念
 
-**以人为本，LLM为眼，规则为果。**
+**以人为本，推理为魂，规则为果。**
 
 所有看似"规则"的内容（止损、仓位、入场条件）均由推理层根据当前市场状态动态生成，而非事先写死。
 
-## 架构
+## 架构（v4.0）
 
 ```
 Orchestrator Agent（主协调）
-  ├── Scanner 脚本（纯 Python）→ 条件触发 Reasoner
-  ├── Reasoner Agent（LLM 推理）→ 生成决策简报
-  ├── Debater Agent（self-debate）→ 修正方案
-  ├── Monitor 脚本（纯 Python）→ 条件触发预警
-  └── Evolver Agent（LLM 反思）→ 优化策略
+  ├── Scanner 脚本（纯 Python）
+  │     ├── 传统技术指标计算
+  │     └── 动态因子生成器（LLM 引导）  ← FactorEngine
+  │
+  ├── Reasoner Agent（LLM 推理）
+  │     ├── 市场状态分析
+  │     └── 知识注入（研报、经验）  ← FactorEngine
+  │
+  ├── Debater Agent（多角色协作）  ← FinCon
+  │     ├── 分析师角色
+  │     ├── 基本面研究员角色
+  │     ├── 风控官角色
+  │     └── 概念性语言反馈
+  │
+  ├── Monitor 脚本（纯 Python）
+  │     └── 持仓风险监控
+  │
+  └── Evolver Agent（LLM 引导的 RL）  ← GIFT
+        ├── 轨迹感知优化器
+        ├── 状态空间设计
+        ├── 奖励函数设计
+        └── 诊断引导修正
 ```
 
 ## 特性
 
+- **动态因子生成**：LLM 引导生成可执行因子代码，因子即代码（FactorEngine）
+- **轨迹感知优化**：从交易历史中提取成功/失败模式，生成优化规则
+- **研报知识注入**：研报 → 多 Agent 提取 → 验证 → 可执行因子程序
+- **多角色协作**：分析师/风控官/基本面研究员对抗辩论（FinCon）
+- **RL 接口自设计**：LLM 设计状态空间和奖励函数（GIFT）
+- **概念性语言反馈**：Agent 间用自然语言反馈相互"教学"
 - **心跳监控**：每 5 分钟检查市场状态变化，只在有信号时触发推理
-- **辩论机制**：鹰派/鸽派对抗性推理，修正方案并输出分歧度
-- **经验进化**：从交易结果中学习，自动优化策略参数
 - **Token 预算**：每日 850K token 预算，三级降级策略
 - **健康检查**：数据源自动降级（TqSdk → 通达信 MCP）
 
@@ -34,36 +55,45 @@ Trend-scanner-Agent/
 ├── SOUL.md                     # Agent 灵魂定义
 ├── Agent.md                    # Agent 能力定义
 ├── USER.md                     # 用户偏好
-├── SKILL.md                    # 入口注册
+├── SKILL.md                    # 入口注册（v4.0）
 ├── agents/                     # Agent 定义
 │   ├── orchestrator.md         # 主协调器
 │   ├── reasoner.md             # LLM 推理
-│   ├── debater.md              # 鹰派/鸽派辩论
-│   └── evolver.md              # 经验进化
+│   ├── debater.md              # 多角色协作（v2.0）
+│   └── evolver.md              # RL 接口集成（v2.0）
+├── scripts/trend_scanner/      # 核心计算包
+│   ├── factor_generator.py     # Phase 1: 动态因子生成
+│   ├── llm_factor_client.py    # Phase 1: LLM 客户端
+│   ├── factor_validator.py     # Phase 1: 因子验证器
+│   ├── trajectory_analyzer.py  # Phase 2: 轨迹感知优化器
+│   ├── report_parser.py        # Phase 3: 研报知识注入
+│   ├── conceptual_feedback.py  # Phase 4: 概念性语言反馈
+│   ├── belief_propagation.py   # Phase 4: 信念传播
+│   └── rl_interface_designer.py # Phase 5: RL 接口设计
 ├── tools/                      # 工具脚本
 │   ├── scan_opportunities.py   # Scanner（纯 Python）
-│   ├── heartbeat.py            # 心跳监控（纯 Python）
+│   ├── scan_opportunities_v4.py # Scanner v4（集成动态因子）
+│   ├── heartbeat.py            # 心跳监控
 │   ├── monitor_positions.py    # 持仓分析
-│   ├── run_reasoner.py         # Reasoner 包装
-│   ├── run_debater.py          # Debater 包装
-│   ├── run_evolver.py          # Evolver 包装
-│   ├── orchestrator.py         # Orchestrator 调度
-│   ├── positions_manager.py    # 持仓管理
-│   ├── data_formats.py         # 数据格式
-│   ├── logger.py               # 统一日志
-│   ├── token_budget.py         # Token 预算
-│   └── health_check.py         # 健康检查
-├── scripts/trend_scanner/      # 核心计算包（41 个模块）
+│   └── orchestrator.py         # Orchestrator 调度
+├── tests/                      # 测试套件（116 个测试）
+│   ├── test_factor_generator.py
+│   ├── test_trajectory_analyzer.py
+│   ├── test_report_parser.py
+│   ├── test_multi_debater.py
+│   ├── test_rl_interface.py
+│   ├── integration/test_full_pipeline.py
+│   └── benchmark/test_performance.py
+├── data/
+│   └── factor_knowledge.json   # 因子知识库
 ├── config/                     # 配置文件
 │   ├── config.json             # 统一配置
 │   └── positions.json          # 持仓数据
-├── data/                       # 运行时数据
-├── logs/                       # 日志文件
-├── docs/                       # 文档
-│   ├── ARCHITECTURE.md         # 架构设计
-│   └── OPERATIONS.md           # 运维文档
-├── requirements.txt            # 依赖列表
-└── setup.py                    # 安装配置
+├── docs/
+│   ├── paper_analysis_improvements.md
+│   ├── implementation_plan.md
+│   └── CODE_STYLE.md
+└── memory/                     # 记忆系统
 ```
 
 ## 快速开始
