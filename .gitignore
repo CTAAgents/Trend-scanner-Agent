@@ -7,9 +7,6 @@ dist/
 build/
 venv/
 
-# Data (runtime generated)
-data/
-
 # IDE
 .vscode/
 .idea/

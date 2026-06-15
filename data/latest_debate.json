@@ -1,0 +1,37 @@
+[
+  {
+    "symbol": "DCE.jm2609",
+    "timestamp": "2026-06-15T17:08:23.131588",
+    "debate_triggered": true,
+    "original_brief": {
+      "symbol": "DCE.jm2609",
+      "timestamp": "2026-06-15T16:58:56.874645",
+      "status": "ERROR",
+      "error": "无法获取市场上下文",
+      "routes": [],
+      "recommended_route": "",
+      "warnings": [
+        "数据不足，无法分析"
+      ]
+    },
+    "debate_result": {
+      "hawk_arguments": [],
+      "dove_arguments": [],
+      "synthesis": "",
+      "divergence": 0,
+      "condition_levels": []
+    },
+    "revised_brief": {
+      "symbol": "DCE.jm2609",
+      "timestamp": "2026-06-15T16:58:56.874645",
+      "status": "ERROR",
+      "error": "无法获取市场上下文",
+      "routes": [],
+      "recommended_route": "",
+      "warnings": [
+        "数据不足，无法分析"
+      ]
+    },
+    "revision_summary": ""
+  }
+]

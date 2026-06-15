@@ -1,0 +1,28 @@
+[
+  {
+    "symbol": "DCE.jm2609",
+    "direction": "LONG",
+    "entry_price": 1350,
+    "analysis_time": "2026-06-15T16:33:09.605037",
+    "status": "DATA_INSUFFICIENT",
+    "risk_level": "UNKNOWN",
+    "indicators": {},
+    "alerts": [
+      "数据不足，无法分析"
+    ],
+    "recommendations": []
+  },
+  {
+    "symbol": "CZCE.CF609",
+    "direction": "SHORT",
+    "entry_price": 15000,
+    "analysis_time": "2026-06-15T16:33:09.605037",
+    "status": "DATA_INSUFFICIENT",
+    "risk_level": "UNKNOWN",
+    "indicators": {},
+    "alerts": [
+      "数据不足，无法分析"
+    ],
+    "recommendations": []
+  }
+]

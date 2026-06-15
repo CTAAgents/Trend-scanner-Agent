@@ -1,0 +1,16 @@
+{
+  "trade_count": 1,
+  "consecutive_losses": 0,
+  "cumulative_pnl_pct": 3.5,
+  "last_evolution": null,
+  "evolution_history": [],
+  "trades": [
+    {
+      "symbol": "DCE.jm2609",
+      "result": "profit",
+      "pnl_pct": 3.5,
+      "notes": "焦煤多头，安全检查限产利好",
+      "timestamp": "2026-06-15T15:43:10.875344"
+    }
+  ]
+}

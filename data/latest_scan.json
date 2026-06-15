@@ -1,0 +1,25 @@
+{
+  "scan_time": "2026-06-15T21:46:39.473037",
+  "total_scanned": 17,
+  "signals": [],
+  "no_signal_symbols": [
+    "SHFE.rb",
+    "SHFE.hc",
+    "SHFE.ru",
+    "SHFE.ni",
+    "SHFE.cu",
+    "DCE.jm",
+    "DCE.j",
+    "DCE.i",
+    "DCE.p",
+    "DCE.y",
+    "DCE.cs",
+    "CZCE.CF",
+    "CZCE.SR",
+    "CZCE.TA",
+    "CZCE.MA",
+    "INE.sc",
+    "INE.lu"
+  ],
+  "signal_count": 0
+}

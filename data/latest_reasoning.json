@@ -1,0 +1,38 @@
+[
+  {
+    "symbol": "DCE.jm2609",
+    "direction": "LONG",
+    "confidence": 0.65,
+    "signal_strength": "MEDIUM",
+    "market_assessment": {
+      "trend_phase": "DEVELOPING",
+      "trend_strength": "中强",
+      "key_observations": [
+        "焦煤安全检查限产预期",
+        "焦化利润支撑",
+        "RSI 接近超买"
+      ]
+    },
+    "routes": [
+      {
+        "name": "方案A：顺势做多",
+        "entry": "当前价附近入场",
+        "stop_loss": "前低下方 2ATR",
+        "reasoning": "趋势发展阶段，动量充足"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "止损",
+        "value": "不超过总资金的 2%"
+      }
+    ],
+    "uncertainty": {
+      "level": "MEDIUM",
+      "factors": [
+        "政策风险：安全检查力度不确定",
+        "需求端：下游钢厂采购节奏"
+      ]
+    }
+  }
+]

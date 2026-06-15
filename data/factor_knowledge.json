@@ -1,0 +1,397 @@
+{
+  "factors": [
+    {
+      "id": "factor_001",
+      "name": "动量突破因子",
+      "code": "def factor(df: pd.DataFrame) -> pd.Series:\n    \"\"\"\n    因子名称：动量突破因子\n    因子描述：结合价格动量和成交量放大，捕捉突破信号\n    逻辑：5日收益率 * 成交量比率\n    \n    Args:\n        df: 包含 OHLCV 数据的 DataFrame\n            - open: 开盘价\n            - high: 最高价\n            - low: 最低价\n            - close: 收盘价\n            - volume: 成交量\n        \n    Returns:\n        pd.Series: 因子值，index 与输入 df 相同\n    \"\"\"\n    import pandas as pd\n    \n    # 计算5日收益率\n    returns = df['close'].pct_change(5)\n    \n    # 计算成交量比率\n    volume_ratio = df['volume'] / df['volume'].rolling(20).mean()\n    \n    # 计算因子值\n    factor_value = returns * volume_ratio\n    \n    # 归一化到 [-1, 1] 范围\n    factor_value = factor_value / factor_value.abs().max()\n    \n    return factor_value",
+      "description": "结合价格动量和成交量放大，捕捉突破信号",
+      "logic": "5日收益率 * 成交量比率",
+      "source": "research_report",
+      "performance": {
+        "ic": 0.05,
+        "icir": 1.2,
+        "stability": 0.8,
+        "sharpe": 1.5
+      },
+      "regime_effectiveness": {
+        "trending": 0.9,
+        "ranging": 0.3,
+        "volatile": 0.6
+      },
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 17:00:00"
+    },
+    {
+      "id": "factor_002",
+      "name": "波动率收缩因子",
+      "code": "def factor(df: pd.DataFrame) -> pd.Series:\n    \"\"\"\n    因子名称：波动率收缩因子\n    因子描述：识别波动率收缩后的突破机会\n    逻辑：ATR收缩比率 * 价格突破强度\n    \n    Args:\n        df: 包含 OHLCV 数据的 DataFrame\n        \n    Returns:\n        pd.Series: 因子值，index 与输入 df 相同\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    # 计算 ATR\n    high_low = df['high'] - df['low']\n    high_close = np.abs(df['high'] - df['close'].shift())\n    low_close = np.abs(df['low'] - df['close'].shift())\n    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)\n    atr = true_range.rolling(14).mean()\n    \n    # 计算 ATR 收缩比率\n    atr_ratio = atr / atr.rolling(50).mean()\n    \n    # 计算价格突破强度\n    price_breakout = (df['close'] - df['close'].rolling(20).mean()) / df['close'].rolling(20).std()\n    \n    # 计算因子值\n    factor_value = (1 - atr_ratio) * price_breakout\n    \n    # 归一化\n    factor_value = factor_value / factor_value.abs().max()\n    \n    return factor_value",
+      "description": "识别波动率收缩后的突破机会",
+      "logic": "ATR收缩比率 * 价格突破强度",
+      "source": "market_context",
+      "performance": {
+        "ic": 0.04,
+        "icir": 1.0,
+        "stability": 0.7,
+        "sharpe": 1.2
+      },
+      "regime_effectiveness": {
+        "trending": 0.8,
+        "ranging": 0.5,
+        "volatile": 0.4
+      },
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 17:00:00"
+    },
+    {
+      "id": "factor_003",
+      "name": "RSI超卖反弹因子",
+      "code": "def factor(df: pd.DataFrame) -> pd.Series:\n    \"\"\"\n    因子名称：RSI超卖反弹因子\n    因子描述：捕捉RSI超卖后的反弹机会\n    逻辑：RSI超卖信号 * 成交量确认\n    \n    Args:\n        df: 包含 OHLCV 数据的 DataFrame\n        \n    Returns:\n        pd.Series: 因子值，index 与输入 df 相同\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    # 计算 RSI\n    delta = df['close'].diff()\n    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()\n    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()\n    rs = gain / loss\n    rsi = 100 - (100 / (1 + rs))\n    \n    # RSI 超卖信号\n    oversold_signal = (rsi < 30).astype(int)\n    \n    # 成交量确认\n    volume_confirmation = df['volume'] / df['volume'].rolling(20).mean()\n    \n    # 计算因子值\n    factor_value = oversold_signal * volume_confirmation\n    \n    # 归一化\n    factor_value = factor_value / factor_value.abs().max()\n    \n    return factor_value",
+      "description": "捕捉RSI超卖后的反弹机会",
+      "logic": "RSI超卖信号 * 成交量确认",
+      "source": "market_context",
+      "performance": {
+        "ic": 0.03,
+        "icir": 0.8,
+        "stability": 0.6,
+        "sharpe": 1.0
+      },
+      "regime_effectiveness": {
+        "trending": 0.4,
+        "ranging": 0.8,
+        "volatile": 0.5
+      },
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 17:00:00"
+    },
+    {
+      "id": "factor_004",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:07:55"
+    },
+    {
+      "id": "factor_005",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:07:56"
+    },
+    {
+      "id": "factor_006",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:08:07"
+    },
+    {
+      "id": "factor_007",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:08:07"
+    },
+    {
+      "id": "factor_008",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:11:40"
+    },
+    {
+      "id": "factor_009",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:11:41"
+    },
+    {
+      "id": "factor_010",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:11:55"
+    },
+    {
+      "id": "factor_011",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:11:56"
+    },
+    {
+      "id": "factor_012",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:14:25"
+    },
+    {
+      "id": "factor_013",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:14:25"
+    },
+    {
+      "id": "factor_014",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:14:35"
+    },
+    {
+      "id": "factor_015",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 18:14:35"
+    },
+    {
+      "id": "factor_016",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 21:30:42"
+    },
+    {
+      "id": "factor_017",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 21:30:42"
+    },
+    {
+      "id": "factor_018",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 21:31:13"
+    },
+    {
+      "id": "factor_019",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 21:31:13"
+    },
+    {
+      "id": "factor_020",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 22:38:15"
+    },
+    {
+      "id": "factor_021",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 22:38:15"
+    },
+    {
+      "id": "factor_022",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 22:44:48"
+    },
+    {
+      "id": "factor_023",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 22:44:48"
+    },
+    {
+      "id": "factor_024",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 23:22:25"
+    },
+    {
+      "id": "factor_025",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-15 23:22:25"
+    },
+    {
+      "id": "factor_026",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 05:27:59"
+    },
+    {
+      "id": "factor_027",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 05:27:59"
+    },
+    {
+      "id": "factor_028",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 05:29:25"
+    },
+    {
+      "id": "factor_029",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 05:29:25"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "total_factors": 29,
+    "last_updated": "2026-06-16 05:29:25",
+    "description": "因子知识库，存储和管理生成的因子代码及其性能指标",
+    "factor_types": [
+      "动量因子",
+      "波动率因子",
+      "技术指标因子",
+      "成交量因子",
+      "复合因子"
+    ],
+    "regime_types": [
+      "trending",
+      "ranging",
+      "volatile"
+    ]
+  }
+}
