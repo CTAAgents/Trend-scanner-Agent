@@ -151,9 +151,10 @@ class TestModuleInitialization:
 
     def test_trajectory_analyzer_init(self, sample_trade_records):
         """Phase 2: 轨迹分析器初始化"""
-        analyzer = TrajectoryAnalyzer(trades=sample_trade_records)
+        analyzer = TrajectoryAnalyzer()
+        analyzer.load_trade_history(sample_trade_records)
         assert analyzer is not None
-        assert len(analyzer.trades) == 3
+        assert len(analyzer.trade_history) == 3
 
     def test_report_parser_init(self):
         """Phase 3: 研报解析器初始化"""
