@@ -137,26 +137,57 @@ Orchestrator Agent（主协调）
 | 概念性语言反馈 | Agent 间用自然语言互相教学 | FinCon 思想 |
 | RL 接口自设计 | LLM 设计状态空间和奖励函数 | GIFT 思想 |
 
-### 1.4 LLM 使用策略
+### 1.4 运行方式与 LLM 策略
+
+**系统是自包含的**，核心功能全部在 Python 脚本中实现，不依赖任何宿主平台。
+
+#### 独立运行（推荐）
+
+```bash
+# 直接运行 Python 脚本，通过 LLM_API_KEY 调用大模型
+export LLM_API_KEY=your_api_key
+
+python tools/scan_opportunities.py --output text --save
+python tools/run_reasoner.py --symbol SHFE.rb --output text
+python tools/run_debater.py --output text --save
+python tools/run_evolver.py status
+python tools/orchestrator.py full
+```
+
+| 组件 | 脚本 | LLM 来源 |
+|------|------|----------|
+| Scanner | `tools/scan_opportunities.py` | 纯 Python，不调 LLM |
+| Reasoner | `tools/run_reasoner.py` | `LLM_API_KEY` |
+| Debater | `tools/run_debater.py` | `LLM_API_KEY` |
+| Evolver | `tools/run_evolver.py` | `LLM_API_KEY` |
+| Monitor | `tools/monitor_positions.py` | 纯 Python，不调 LLM |
+
+#### 宿主平台驱动（可选）
+
+宿主平台（WorkBuddy/TRAE/QoderWork/OpenClaw 等）读取 `agents/*.md` 中的提示词，扮演 Agent 角色，使用宿主平台的 LLM 执行推理。此时 `LLM_API_KEY` 仅用于 FactorGenerator。
+
+| 组件 | 脚本/文档 | LLM 来源 |
+|------|----------|----------|
+| Scanner | `tools/scan_opportunities.py` | 纯 Python |
+| Reasoner | `agents/reasoner.md` | 宿主平台 LLM |
+| Debater | `agents/debater.md` | 宿主平台 LLM |
+| Evolver | `agents/evolver.md` | 宿主平台 LLM |
+| FactorGenerator | `scripts/trend_scanner/factor_generator.py` | `LLM_API_KEY` 或规则模式 |
+
+#### LLM 配置
 
 ```
-宿主平台（WorkBuddy/TRAE/QoderWork/OpenClaw/...）
+LLM_API_KEY 环境变量
     │
-    ├── Agent 角色（默认使用宿主平台 LLM）
-    │     ├── Reasoner Agent → 市场推理
-    │     ├── Debater Agent → 多角色辩论
-    │     └── Evolver Agent → 策略进化
+    ├── 已设置 → FactorGenerator 调用自定义 LLM 生成因子
     │
-    └── 直接调用（可选配置）
-          └── FactorGenerator → 因子代码生成
-                │
-                ├── LLM_API_KEY 已设置 → 调用自定义 LLM
-                └── LLM_API_KEY 未设置 → 规则模式（预置因子）
+    └── 未设置 → FactorGenerator 降级为规则模式（预置因子）
 ```
 
-**配置方式**：
-- **不配置**：系统开箱即用，Agent 角色由宿主平台 LLM 驱动
-- **配置 LLM_API_KEY**：FactorGenerator 使用自定义 LLM 生成因子代码
+| 场景 | 配置 |
+|------|------|
+| 独立运行 | 设置 `LLM_API_KEY` |
+| 宿主平台驱动 | 可选，不设置则 FactorGenerator 用规则模式 |
 
 ---
 
