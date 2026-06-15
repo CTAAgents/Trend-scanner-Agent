@@ -238,12 +238,26 @@ def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_m
     scanner_config = config.get("scanner", {})
     signal_filter = get_signal_filter()
     
-    # 获取品种列表
+    # 获取数据源
+    data_source = DataSourceFactory.create()
+    
+    # 获取品种列表：优先从数据源获取全部主力合约，其次从配置读取
     if symbols is None:
-        symbols = scanner_config.get("symbols", [])
+        # 尝试从数据源获取全部主力合约
+        try:
+            all_contracts = data_source.get_main_contracts()
+            if all_contracts:
+                symbols = all_contracts
+                print(f"从数据源获取 {len(symbols)} 个主力合约")
+            else:
+                symbols = scanner_config.get("symbols", [])
+                print(f"数据源无合约，从配置读取 {len(symbols)} 个品种")
+        except Exception as e:
+            symbols = scanner_config.get("symbols", [])
+            print(f"获取合约列表失败({e})，从配置读取 {len(symbols)} 个品种")
     
     if not symbols:
-        print("错误: 未配置扫描品种列表", file=sys.stderr)
+        print("错误: 未配置扫描品种列表且数据源无可用合约", file=sys.stderr)
         return create_scan_result(0, [])
     
     # 获取数据源
