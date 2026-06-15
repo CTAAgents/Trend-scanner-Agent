@@ -167,6 +167,28 @@ class TradeJournal:
         self.entries.append(entry)
         return entry
 
+    def log_analysis(self, record: Dict[str, Any]):
+        """
+        记录分析结果（由 EvolutionManager 调用）
+
+        参数:
+            record: 分析记录字典
+        """
+        entry = TradeJournalEntry(
+            entry_id=f"ANL-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            trade_id=record.get('trade_id', ''),
+            symbol=record.get('symbol', 'UNKNOWN'),
+            category='analysis',
+            summary=f"{record.get('symbol', '')} 分析记录",
+            details=json.dumps(record, ensure_ascii=False, default=str),
+            suggested_action='',
+            priority='low',
+            tags=['analysis'],
+            metadata=record
+        )
+        self.entries.append(entry)
+        return entry
+
     def _determine_category(self, trade, fault_attribution: Dict[str, Any] = None) -> EntryCategory:
         """确定日志分类"""
         if trade.pnl > 0:
