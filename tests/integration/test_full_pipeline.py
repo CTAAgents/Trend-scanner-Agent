@@ -222,7 +222,8 @@ class TestPhase2TrajectoryAnalysis:
 
     def test_analyze_returns_complete_report(self, sample_trade_records):
         """轨迹分析返回完整报告"""
-        analyzer = TrajectoryAnalyzer(trades=sample_trade_records)
+        analyzer = TrajectoryAnalyzer()
+        analyzer.load_trade_history(sample_trade_records)
         report = analyzer.analyze()
 
         assert "summary" in report
@@ -233,7 +234,8 @@ class TestPhase2TrajectoryAnalysis:
 
     def test_analyze_summary_accuracy(self, sample_trade_records):
         """轨迹分析摘要统计正确"""
-        analyzer = TrajectoryAnalyzer(trades=sample_trade_records)
+        analyzer = TrajectoryAnalyzer()
+        analyzer.load_trade_history(sample_trade_records)
         report = analyzer.analyze()
 
         summary = report["summary"]
@@ -243,7 +245,8 @@ class TestPhase2TrajectoryAnalysis:
 
     def test_analyze_identifies_failure_patterns(self, sample_trade_records):
         """轨迹分析能识别失败模式"""
-        analyzer = TrajectoryAnalyzer(trades=sample_trade_records)
+        analyzer = TrajectoryAnalyzer()
+        analyzer.load_trade_history(sample_trade_records)
         report = analyzer.analyze()
 
         failure = report["failure_analysis"]
