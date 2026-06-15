@@ -670,13 +670,18 @@ LLM 设计 → 奖励函数（收益/风险/交易成本/...）
 
 **文件**：`scripts/trend_scanner/llm_factor_client.py`
 
-| 提供者 | 类 | 模型 | 用途 |
-|--------|-----|------|------|
-| WorkBuddy | `WorkBuddyClient` | Mimo-V2.5-Pro | 生产环境（默认） |
-| OpenAI | `OpenAIClient` | GPT-4 | 备选 |
-| Mock | `MockLLMClient` | 无 | 测试/降级 |
+**设计原则**：系统优先使用宿主平台（WorkBuddy/TRAE/QoderWork）的大模型驱动 Agent 推理，用户也可通过 `LLM_API_KEY` 环境变量配置自己的大模型。
 
-**降级策略**：API 不可用时自动降级到 MockLLMClient。
+| 提供者 | 类 | 用途 |
+|--------|-----|------|
+| Auto | `create_llm_client("auto")` | 自动检测（默认） |
+| OpenAI 兼容 | `WorkBuddyClient` | 支持任意 OpenAI 兼容 API |
+| Anthropic | `AnthropicClient` | Claude 系列 |
+| 本地 | `LocalLLMClient` | Ollama 等本地模型 |
+
+**降级策略**：
+- 未设置 `LLM_API_KEY` → FactorGenerator 降级为规则模式（使用预置因子）
+- Reasoner/Debater/Evolver 由宿主平台 Agent 驱动，不依赖 `LLM_API_KEY`
 
 ---
 
@@ -782,6 +787,8 @@ pip install -r requirements.txt
 # 配置环境变量
 export TQ_USER=your_username
 export TQ_PASSWORD=your_password
+
+# 可选：配置自定义 LLM（不设置则使用宿主平台的 LLM）
 export LLM_API_KEY=your_api_key
 
 # 运行扫描
