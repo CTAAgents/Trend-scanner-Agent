@@ -10,7 +10,15 @@
       "CZCE.CF", "CZCE.SR", "CZCE.TA", "CZCE.MA",
       "INE.sc", "INE.lu"
     ],
-    "schedule": ["08:50", "10:25", "13:25", "14:55", "20:55", "22:00"],
+    "schedule": ["08:40", "15:20", "20:40"],
+    "heartbeat": {
+      "enabled": true,
+      "interval_minutes": 5,
+      "trading_hours": {
+        "day_session": ["09:00-11:30", "13:30-15:00"],
+        "night_session": ["21:00-23:00"]
+      }
+    },
     "signal_filter": {
       "er_min": 0.6,
       "tsi_min": 20,
