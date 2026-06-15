@@ -868,14 +868,13 @@ def create_llm_client(provider: str = "workbuddy", **kwargs) -> LLMClient:
 
 class WorkBuddyClient(LLMClient):
     """
-    WorkBuddy 内置 LLM 客户端
+    LLM 客户端（OpenAI 兼容接口）
     
-    使用 WorkBuddy 平台配置的 LLM（Mimo-V2.5-Pro），
-    通过 OpenAI 兼容接口调用。
+    通过 OpenAI 兼容接口调用大模型，支持任意兼容服务商。
     
     环境变量：
-        WORKBUDDY_API_KEY: API 密钥（可选，默认从配置读取）
-        WORKBUDDY_BASE_URL: API 端点（可选，默认使用国内端点）
+        LLM_API_KEY: API 密钥（必需）
+        LLM_BASE_URL: API 端点（可选，默认使用配置文件中的 base_url）
     """
     
     DEFAULT_BASE_URL = "https://token-plan-cn.xiaomimimo.com/v1"
@@ -883,16 +882,16 @@ class WorkBuddyClient(LLMClient):
     
     def __init__(self, api_key: str = None, model: str = None, base_url: str = None):
         """
-        初始化 WorkBuddy LLM 客户端
+        初始化 LLM 客户端
         
         Args:
             api_key: API 密钥
             model: 模型名称
             base_url: API 端点
         """
-        self.api_key = api_key or os.getenv("WORKBUDDY_API_KEY")
+        self.api_key = api_key or os.getenv("LLM_API_KEY")
         self.model = model or self.DEFAULT_MODEL
-        self.base_url = base_url or os.getenv("WORKBUDDY_BASE_URL", self.DEFAULT_BASE_URL)
+        self.base_url = base_url or os.getenv("LLM_BASE_URL", self.DEFAULT_BASE_URL)
         
         if not self.api_key:
             raise ValueError(
