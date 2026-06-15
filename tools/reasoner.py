@@ -124,18 +124,11 @@ class ReasonerAgent:
                 print(f"[警告] {symbol} 数据不足", flush=True)
                 return None
             
-            # 计算指标
-            engine = IndicatorEngine(df)
-            engine.compute_all()
-            composite = engine.get_trend_strength_composite()
-            engine.df['trend_strength_composite'] = composite
+            # 动态创建 ContextAssembler
+            context_assembler = ContextAssembler(symbol=symbol)
             
             # 组装上下文
-            context = self.context_assembler.assemble(
-                symbol=symbol,
-                df=engine.df,
-                direction=direction
-            )
+            context = context_assembler.assemble(df=df)
             
             return context
             
