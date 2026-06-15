@@ -36,6 +36,7 @@ from .sqlite_store import SQLiteStore
 from .duckdb_store import DuckDBStore
 from .vector_store import VectorStore
 from .llm_factory import LLMProviderFactory, LLMProvider
+from .retriever import MultiPathRetriever, SimilarityCalculator
 
 
 class UnifiedMemoryManager:
