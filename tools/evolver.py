@@ -112,23 +112,30 @@ class EvolverAgent:
                 user_notes=feedback.get('user_notes', '')
             )
             
-            # 执行进化
-            evolution_result = self.evolution_manager.process_feedback(
+            # 记录反馈（使用 EvolutionManager 的 record_feedback 方法）
+            experience = self.evolution_manager.record_feedback(
                 feedback=user_feedback,
-                brief=feedback.get('brief_at_entry'),
-                context=feedback.get('market_context_at_entry')
+                context=feedback.get('market_context_at_entry'),
+                brief=feedback.get('brief_at_entry')
             )
             
             # 构建结果
             result = {
                 'symbol': symbol,
                 'timestamp': datetime.now().isoformat(),
-                'evolution_report': evolution_result,
+                'evolution_report': {
+                    'experience_id': experience.experience_id if experience else '',
+                    'symbol': symbol,
+                    'pnl_pct': feedback.get('pnl_pct', 0),
+                    'holding_days': feedback.get('holding_days', 0),
+                    'exit_reason': feedback.get('exit_reason', ''),
+                    'status': 'recorded'
+                },
                 'experience_saved': True,
-                'experience_id': evolution_result.get('experience_id', '')
+                'experience_id': experience.experience_id if experience else ''
             }
             
-            print(f"[Evolver] {symbol} 进化完成", flush=True)
+            print(f"[Evolver] {symbol} 反馈记录完成", flush=True)
             return result
             
         except Exception as e:
