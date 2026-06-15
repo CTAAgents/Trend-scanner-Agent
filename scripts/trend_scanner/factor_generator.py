@@ -126,6 +126,57 @@ class FactorGenerator:
         
         return result
     
+    def _generate_factor_by_rules(self, market_context: str) -> FactorResult:
+        """
+        规则模式生成因子（LLM 不可用时的降级方案）
+        
+        从因子知识库中选择最匹配当前市场上下文的预置因子。
+        
+        Args:
+            market_context: 市场上下文
+            
+        Returns:
+            FactorResult: 因子生成结果
+        """
+        # 从知识库中选择因子
+        factors = self.factor_knowledge.get('factors', [])
+        
+        if not factors:
+            # 知识库为空，返回默认动量因子
+            default_code = '''def factor(df):
+    """默认动量因子：5日收益率"""
+    import pandas as pd
+    returns = df['close'].pct_change(5)
+    return returns.fillna(0)
+'''
+            return FactorResult(
+                code=default_code,
+                metadata={'name': '默认动量因子', 'source': 'rule_fallback'},
+                validation={'is_valid': True, 'errors': []},
+                source='rule_mode'
+            )
+        
+        # 简单匹配：选择第一个可用因子
+        selected = factors[0]
+        factor_code = selected.get('code', '')
+        
+        if not factor_code:
+            raise ValueError("因子知识库中无可用因子代码")
+        
+        # 验证因子代码
+        validation_result = self._validate_factor(factor_code)
+        
+        return FactorResult(
+            code=factor_code,
+            metadata={
+                'name': selected.get('name', '未知因子'),
+                'description': selected.get('description', ''),
+                'source': 'knowledge_base'
+            },
+            validation=validation_result,
+            source='rule_mode'
+        )
+    
     def _build_generation_prompt(self, market_context: str, research_report: str = None) -> str:
         """
         构建因子生成 prompt

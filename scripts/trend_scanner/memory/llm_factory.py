@@ -219,9 +219,12 @@ class WorkBuddyProvider(LLMProvider):
     
     def generate(self, prompt: str, **kwargs) -> str:
         if not self._client:
-            raise RuntimeError(
-                "LLM 客户端未初始化。请设置环境变量 LLM_API_KEY。"
-            )
+            # LLM 未配置时返回降级响应（由宿主平台的 Agent 驱动推理）
+            return json.dumps({
+                "status": "llm_not_configured",
+                "message": "LLM 未配置，推理由宿主平台 Agent 驱动",
+                "suggestion": "如需直接调用 LLM，请设置环境变量 LLM_API_KEY"
+            }, ensure_ascii=False)
         try:
             response = self._client.chat.completions.create(
                 model=self._model,
@@ -238,9 +241,11 @@ class WorkBuddyProvider(LLMProvider):
     
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         if not self._client:
-            raise RuntimeError(
-                "LLM 客户端未初始化。请设置环境变量 LLM_API_KEY。"
-            )
+            # LLM 未配置时返回降级响应
+            return json.dumps({
+                "status": "llm_not_configured",
+                "message": "LLM 未配置，推理由宿主平台 Agent 驱动"
+            }, ensure_ascii=False)
         try:
             response = self._client.chat.completions.create(
                 model=self._model,
