@@ -188,22 +188,67 @@ class LocalLLMProvider(LLMProvider):
 
 
 class WorkBuddyProvider(LLMProvider):
-    """WorkBuddy Agent 提供者（默认）"""
+    """
+    WorkBuddy 内置 LLM 提供者（默认）
     
-    def __init__(self, model: str = "default"):
-        self._model = model
+    使用 WorkBuddy 平台配置的 LLM（Mimo-V2.5-Pro），
+    通过 OpenAI 兼容接口调用。
+    
+    环境变量：
+        WORKBUDDY_API_KEY: API 密钥
+        WORKBUDDY_BASE_URL: API 端点（可选）
+    """
+    
+    DEFAULT_BASE_URL = "https://token-plan-cn.xiaomimimo.com/v1"
+    DEFAULT_MODEL = "mimo-v2.5-pro"
+    
+    def __init__(self, api_key: str = None, model: str = None, base_url: str = None):
+        self._api_key = api_key or os.getenv("WORKBUDDY_API_KEY")
+        self._model = model or os.getenv("WORKBUDDY_MODEL", self.DEFAULT_MODEL)
+        self._base_url = base_url or os.getenv("WORKBUDDY_BASE_URL", self.DEFAULT_BASE_URL)
+        self._client = None
+        
+        if self._api_key:
+            try:
+                import openai
+                self._client = openai.OpenAI(
+                    api_key=self._api_key,
+                    base_url=self._base_url
+                )
+            except ImportError:
+                pass
     
     def generate(self, prompt: str, **kwargs) -> str:
-        # 在 WorkBuddy 环境中，这个调用会被 Agent 系统处理
-        # 这里提供一个 fallback 实现
-        return self._fallback(prompt)
+        if self._client:
+            try:
+                response = self._client.chat.completions.create(
+                    model=self._model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=kwargs.get('temperature', 0.3),
+                    max_tokens=kwargs.get('max_tokens', 2000)
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                return self._fallback(prompt, str(e))
+        return self._fallback(prompt, "API key 未配置")
     
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # 合并消息为单个 prompt
+        if self._client:
+            try:
+                response = self._client.chat.completions.create(
+                    model=self._model,
+                    messages=messages,
+                    temperature=kwargs.get('temperature', 0.3),
+                    max_tokens=kwargs.get('max_tokens', 2000)
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+                return self._fallback(prompt, str(e))
         prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
-        return self.generate(prompt, **kwargs)
+        return self._fallback(prompt, "API key 未配置")
     
-    def _fallback(self, prompt: str) -> str:
+    def _fallback(self, prompt: str, reason: str = "LLM 不可用") -> str:
         """降级响应"""
         return json.dumps({
             "routes": [{
@@ -211,9 +256,9 @@ class WorkBuddyProvider(LLMProvider):
                 "name": "观望等待",
                 "action": "暂不操作，等待更明确的信号",
                 "confidence": 0.5,
-                "reasoning": "LLM 不可用，使用规则退化建议"
+                "reasoning": f"LLM 不可用（{reason}），使用规则退化建议"
             }],
-            "warnings": ["当前使用规则退化模式"]
+            "warnings": [f"当前使用规则退化模式: {reason}"]
         }, ensure_ascii=False)
     
     @property
