@@ -437,6 +437,18 @@ def main():
         result = fetch_kline(args.symbol, args.days, args.period)
     elif args.action == 'quote':
         result = fetch_quote(args.symbol)
+    elif args.action == 'symbols':
+        result = fetch_all_symbols()
+    elif args.action == 'quotes_batch':
+        if not args.symbols:
+            result = {
+                'success': False,
+                'error': 'quotes_batch 需要 --symbols 参数',
+                'data': None
+            }
+        else:
+            tq_symbols = [s.strip() for s in args.symbols.split(',')]
+            result = fetch_quotes_batch(tq_symbols)
     else:
         result = {
             'success': False,
