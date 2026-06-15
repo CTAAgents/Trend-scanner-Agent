@@ -76,6 +76,9 @@ class FactorGenerator:
         """
         生成可执行的因子代码
         
+        当 LLM 客户端可用时，调用 LLM 生成因子代码。
+        当 LLM 客户端不可用时，降级为规则模式（使用预置因子）。
+        
         Args:
             market_context: 市场上下文，描述当前市场状态
             research_report: 研报内容，可选
@@ -85,13 +88,15 @@ class FactorGenerator:
         """
         logger.info(f"开始生成因子，市场上下文长度: {len(market_context)}")
         
+        # LLM 客户端不可用时，降级为规则模式
+        if self.llm_client is None:
+            logger.info("LLM 客户端未配置，使用规则模式（预置因子）")
+            return self._generate_factor_by_rules(market_context)
+        
         # 1. 构建 prompt
         prompt = self._build_generation_prompt(market_context, research_report)
         
         # 2. 调用 LLM 生成因子代码
-        if self.llm_client is None:
-            raise ValueError("LLM 客户端未初始化")
-        
         factor_code = self.llm_client.generate(prompt)
         
         # 3. 提取因子代码（从 markdown 代码块中提取）
