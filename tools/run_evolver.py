@@ -174,6 +174,44 @@ def run_evolution(trigger_reason: str = "手动触发", memory_bridge=None):
     
     recent_trades = trades[-20:] if len(trades) > 20 else trades
     
+    # 策略健康度评估
+    try:
+        from trend_scanner.strategy_health import StrategyHealthChecker
+        health_checker = StrategyHealthChecker()
+        health_result = health_checker.check(trades, lookback=50)
+        print(f"\n策略健康度: {health_result['health_score']}/100 ({health_result['status']})")
+        if health_result.get('deductions'):
+            for d in health_result['deductions']:
+                print(f"  - {d}")
+        print(f"  建议: {health_result['recommendation']}")
+        
+        # 检查是否应该退休
+        retire_result = health_checker.should_retire(trades)
+        if retire_result['should_retire']:
+            print(f"\n⚠️ 策略退休警告:")
+            for r in retire_result['reasons']:
+                print(f"  - {r}")
+    except Exception as e:
+        print(f"  [警告] 策略健康度评估失败: {e}")
+        health_result = None
+    
+    # 过拟合检测
+    try:
+        from trend_scanner.overfitting_detector import OverfittingDetector
+        detector = OverfittingDetector()
+        returns = [t.get('pnl_pct', 0) for t in trades]
+        if len(returns) >= 20:
+            overfit_result = detector.comprehensive_check(returns)
+            print(f"\n过拟合检测: {overfit_result['verdict']} (风险: {overfit_result['risk_level']})")
+            if overfit_result.get('reasons'):
+                for r in overfit_result['reasons']:
+                    print(f"  - {r}")
+        else:
+            overfit_result = None
+    except Exception as e:
+        print(f"  [警告] 过拟合检测失败: {e}")
+        overfit_result = None
+    
     # 分析交易结果
     win_count = sum(1 for t in recent_trades if t.get('result') == 'profit')
     loss_count = sum(1 for t in recent_trades if t.get('result') == 'loss')

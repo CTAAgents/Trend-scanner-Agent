@@ -277,6 +277,17 @@ def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_m
     scanner_config = config.get("scanner", {})
     signal_filter = get_signal_filter()
     
+    # 宏观状态检测（可选）
+    macro_state = None
+    try:
+        from trend_scanner.macro_state import MacroStateDetector
+        macro_detector = MacroStateDetector()
+        macro_state = macro_detector.detect()
+        print(f"宏观状态: {macro_state['cycle']['name']} | {macro_state['liquidity']['name']} | {macro_state['risk_appetite']['name']}")
+        print(f"  策略权重: 趋势={macro_state['strategy_weights']['trend_following']:.0%} 均值回归={macro_state['strategy_weights']['mean_reversion']:.0%}")
+    except Exception as e:
+        print(f"宏观状态检测跳过: {e}")
+    
     # 获取数据源
     data_source = DataSourceFactory.create()
     
