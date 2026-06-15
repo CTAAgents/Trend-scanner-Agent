@@ -26,6 +26,7 @@ from .sqlite_store import SQLiteStore
 from .duckdb_store import DuckDBStore
 from .vector_store import VectorStore
 from .llm_factory import LLMProviderFactory, LLMProvider
+from .retriever import MultiPathRetriever, SimilarityCalculator
 
 __all__ = [
     'UnifiedMemoryManager',
@@ -33,5 +34,7 @@ __all__ = [
     'DuckDBStore',
     'VectorStore',
     'LLMProviderFactory',
-    'LLMProvider'
+    'LLMProvider',
+    'MultiPathRetriever',
+    'SimilarityCalculator'
 ]
