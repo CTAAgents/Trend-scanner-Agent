@@ -195,6 +195,39 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any], use_dyn
         
         trigger_reason = " 或 ".join(reasons) + f" [mode={filter_mode}, 满足{met_count}/4项]"
         
+        # 计算建议仓位和止损
+        position_info = {}
+        stop_loss_info = {}
+        try:
+            from trend_scanner.position_sizer import PositionSizer
+            sizer = PositionSizer()
+            atr = float(latest.get('atr', 0))
+            volatility = atr / max(float(latest.get('close', 1)), 1) if atr > 0 else 0.15
+            position_info = sizer.calculate(
+                trend_strength=trend_strength,
+                volatility=volatility
+            )
+        except Exception as e:
+            logger.debug(f"仓位计算失败: {e}")
+        
+        try:
+            from trend_scanner.stop_loss import StopLossCalculator
+            stop_calc = StopLossCalculator()
+            atr = float(latest.get('atr', 0))
+            if atr > 0:
+                stop_price = stop_calc.atr_stop(
+                    entry_price=float(latest.get('close', 0)),
+                    atr=atr,
+                    direction=direction
+                )
+                stop_loss_info = {
+                    'stop_price': round(stop_price, 2),
+                    'atr_multiplier': 2.5,
+                    'risk_points': round(abs(float(latest.get('close', 0)) - stop_price), 2)
+                }
+        except Exception as e:
+            logger.debug(f"止损计算失败: {e}")
+        
         signal = create_signal(
             symbol=symbol,
             trend_phase=phase_str,
@@ -213,6 +246,12 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any], use_dyn
         # 附加动态因子值
         if dynamic_factor_values:
             signal['dynamic_factors'] = dynamic_factor_values
+        
+        # 附加仓位和止损建议
+        if position_info:
+            signal['position_suggestion'] = position_info
+        if stop_loss_info:
+            signal['stop_loss'] = stop_loss_info
         
         return signal
     
