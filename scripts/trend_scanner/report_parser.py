@@ -307,7 +307,7 @@ class ReportParser:
             return 'technical'
         
         # 宏观相关
-        macro_keywords = ['宏观', '经济', 'GDP', 'CPI', '利率', '汇率']
+        macro_keywords = ['宏观', '经济', 'gdp', 'cpi', '利率', '汇率']
         if any(keyword in viewpoint_lower for keyword in macro_keywords):
             return 'macro'
         
