@@ -147,12 +147,13 @@ def record_feedback(symbol: str, result: str, pnl_pct: float, notes: str = "", m
         run_evolution(trigger_reason, memory_bridge=memory_bridge)
 
 
-def run_evolution(trigger_reason: str = "手动触发"):
+def run_evolution(trigger_reason: str = "手动触发", memory_bridge=None):
     """
     执行进化流程
     
     参数:
         trigger_reason: 触发原因
+        memory_bridge: MemoryBridge 实例（可选）
     """
     state = load_evolution_state()
     
@@ -160,8 +161,17 @@ def run_evolution(trigger_reason: str = "手动触发"):
     print(f"触发原因: {trigger_reason}")
     print(f"分析样本: {state.get('trade_count', 0)} 笔交易")
     
-    # 获取最近的交易记录
+    # 获取最近的交易记录（优先从记忆系统获取）
     trades = state.get('trades', [])
+    if memory_bridge:
+        try:
+            memory_trades = memory_bridge.get_trade_history(n=50)
+            if memory_trades:
+                trades = memory_trades
+                print(f"  [从记忆系统获取 {len(trades)} 笔交易]")
+        except Exception as e:
+            print(f"  [警告] 从记忆系统获取交易失败: {e}")
+    
     recent_trades = trades[-20:] if len(trades) > 20 else trades
     
     # 分析交易结果
