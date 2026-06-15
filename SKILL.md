@@ -397,7 +397,7 @@ python tools/orchestrator.py full
 | RL 接口自设计 | ✅ | LLM 设计状态/奖励 |
 | 集成测试 | ✅ | 154 测试全部通过 |
 | 部署脚本 | ✅ | deploy_v4.sh |
-| 真实 LLM 集成 | 待实施 | 当前使用 Mock/规则模式 |
+| 真实 LLM 集成 | ✅ | WorkBuddy Mimo-V2.5-Pro（OpenAI 兼容接口） |
 
 ## 与 v1 Skill 的关系
 
