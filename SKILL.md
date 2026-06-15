@@ -8,7 +8,7 @@ description: >
 
 # 趋势跟踪 Agent
 
-> 版本：v4.0.0 | 状态：开发中
+> 版本：v4.0.0 | 状态：已完成
 > 核心思想来源：FactorEngine、FinCon、GIFT 三篇论文
 
 ## 定位

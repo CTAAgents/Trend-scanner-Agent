@@ -78,7 +78,7 @@ class DataSource(ABC):
 
 
 class TqSdkSource(DataSource):
-    """TqSdk 数据源"""
+    """TqSdk 数据源（使用桥接器解决 sys.exit 问题）"""
     
     # 主力合约映射
     MAIN_CONTRACT_MAP = {
@@ -136,153 +136,43 @@ class TqSdkSource(DataSource):
     }
     
     def __init__(self):
-        self._api = None
-        self._auth = None
+        self._bridge = None
         self._initialize()
     
     def _initialize(self):
-        """初始化 TqSdk"""
+        """初始化 TqSdk 桥接器"""
         try:
-            from tqsdk import TqApi, TqAuth
-            
-            tq_user = os.environ.get('TQ_USER', '')
-            tq_password = os.environ.get('TQ_PASSWORD', '')
-            
-            if tq_user and tq_password:
-                self._auth = TqAuth(tq_user, tq_password)
+            from .tqsdk_bridge import TqSdkBridge
+            self._bridge = TqSdkBridge()
         except ImportError:
             pass
     
     def is_available(self) -> bool:
         """检查 TqSdk 是否可用"""
-        return self._auth is not None
-    
-    def _get_tq_symbol(self, symbol: str) -> str:
-        """转换为 TqSdk 格式的合约代码"""
-        symbol = symbol.upper()
-        
-        # 如果已经是 TqSdk 格式
-        if '@' in symbol:
-            return symbol
-        
-        # 尝试从映射中获取
-        if symbol in self.MAIN_CONTRACT_MAP:
-            return self.MAIN_CONTRACT_MAP[symbol]
-        
-        # 尝试作为直接合约代码
-        # 例如 "rb2510" -> "SHFE.rb2510"
-        if len(symbol) >= 4:
-            # 尝试推断交易所
-            code = symbol.lower()
-            if code.startswith('rb') or code.startswith('hc'):
-                return f"SHFE.{code}"
-            elif code.startswith('i') or code.startswith('j') or code.startswith('jm'):
-                return f"DCE.{code}"
-            elif code.startswith('cu') or code.startswith('al') or code.startswith('zn'):
-                return f"SHFE.{code}"
-            elif code.startswith('au') or code.startswith('ag'):
-                return f"SHFE.{code}"
-            elif code.startswith('sc'):
-                return f"INE.{code}"
-        
-        # 默认返回
-        return symbol
+        if self._bridge is None:
+            return False
+        return self._bridge.is_available()
     
     def get_kline(self, symbol: str, days: int = 120, period: str = "daily") -> Optional[pd.DataFrame]:
-        """获取K线数据"""
+        """获取K线数据（使用桥接器）"""
         if not self.is_available():
             return None
         
         try:
-            from tqsdk import TqApi
-            
-            tq_symbol = self._get_tq_symbol(symbol)
-            
-            # 周期映射
-            period_map = {
-                'daily': 86400,
-                '1h': 3600,
-                '15m': 900,
-                '5m': 300,
-                '1m': 60,
-            }
-            dur_sec = period_map.get(period, 86400)
-            
-            # 不使用 with 语句，手动管理生命周期
-            api = None
-            try:
-                api = TqApi(auth=self._auth, disable_print=True)
-                klines = api.get_kline_serial(tq_symbol, dur_sec, data_length=days)
-                api.wait_update()
-                
-                if klines is None or len(klines) == 0:
-                    return None
-                
-                # 转换为标准格式
-                df = pd.DataFrame({
-                    'date': pd.to_datetime(klines['datetime'], unit='ns'),
-                    'open': klines['open'],
-                    'high': klines['high'],
-                    'low': klines['low'],
-                    'close': klines['close'],
-                    'volume': klines['volume'],
-                    'open_interest': klines['close_oi'],
-                })
-                
-                # 去除无效数据
-                df = df.dropna()
-                df = df[df['close'] > 0]
-                
-                return df
-            finally:
-                # 确保关闭 API
-                if api is not None:
-                    try:
-                        api.close()
-                    except:
-                        pass
-                
-        except SystemExit as e:
-            # TqSdk 可能会调用 sys.exit()，捕获并返回 None
-            print(f"[警告] TqSdk sys.exit: {e}", flush=True)
-            return None
+            return self._bridge.get_kline(symbol, days, period)
         except Exception as e:
             print(f"[错误] TqSdk 获取K线失败: {e}", flush=True)
             return None
     
     def get_quote(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """获取实时行情"""
+        """获取实时行情（使用桥接器）"""
         if not self.is_available():
             return None
         
         try:
-            from tqsdk import TqApi
-            
-            tq_symbol = self._get_tq_symbol(symbol)
-            
-            with TqApi(auth=self._auth) as api:
-                quote = api.get_quote(tq_symbol)
-                api.wait_update()
-                
-                return {
-                    'symbol': symbol,
-                    'last_price': getattr(quote, 'last_price', 0),
-                    'open_interest': getattr(quote, 'open_interest', 0),
-                    'volume': getattr(quote, 'volume', 0),
-                    'bid_price1': getattr(quote, 'bid_price1', 0),
-                    'ask_price1': getattr(quote, 'ask_price1', 0),
-                    'highest': getattr(quote, 'highest', 0),
-                    'lowest': getattr(quote, 'lowest', 0),
-                    'pre_close': getattr(quote, 'pre_close', 0),
-                    'datetime': getattr(quote, 'datetime', ''),
-                }
-                
-        except SystemExit as e:
-            # TqSdk 可能会调用 sys.exit()，捕获并返回 None
-            print(f"TqSdk sys.exit: {e}")
-            return None
+            return self._bridge.get_quote(symbol)
         except Exception as e:
-            print(f"TqSdk 获取行情失败: {e}")
+            print(f"[错误] TqSdk 获取行情失败: {e}", flush=True)
             return None
     
     def get_main_contracts(self, exchange: str = None) -> List[str]:
