@@ -154,6 +154,22 @@ Orchestrator Agent（主协调）
 | 信念传播 | `scripts/trend_scanner/belief_propagation.py` | 信念更新/跨 Agent 传播 |
 | RL 接口设计 | `scripts/trend_scanner/rl_interface_designer.py` | 状态空间/奖励函数/诊断修正 |
 
+## 工具脚本
+
+| 工具 | 用途 | 脚本 |
+|------|------|------|
+| Scanner | 全品种扫描 | `tools/scan_opportunities.py` |
+| Heartbeat | 心跳监控 | `tools/heartbeat.py` |
+| Monitor | 持仓分析 | `tools/monitor_positions.py` |
+| Reasoner | LLM 推理 | `tools/run_reasoner.py` |
+| Debater | 辩论修正 | `tools/run_debater.py` |
+| Evolver | 经验进化 | `tools/run_evolver.py` |
+| Orchestrator | 主协调 | `tools/orchestrator.py` |
+| Positions | 持仓管理 | `tools/positions_manager.py` |
+| TokenBudget | Token 预算 | `tools/token_budget.py` |
+| HealthCheck | 健康检查 | `tools/health_check.py` |
+| Deploy | 部署验证 | `tools/deploy_v4.sh` |
+
 ## 技术指标
 
 7 维趋势强度指标：
