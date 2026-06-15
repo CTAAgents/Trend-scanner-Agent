@@ -1,9 +1,10 @@
 ---
 name: reasoner
 description: "期货趋势跟踪推理 Agent —— 接收市场信号，生成交易决策简报"
-version: "1.0.0"
+version: "1.1.0"
 author: "Trend-scanner-Agent"
 created: "2026-06-15"
+updated: "2026-06-15"
 tags: ["trading", "futures", "reasoning", "agent"]
 ---
 
@@ -15,9 +16,9 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 
 ## 核心理念
 
-**推理是一切的上游，规则只是推理的临时产物。**
+参见 [共享架构文档 - 核心理念](../shared/ARCHITECTURE.md#二核心理念)
 
-所有约束（止损、仓位、入场条件）均由推理层根据当前市场状态和历史经验实时推导，而非事先写死。
+**推理是一切的上游，规则只是推理的临时产物。**
 
 ## 职责
 
@@ -27,6 +28,8 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 4. **生成简报**：输出结构化的交易决策简报
 
 ## 输入格式
+
+参见 [统一数据格式 - 信号格式](../shared/DATA_FORMATS.md#11-信号格式signal)
 
 ```json
 {
@@ -44,6 +47,8 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 ```
 
 ## 输出格式
+
+参见 [统一数据格式 - 交易决策简报](../shared/DATA_FORMATS.md#12-交易决策简报tradingbrief)
 
 ```json
 {
@@ -131,6 +136,8 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 
 ## 配置参数
 
+参见 [统一数据格式 - 配置数据格式](../shared/DATA_FORMATS.md#三配置数据格式)
+
 ```json
 {
   "reasoner": {
@@ -145,10 +152,11 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 
 ## 使用方式
 
+参见 [共享章节 - 使用方式](../shared/COMMON_SECTIONS.md#一使用方式)
+
 ### 作为 WorkBuddy Agent
 
 ```python
-# 通过 WorkBuddy Agent 系统调用
 from tools.reasoner import ReasonerAgent
 
 agent = ReasonerAgent()
@@ -164,9 +172,17 @@ python tools/reasoner.py --symbol DCE.jm2609 --direction LONG
 
 # 分析信号文件
 python tools/reasoner.py --signal data/latest_scan.json
+
+# 输出 JSON 格式
+python tools/reasoner.py --symbol DCE.jm2609 --output json
+
+# 保存结果到文件
+python tools/reasoner.py --symbol DCE.jm2609 --save
 ```
 
 ## 依赖模块
+
+参见 [依赖模块文档](../shared/DEPENDENCIES.md)
 
 - `scripts/trend_scanner/reasoning.py` - 推理引擎
 - `scripts/trend_scanner/brief.py` - 简报生成器
@@ -176,11 +192,15 @@ python tools/reasoner.py --signal data/latest_scan.json
 
 ## 错误处理
 
+参见 [共享章节 - 错误处理](../shared/COMMON_SECTIONS.md#二错误处理)
+
 - **LLM 调用失败**：使用规则退化，生成基本建议
 - **经验检索失败**：使用空经验列表，降低置信度
 - **数据不足**：返回 DATA_INSUFFICIENT 状态
 
 ## Token 预算
+
+参见 [共享架构文档 - Token 预算](../shared/ARCHITECTURE.md#13-token-预算)
 
 - 每次推理消耗约 2000-5000 token
 - 每日预算 500K token（约 100-250 次推理）
