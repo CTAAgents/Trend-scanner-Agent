@@ -194,6 +194,7 @@ Orchestrator Agent（主协调）
 | 模块 | 路径 | 说明 |
 |-----|------|------|
 | 数据源适配器 | `scripts/trend_scanner/data_source.py` | TqSdk/通达信/CSV 统一接口 |
+| 记忆桥接器 | `scripts/trend_scanner/memory_bridge.py` | Scanner/Reasoner/Evolver 集成接口 |
 | 因子生成器 | `scripts/trend_scanner/factor_generator.py` | LLM 引导生成可执行因子代码 |
 | LLM 客户端 | `scripts/trend_scanner/llm_factor_client.py` | WorkBuddy Mimo/本地/Mock |
 | 因子验证器 | `scripts/trend_scanner/factor_validator.py` | 语法/结构/安全/性能验证 |
@@ -265,6 +266,7 @@ Trend-scanner-Agent/
 │   └── positions.json          # 持仓数据
 ├── scripts/trend_scanner/      # 核心计算包
 │   ├── data_source.py          # 数据源适配器
+│   ├── memory_bridge.py        # 记忆系统集成桥接器
 │   ├── factor_generator.py     # 动态因子生成
 │   ├── llm_factor_client.py    # LLM 客户端
 │   ├── factor_validator.py     # 因子验证器
