@@ -428,13 +428,13 @@ def main():
     # 执行操作
     if args.status:
         result = agent.get_status()
-        print(result)
+        print(result.encode('utf-8', errors='replace').decode('utf-8'))
     elif args.scan:
         result = agent.process_user_input("扫描")
-        print(result)
+        print(result.encode('utf-8', errors='replace').decode('utf-8'))
     elif args.input:
         result = agent.process_user_input(args.input)
-        print(result)
+        print(result.encode('utf-8', errors='replace').decode('utf-8'))
     else:
         print("[错误] 请指定 --input, --status 或 --scan", flush=True)
         sys.exit(1)
