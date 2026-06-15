@@ -204,13 +204,23 @@ class EvolverAgent:
             进化历史
         """
         try:
-            history = self.evolution_manager.get_evolution_history()
-            statistics = self.evolution_manager.get_statistics()
+            # EvolutionManager 没有 get_evolution_history 方法
+            # 使用经验记忆池获取历史经验
+            experiences = self.evolution_manager.experience_memory.get_all_experiences()
             
             return {
                 'timestamp': datetime.now().isoformat(),
-                'history': history,
-                'statistics': statistics
+                'experiences': [
+                    {
+                        'experience_id': exp.experience_id,
+                        'symbol': exp.symbol,
+                        'pnl_pct': exp.pnl_pct,
+                        'holding_days': exp.holding_days,
+                        'timestamp': exp.timestamp
+                    }
+                    for exp in experiences
+                ] if experiences else [],
+                'total_count': len(experiences) if experiences else 0
             }
             
         except Exception as e:
