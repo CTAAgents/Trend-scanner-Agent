@@ -51,9 +51,19 @@
   },
 
   "reasoner": {
-    "llm_type": "workbuddy_agent",
+    "llm_type": "workbuddy",
     "debate_trigger_confidence": 0.7,
     "max_tokens_per_day": 500000
+  },
+
+  "llm": {
+    "provider": "workbuddy",
+    "model": "mimo-v2.5-pro",
+    "base_url": "https://token-plan-cn.xiaomimimo.com/v1",
+    "api_key_env": "WORKBUDDY_API_KEY",
+    "temperature": 0.7,
+    "max_tokens": 2000,
+    "fallback_provider": "mock"
   },
 
   "debater": {
