@@ -234,7 +234,7 @@ class PositionMonitor:
                     'tsi_prev_high': tsi_prev_high,
                     'er': er
                 },
-                'trigger_reason': f'TSI 顶背离：当前 TSI={tsi:.1f}，前期高点={tssi_prev_high:.1f}',
+                'trigger_reason': f'TSI 顶背离：当前 TSI={tsi:.1f}，前期高点={tsi_prev_high:.1f}',
                 'pnl_pct': pnl_pct
             })
         elif direction == 'SHORT' and tsi > 20 and indicators.get('tsi_prev_low', 0) < -20:
