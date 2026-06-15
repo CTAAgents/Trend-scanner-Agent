@@ -328,6 +328,10 @@ def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_m
         no_signal_symbols=no_signal_symbols
     )
     
+    # 附加宏观状态到扫描结果
+    if macro_state:
+        scan_result['macro_state'] = macro_state
+    
     # 存储到记忆系统
     if use_memory:
         try:
