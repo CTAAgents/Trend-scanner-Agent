@@ -24,6 +24,7 @@ from trend_scanner.data_source import DataSourceFactory
 from trend_scanner.indicators import IndicatorEngine
 from trend_scanner.market_analysis import MultiIndicatorConsensus, TrendPhaseDetector
 from trend_scanner.models import MarketContext
+from trend_scanner.factor_generator import FactorGenerator
 
 # 导入数据格式工具
 from data_formats import (
