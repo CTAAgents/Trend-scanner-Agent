@@ -14,6 +14,7 @@
 import json
 import logging
 import re
+import pandas as pd
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from pathlib import Path
