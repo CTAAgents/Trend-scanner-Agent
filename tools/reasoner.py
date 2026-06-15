@@ -69,7 +69,8 @@ class ReasonerAgent:
         self.experience_memory = ExperienceMemory(
             db_path=self.config.get('experience_db_path', 'evolution.db')
         )
-        self.context_assembler = ContextAssembler()
+        # ContextAssembler 需要 symbol 参数，在 analyze 时动态创建
+        self.context_assembler = None
         
         # 数据源
         self.data_source = None
