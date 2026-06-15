@@ -69,6 +69,8 @@ def analyze_position(pos: Dict[str, Any], data_source) -> Dict[str, Any]:
     entry_price = pos.get('entry_price', 0)
     data_symbol = normalize_symbol(symbol)
     
+    print(f"[调试] analyze_position 开始: {symbol} -> {data_symbol}", flush=True)
+    
     result = {
         'symbol': symbol,
         'direction': direction,
@@ -83,7 +85,9 @@ def analyze_position(pos: Dict[str, Any], data_source) -> Dict[str, Any]:
     
     try:
         # 获取数据
+        print(f"[调试] 获取K线数据: {data_symbol}", flush=True)
         df = data_source.get_kline(data_symbol, days=120)
+        print(f"[调试] K线数据获取完成，长度: {len(df) if df is not None else 0}", flush=True)
         if df is None or len(df) < 60:
             result['status'] = 'DATA_INSUFFICIENT'
             result['alerts'].append('数据不足，无法分析')
