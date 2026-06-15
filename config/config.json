@@ -10,7 +10,7 @@
       "CZCE.CF", "CZCE.SR", "CZCE.TA", "CZCE.MA",
       "INE.sc", "INE.lu"
     ],
-    "schedule": ["09:15", "09:30", "10:30", "13:30", "14:30", "15:15"],
+    "schedule": ["08:50", "10:25", "13:25", "14:55", "20:55", "22:00"],
     "signal_filter": {
       "er_min": 0.6,
       "tsi_min": 20,
