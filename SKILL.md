@@ -807,6 +807,11 @@ Trend-scanner-Agent/
 │   ├── conceptual_feedback.py  # 概念性语言反馈
 │   ├── belief_propagation.py   # 信念传播
 │   ├── rl_interface_designer.py # RL 接口设计
+│   ├── position_sizer.py       # 仓位管理（凯利/风险平价/自适应）
+│   ├── stop_loss.py            # 动态止损（ATR/移动/波动率调整）
+│   ├── strategy_health.py      # 策略健康度评估
+│   ├── macro_state.py          # 宏观状态集成
+│   ├── overfitting_detector.py # 过拟合检测（蒙特卡洛/参数敏感性）
 │   └── memory/                 # 记忆系统
 │       ├── manager.py          # 统一记忆管理器
 │       ├── sqlite_store.py     # SQLite 存储
