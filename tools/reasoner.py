@@ -76,20 +76,9 @@ class ReasonerAgent:
         self.data_source = None
     
     def _init_data_source(self):
-        """初始化数据源（先尝试 CSV，避免 TqSdk 的 sys.exit 问题）"""
+        """初始化数据源（TqSDK > 通达信MCP > CSV）"""
         if self.data_source is None:
-            try:
-                self.data_source = CsvSource()
-                if not self.data_source.is_available():
-                    self.data_source = None
-            except:
-                pass
-            
-            if self.data_source is None:
-                try:
-                    self.data_source = DataSourceFactory.create()
-                except:
-                    pass
+            self.data_source = DataSourceFactory.create()
         
         return self.data_source
     

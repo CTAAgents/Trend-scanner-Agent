@@ -82,20 +82,8 @@ def analyze_position(pos: Dict[str, Any], data_source) -> Dict[str, Any]:
     }
     
     try:
-        # 获取数据（先尝试 CSV，避免 TqSdk 的 sys.exit 问题）
-        df = None
-        try:
-            csv_source = CsvSource()
-            df = csv_source.get_kline(data_symbol, days=120)
-        except Exception as e:
-            pass
-        
-        # 如果 CSV 没有数据，尝试 TqSdk
-        if df is None or len(df) < 60:
-            try:
-                df = data_source.get_kline(data_symbol, days=120)
-            except Exception as e:
-                print(f"[错误] 获取 {data_symbol} 数据失败: {e}", flush=True)
+        # 获取数据
+        df = data_source.get_kline(data_symbol, days=120)
         
         if df is None or len(df) < 60:
             result['status'] = 'DATA_INSUFFICIENT'
