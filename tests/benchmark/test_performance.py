@@ -447,7 +447,18 @@ class TestFactorGeneratorPerformance:
         """
         start = time.time()
         try:
-            gen = FactorGenerator()
+            # 尝试从环境变量创建 LLM 客户端
+            import os
+            from scripts.trend_scanner.llm_factor_client import create_llm_client
+            
+            llm_client = None
+            if os.getenv("WORKBUDDY_API_KEY"):
+                try:
+                    llm_client = create_llm_client("workbuddy")
+                except Exception:
+                    pass
+            
+            gen = FactorGenerator(llm_client=llm_client)
             result = gen.generate_factor("焦煤市场处于上升趋势，安全检查限产")
             elapsed = time.time() - start
             assert elapsed < 5.0, f"因子生成耗时 {elapsed:.2f}s，超过 5s 阈值"
