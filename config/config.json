@@ -20,6 +20,7 @@
       }
     },
     "signal_filter": {
+      "filter_mode": "or",
       "er_min": 0.6,
       "tsi_min": 20,
       "tsi_max": -20,

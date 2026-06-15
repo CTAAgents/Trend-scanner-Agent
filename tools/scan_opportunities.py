@@ -174,25 +174,26 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any], use_dyn
             phase_str = 'UNKNOWN'
         
         # 判断信号强度
-        if er > 0.7 and abs(tsi) > 30 and trend_strength > 0.7:
+        met_count = sum([er_ok, tsi_ok, trend_ok, r2_ok])
+        if met_count >= 4:
             signal_strength = "STRONG"
-        elif er > 0.6 and abs(tsi) > 20:
+        elif met_count >= 2:
             signal_strength = "MEDIUM"
         else:
             signal_strength = "WEAK"
         
         # 生成触发原因
         reasons = []
-        if er >= er_min:
+        if er_ok:
             reasons.append(f"ER={er:.2f}>={er_min}")
-        if abs(tsi) >= abs(tsi_min if direction == "LONG" else tsi_max):
+        if tsi_ok:
             reasons.append(f"TSI={tsi:.1f}")
-        if trend_strength >= trend_strength_min:
+        if trend_ok:
             reasons.append(f"趋势强度={trend_strength:.2f}")
-        if r_squared >= r2_min:
+        if r2_ok:
             reasons.append(f"R²={r_squared:.2f}")
         
-        trigger_reason = " 且 ".join(reasons)
+        trigger_reason = " 或 ".join(reasons) + f" [mode={filter_mode}, 满足{met_count}/4项]"
         
         signal = create_signal(
             symbol=symbol,
