@@ -58,38 +58,38 @@ def tmp_knowledge_file(tmp_path):
 
 @pytest.fixture
 def sample_trade_records():
-    """示例交易记录"""
+    """示例交易记录（字典格式，供 TrajectoryAnalyzer.load_trade_history 使用）"""
     return [
-        TradeRecord(
-            trade_id="T001", symbol="DCE.jm2609", direction="LONG",
-            entry_price=1500.0, exit_price=1560.0,
-            entry_time="2026-06-01T09:00:00", exit_time="2026-06-03T15:00:00",
-            pnl=60.0, pnl_percent=4.0, holding_period=2,
-            market_state="trending", trend_phase="DEVELOPING", volatility="medium",
-            er=0.7, tsi=0.6, rsi=55.0, adx=32.0,
-            max_drawdown=0.02, sharpe_ratio=1.5,
-            failure_reason=None
-        ),
-        TradeRecord(
-            trade_id="T002", symbol="DCE.y2609", direction="SHORT",
-            entry_price=8200.0, exit_price=8350.0,
-            entry_time="2026-06-04T09:00:00", exit_time="2026-06-05T15:00:00",
-            pnl=-150.0, pnl_percent=-1.83, holding_period=1,
-            market_state="volatile", trend_phase="EXHAUSTING", volatility="high",
-            er=0.3, tsi=-0.2, rsi=65.0, adx=18.0,
-            max_drawdown=0.05, sharpe_ratio=-0.8,
-            failure_reason="入场时机偏早，趋势尚未确立"
-        ),
-        TradeRecord(
-            trade_id="T003", symbol="CZCE.CF609", direction="SHORT",
-            entry_price=14800.0, exit_price=14500.0,
-            entry_time="2026-06-06T09:00:00", exit_time="2026-06-10T15:00:00",
-            pnl=300.0, pnl_percent=2.03, holding_period=4,
-            market_state="trending", trend_phase="MATURE", volatility="low",
-            er=0.8, tsi=-0.5, rsi=35.0, adx=38.0,
-            max_drawdown=0.01, sharpe_ratio=2.1,
-            failure_reason=None
-        ),
+        {
+            "trade_id": "T001", "symbol": "DCE.jm2609", "direction": "LONG",
+            "entry_price": 1500.0, "exit_price": 1560.0,
+            "entry_time": "2026-06-01T09:00:00", "exit_time": "2026-06-03T15:00:00",
+            "pnl": 60.0, "pnl_percent": 4.0, "holding_period": 2,
+            "market_state": "trending", "trend_phase": "DEVELOPING", "volatility": "medium",
+            "er": 0.7, "tsi": 0.6, "rsi": 55.0, "adx": 32.0,
+            "max_drawdown": 0.02, "sharpe_ratio": 1.5,
+            "failure_reason": None
+        },
+        {
+            "trade_id": "T002", "symbol": "DCE.y2609", "direction": "SHORT",
+            "entry_price": 8200.0, "exit_price": 8350.0,
+            "entry_time": "2026-06-04T09:00:00", "exit_time": "2026-06-05T15:00:00",
+            "pnl": -150.0, "pnl_percent": -1.83, "holding_period": 1,
+            "market_state": "volatile", "trend_phase": "EXHAUSTING", "volatility": "high",
+            "er": 0.3, "tsi": -0.2, "rsi": 65.0, "adx": 18.0,
+            "max_drawdown": 0.05, "sharpe_ratio": -0.8,
+            "failure_reason": "入场时机偏早，趋势尚未确立"
+        },
+        {
+            "trade_id": "T003", "symbol": "CZCE.CF609", "direction": "SHORT",
+            "entry_price": 14800.0, "exit_price": 14500.0,
+            "entry_time": "2026-06-06T09:00:00", "exit_time": "2026-06-10T15:00:00",
+            "pnl": 300.0, "pnl_percent": 2.03, "holding_period": 4,
+            "market_state": "trending", "trend_phase": "MATURE", "volatility": "low",
+            "er": 0.8, "tsi": -0.5, "rsi": 35.0, "adx": 38.0,
+            "max_drawdown": 0.01, "sharpe_ratio": 2.1,
+            "failure_reason": None
+        },
     ]
 
 
