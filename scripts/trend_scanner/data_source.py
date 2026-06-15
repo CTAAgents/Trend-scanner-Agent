@@ -500,9 +500,9 @@ def get_quote(symbol: str, source: str = "auto") -> Optional[Dict[str, Any]]:
     return ds.get_quote(symbol)
 
 
-def get_active_symbols(min_oi: int = 10000) -> Dict[str, Dict]:
+def get_active_symbols(min_oi: int = 10000, source: str = "auto") -> Dict[str, Dict]:
     """便捷函数：获取活跃品种"""
-    ds = DataSourceFactory.create("tqsdk")
-    if isinstance(ds, TqSdkSource):
+    ds = DataSourceFactory.create(source)
+    if hasattr(ds, 'get_active_symbols'):
         return ds.get_active_symbols(min_oi)
     return {}
