@@ -400,39 +400,61 @@ class CsvSource(DataSource):
 
 
 class DataSourceFactory:
-    """数据源工厂"""
+    """数据源工厂（单例模式，全局共享一个数据源连接）"""
+    
+    _instance: Optional[DataSource] = None
+    _source_type: str = "auto"
     
     @staticmethod
-    def create(source: str = "auto") -> DataSource:
+    def create(source: str = "auto", force_new: bool = False) -> DataSource:
         """
-        创建数据源
+        创建或获取数据源（单例模式）
         
         参数:
             source: 数据源类型
                 - "auto": 自动选择（优先 TqSdk）
                 - "tqsdk": TqSdk
                 - "csv": 本地CSV
+            force_new: 强制创建新实例（用于测试或连接重置）
                 
         返回:
-            DataSource 实例
+            DataSource 实例（全局共享）
         """
+        # 如果已有实例且类型匹配且不强制新建，直接返回
+        if DataSourceFactory._instance is not None and not force_new:
+            if source == DataSourceFactory._source_type or source == "auto":
+                return DataSourceFactory._instance
+        
+        # 创建新实例
         if source == "auto":
-            # 优先尝试 TqSdk
             tqsdk = TqSdkSource()
             if tqsdk.is_available():
-                return tqsdk
-            
-            # 回退到 CSV
-            return CsvSource()
-        
+                DataSourceFactory._instance = tqsdk
+                DataSourceFactory._source_type = "tqsdk"
+            else:
+                DataSourceFactory._instance = CsvSource()
+                DataSourceFactory._source_type = "csv"
         elif source == "tqsdk":
-            return TqSdkSource()
-        
+            DataSourceFactory._instance = TqSdkSource()
+            DataSourceFactory._source_type = "tqsdk"
         elif source == "csv":
-            return CsvSource()
-        
+            DataSourceFactory._instance = CsvSource()
+            DataSourceFactory._source_type = "csv"
         else:
             raise ValueError(f"不支持的数据源类型: {source}")
+        
+        return DataSourceFactory._instance
+    
+    @staticmethod
+    def reset():
+        """重置单例（用于测试）"""
+        DataSourceFactory._instance = None
+        DataSourceFactory._source_type = "auto"
+    
+    @staticmethod
+    def get_source_type() -> str:
+        """获取当前数据源类型"""
+        return DataSourceFactory._source_type
 
 
 # 便捷函数

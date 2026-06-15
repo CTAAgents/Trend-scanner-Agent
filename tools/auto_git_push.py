@@ -207,7 +207,7 @@ def main():
         
         args = parser.parse_args()
         
-        print(f"[调试] 参数: debounce={args.debounce}, branch={args.branch}, path={args.path}")
+        print(f"[DEBUG] Args: debounce={args.debounce}, branch={args.branch}, path={args.path}")
     except Exception as e:
         print(f"[错误] 参数解析失败: {e}")
         sys.exit(1)
