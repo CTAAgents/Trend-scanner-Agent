@@ -19,10 +19,16 @@
       "economic_rationale": "单纯的趋势距离（EMA20-EMA60）在不同品种间不可比，除以 ATR 后可以跨品种比较趋势强度",
       "source": "preset",
       "category": "momentum",
-      "status": "pending",
-      "evaluation": {},
+      "status": "discarded",
+      "evaluation": {
+        "icir": -0.05788340355937012,
+        "ic_positive_pct": 0.5094339622641509,
+        "t_stat": -0.5959461143487652,
+        "long_short_sharpe": 0.338758754210401,
+        "ic_days": 106
+      },
       "created_at": "2026-06-16T11:40:14.949222",
-      "updated_at": "2026-06-16T11:40:14.949222"
+      "updated_at": "2026-06-16T12:18:25.219278"
     },
     {
       "name": "volume_breakout",
@@ -69,8 +75,9 @@
       "composite": 1
     },
     "statuses": {
-      "pending": 5
+      "pending": 4,
+      "discarded": 1
     }
   },
-  "updated_at": "2026-06-16T11:40:14.953220"
+  "updated_at": "2026-06-16T12:18:26.371614"
 }
