@@ -185,11 +185,10 @@ class FactorExecutor:
 
         for symbol, df in kline_data.items():
             try:
-                # 确保日期索引
+                # 使用原始数据的索引（不归一化，保持与 evaluator 一致）
                 if 'date' in df.columns:
                     df = df.set_index('date')
                 df = df.copy()
-                df.index = pd.to_datetime(df.index).normalize()
 
                 # 执行因子
                 values = factor_fn(df)

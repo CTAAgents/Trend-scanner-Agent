@@ -1,8 +1,8 @@
 {
-  "evolution_time": "2026-06-16T11:25:47.645056",
+  "evolution_time": "2026-06-16T11:27:02.946058",
   "total_rounds": 3,
   "total_candidates": 15,
-  "duration_seconds": 2.768404245376587,
+  "duration_seconds": 2.394618272781372,
   "status": "max_rounds",
   "promoted_factors": [],
   "rounds": [
@@ -151,7 +151,7 @@
         "volume_price_corr",
         "rsi_14d"
       ],
-      "timestamp": "2026-06-16T11:25:45.138501"
+      "timestamp": "2026-06-16T11:27:00.812289"
     },
     {
       "round_num": 2,
@@ -181,7 +181,7 @@
       "decisions": [],
       "promoted": [],
       "eliminated": [],
-      "timestamp": "2026-06-16T11:25:46.745575"
+      "timestamp": "2026-06-16T11:27:02.245463"
     },
     {
       "round_num": 3,
@@ -211,7 +211,7 @@
       "decisions": [],
       "promoted": [],
       "eliminated": [],
-      "timestamp": "2026-06-16T11:25:47.148342"
+      "timestamp": "2026-06-16T11:27:02.588267"
     }
   ],
   "feedback_history": [
