@@ -1,26 +1,26 @@
 [
   {
     "symbol": "JM",
+    "contract": "jm2609",
     "direction": "LONG",
-    "entry_price": 1343.00,
-    "entry_date": "2026-06-10",
-    "position_size": 0.15,
-    "notes": "焦煤多头"
-  },
-  {
-    "symbol": "AO",
-    "direction": "LONG",
-    "entry_price": 2907.00,
-    "entry_date": "2026-06-10",
-    "position_size": 0.15,
-    "notes": "氧化铝多头"
+    "entry_price": 1347.5,
+    "position_size": 5,
+    "notes": "焦煤多头5手"
   },
   {
     "symbol": "HC",
+    "contract": "hc2610",
     "direction": "LONG",
-    "entry_price": 3382.00,
-    "entry_date": "2026-06-10",
-    "position_size": 0.15,
-    "notes": "热卷多头"
+    "entry_price": 3400,
+    "position_size": 10,
+    "notes": "热卷多头10手"
+  },
+  {
+    "symbol": "AO",
+    "contract": "ao2609",
+    "direction": "LONG",
+    "entry_price": 2932,
+    "position_size": 5,
+    "notes": "氧化铝多头5手"
   }
 ]
