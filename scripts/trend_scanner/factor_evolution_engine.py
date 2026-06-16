@@ -140,6 +140,8 @@ class FactorEvolutionEngine:
             kline_data = self.evaluator._kline_data
         else:
             self.evaluator.set_data(kline_data)
+            # 使用 evaluator 处理后的数据（日期已归一化）
+            kline_data = self.evaluator._kline_data
 
         # 迭代进化
         for round_num in range(1, max_rounds + 1):
