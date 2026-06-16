@@ -308,6 +308,14 @@ class LLMProviderFactory:
             env_var = api_key[2:-1]
             api_key = os.environ.get(env_var, '')
         
+        # 支持auto模式：优先使用workbuddy，其次尝试openai
+        if provider == 'auto':
+            # 如果有api_key，尝试使用openai
+            if api_key:
+                provider = 'openai'
+            else:
+                provider = 'workbuddy'
+        
         if provider == 'openai':
             return OpenAIProvider(
                 api_key=api_key,
