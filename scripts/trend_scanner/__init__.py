@@ -419,7 +419,7 @@ __all__ = [
     "ReportParser",
     # 信念传播与概念性反馈
     "BeliefPropagationManager",
-    "ConceptualFeedbackManager",
+    "ConceptualFeedbackGenerator",
     # RL 接口设计
     "RLInterfaceDesigner",
     # 执行引擎

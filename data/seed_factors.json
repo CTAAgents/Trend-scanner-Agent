@@ -67,10 +67,16 @@
       "economic_rationale": "不同时间框架的动量信号可以互补：短期动量响应快但噪声大，长期动量稳定但滞后",
       "source": "preset",
       "category": "momentum",
-      "status": "pending",
-      "evaluation": {},
+      "status": "discarded",
+      "evaluation": {
+        "icir": -0.1213531708437255,
+        "ic_positive_pct": 0.4745762711864407,
+        "t_stat": -0.9321313922166549,
+        "long_short_sharpe": -1.326464799962247,
+        "ic_days": 59
+      },
       "created_at": "2026-06-16T11:40:14.953220",
-      "updated_at": "2026-06-16T11:40:14.953220"
+      "updated_at": "2026-06-16T12:39:37.730222"
     }
   ],
   "summary": {
@@ -81,9 +87,9 @@
       "composite": 1
     },
     "statuses": {
-      "pending": 3,
-      "discarded": 2
+      "pending": 2,
+      "discarded": 3
     }
   },
-  "updated_at": "2026-06-16T12:34:26.748894"
+  "updated_at": "2026-06-16T12:39:39.946942"
 }
