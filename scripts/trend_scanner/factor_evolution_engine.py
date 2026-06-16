@@ -341,6 +341,12 @@ class FactorEvolutionEngine:
         """
         生成候选因子
 
+        候选来源优先级：
+        1. 内置因子库（第 1 轮）
+        2. 种子因子池（待验证的种子）
+        3. 因子知识库
+        4. 规则变体生成
+
         Args:
             count: 候选数量
             round_num: 当前轮次
@@ -360,7 +366,20 @@ class FactorEvolutionEngine:
                     'source': 'builtin',
                 })
 
-        # 方式 2：从因子知识库选取
+        # 方式 2：从种子因子池选取（待验证的种子）
+        if self.seed_pool and len(candidates) < count:
+            pending = self.seed_pool.get_pending_seeds()
+            for seed in pending[:count - len(candidates)]:
+                # 编译种子因子代码为函数
+                fn = self._compile_seed_code(seed.code)
+                if fn:
+                    candidates.append({
+                        'name': seed.name,
+                        'function': fn,
+                        'source': f'seed_pool:{seed.source}',
+                    })
+
+        # 方式 3：从因子知识库选取
         if self.knowledge_manager and len(candidates) < count:
             kb_factors = self.knowledge_manager.get_all_factors()
             for f in kb_factors[:count - len(candidates)]:
@@ -370,12 +389,24 @@ class FactorEvolutionEngine:
                     'source': 'knowledge_base',
                 })
 
-        # 方式 3：用规则生成变体因子（无 LLM 时）
+        # 方式 4：用规则生成变体因子（无 LLM 时）
         if len(candidates) < count:
             variants = self._generate_rule_variants(count - len(candidates), round_num)
             candidates.extend(variants)
 
         return candidates[:count]
+
+    def _compile_seed_code(self, code: str):
+        """编译种子因子代码为函数"""
+        try:
+            import pandas as pd
+            import numpy as np
+            exec_globals = {'pd': pd, 'np': np}
+            exec(code, exec_globals)
+            return exec_globals.get('factor')
+        except Exception as e:
+            logger.debug(f"编译种子因子代码失败: {e}")
+            return None
 
     def _generate_rule_variants(self, count: int, round_num: int) -> List[Dict]:
         """
