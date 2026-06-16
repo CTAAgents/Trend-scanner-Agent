@@ -64,7 +64,8 @@ class FactorEvolutionEngine:
     """
 
     def __init__(self, generator=None, executor=None, evaluator=None,
-                 gate=None, knowledge_manager=None):
+                 gate=None, knowledge_manager=None,
+                 seed_pool=None, experience_db=None):
         """
         初始化进化引擎
 
@@ -74,6 +75,8 @@ class FactorEvolutionEngine:
             evaluator: FactorEvaluator（因子评估器）
             gate: FactorGate（门控决策器）
             knowledge_manager: FactorKnowledgeManager（知识管理器）
+            seed_pool: SeedFactorPool（种子因子池）
+            experience_db: FactorExperienceDB（经验数据库）
         """
         # 延迟导入，避免循环依赖
         if generator is None:
@@ -88,12 +91,20 @@ class FactorEvolutionEngine:
         if gate is None:
             from trend_scanner.factor_gate import FactorGate
             gate = FactorGate()
+        if seed_pool is None:
+            from trend_scanner.seed_factor_pool import SeedFactorPool
+            seed_pool = SeedFactorPool()
+        if experience_db is None:
+            from trend_scanner.factor_experience_db import FactorExperienceDB
+            experience_db = FactorExperienceDB()
 
         self.generator = generator
         self.executor = executor
         self.evaluator = evaluator
         self.gate = gate
         self.knowledge_manager = knowledge_manager
+        self.seed_pool = seed_pool
+        self.experience_db = experience_db
 
         # 进化状态
         self.promoted_factors: List[Dict] = []
