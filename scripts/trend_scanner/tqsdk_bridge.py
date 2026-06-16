@@ -33,12 +33,14 @@ import pandas as pd
 class TqSdkBridge:
     """TqSdk 桥接器"""
     
-    def __init__(self, timeout: int = 60):
+    def __init__(self, timeout: int = 15):
         """
         初始化桥接器
-        
+
         Args:
-            timeout: 超时时间（秒）
+            timeout: 超时时间（秒）。盘前/收盘后 TqSdk 无数据更新时，
+                     wait_update(deadline) 会在 10 秒内返回，
+                     15 秒超时足以覆盖绝大多数场景。
         """
         self.timeout = timeout
         self.worker_script = Path(__file__).parent / 'tqsdk_worker.py'

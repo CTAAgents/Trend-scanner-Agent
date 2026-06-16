@@ -1,25 +1,127 @@
 {
-  "scan_time": "2026-06-15T21:46:39.473037",
-  "total_scanned": 17,
-  "signals": [],
-  "no_signal_symbols": [
-    "SHFE.rb",
-    "SHFE.hc",
-    "SHFE.ru",
-    "SHFE.ni",
-    "SHFE.cu",
-    "DCE.jm",
-    "DCE.j",
-    "DCE.i",
-    "DCE.p",
-    "DCE.y",
-    "DCE.cs",
-    "CZCE.CF",
-    "CZCE.SR",
-    "CZCE.TA",
-    "CZCE.MA",
-    "INE.sc",
-    "INE.lu"
+  "scan_time": "2026-06-16T09:16:08.979921",
+  "total_scanned": 60,
+  "signals": [
+    {
+      "symbol": "SC",
+      "trend_phase": "UNKNOWN",
+      "trend_strength_composite": 0.403,
+      "tsi": -23.52,
+      "er": 0.539,
+      "r_squared": 0.722,
+      "direction": "SHORT",
+      "signal_strength": "MEDIUM",
+      "trigger_reason": "TSI=-23.5 或 R²=0.72 [mode=or, 满足2/4项]",
+      "hurst": 0.337,
+      "rsi": 33.2,
+      "adx": 32.0,
+      "position_suggestion": {
+        "method": "adaptive",
+        "position_size": 0.2013,
+        "position_pct": "20.1%",
+        "inputs": {
+          "trend_strength": 0.4026228721756969,
+          "volatility": 0.05219940046275306,
+          "win_rate": 0.55,
+          "win_loss_ratio": 1.5
+        },
+        "risk_metrics": {
+          "max_loss_pct": "2.1%",
+          "kelly_optimal": "12.5%"
+        }
+      },
+      "stop_loss": {
+        "stop_price": 600.52,
+        "atr_multiplier": 2.5,
+        "risk_points": 69.32
+      }
+    }
   ],
-  "signal_count": 0
+  "no_signal_symbols": [
+    "FG",
+    "RB",
+    "HC",
+    "SA",
+    "V",
+    "TA",
+    "RM",
+    "MA",
+    "SR",
+    "CF",
+    "PP",
+    "I",
+    "JM",
+    "L",
+    "SM",
+    "SP",
+    "T",
+    "BU",
+    "OI",
+    "UR",
+    "AO",
+    "AG",
+    "AL",
+    "FU",
+    "PK",
+    "SF",
+    "TF",
+    "CS",
+    "PX",
+    "AU",
+    "TL",
+    "PF",
+    "RU",
+    "A",
+    "SH",
+    "CU",
+    "IM",
+    "CJ",
+    "NI",
+    "B",
+    "IC",
+    "AP",
+    "IF",
+    "PB",
+    "TS",
+    "J",
+    "SS",
+    "ZN",
+    "NR",
+    "BR",
+    "IH",
+    "LU",
+    "PR",
+    "SN",
+    "EC",
+    "PL",
+    "AD",
+    "CY",
+    "BC"
+  ],
+  "signal_count": 1,
+  "macro_state": {
+    "cycle": {
+      "state": "recession",
+      "name": "衰退",
+      "description": "经济收缩，通胀回落"
+    },
+    "liquidity": {
+      "state": "neutral",
+      "name": "中性",
+      "description": "货币政策中性"
+    },
+    "risk_appetite": {
+      "state": "neutral",
+      "name": "中性",
+      "description": "风险偏好中性"
+    },
+    "strategy_weights": {
+      "trend_following": 0.6,
+      "mean_reversion": 0.1,
+      "event_driven": 0.1,
+      "defensive": 0.2
+    },
+    "recommendation": "经济衰退期，趋势跟踪为主，降低仓位",
+    "timestamp": "2026-06-16T09:10:44.072416"
+  }
 }
