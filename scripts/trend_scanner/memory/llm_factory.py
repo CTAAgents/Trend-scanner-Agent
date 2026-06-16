@@ -201,10 +201,11 @@ class WorkBuddyProvider(LLMProvider):
     DEFAULT_BASE_URL = "https://token-plan-cn.xiaomimimo.com/v1"
     DEFAULT_MODEL = "mimo-v2.5-pro"
     
-    def __init__(self, api_key: str = None, model: str = None, base_url: str = None):
+    def __init__(self, api_key: str = None, model: str = None, base_url: str = None, timeout: int = 60):
         self._api_key = api_key or os.getenv("LLM_API_KEY")
         self._model = model or os.getenv("LLM_MODEL", self.DEFAULT_MODEL)
         self._base_url = base_url or os.getenv("LLM_BASE_URL", self.DEFAULT_BASE_URL)
+        self._timeout = timeout
         self._client = None
         
         if self._api_key:
@@ -212,7 +213,8 @@ class WorkBuddyProvider(LLMProvider):
                 import openai
                 self._client = openai.OpenAI(
                     api_key=self._api_key,
-                    base_url=self._base_url
+                    base_url=self._base_url,
+                    timeout=self._timeout
                 )
             except ImportError:
                 pass
