@@ -1,32 +1,26 @@
-{
-  "updated_at": "2026-06-16T15:15:00",
-  "positions": [
-    {
-      "symbol": "DCE.jm2609",
-      "direction": "LONG",
-      "entry_price": 1350,
-      "current_price": 1343,
-      "holding_days": 4,
-      "pnl_pct": -0.52,
-      "notes": "焦煤多头，关注安全检查限产"
-    },
-    {
-      "symbol": "SHFE.ao2609",
-      "direction": "LONG",
-      "entry_price": 0,
-      "current_price": 2907,
-      "holding_days": 0,
-      "pnl_pct": 0,
-      "notes": "氧化铝多头"
-    },
-    {
-      "symbol": "SHFE.hc2610",
-      "direction": "LONG",
-      "entry_price": 0,
-      "current_price": 3382,
-      "holding_days": 0,
-      "pnl_pct": 0,
-      "notes": "热卷多头"
-    }
-  ]
-}
+[
+  {
+    "symbol": "JM",
+    "direction": "LONG",
+    "entry_price": 1343.00,
+    "entry_date": "2026-06-10",
+    "position_size": 0.15,
+    "notes": "焦煤多头"
+  },
+  {
+    "symbol": "AO",
+    "direction": "LONG",
+    "entry_price": 2907.00,
+    "entry_date": "2026-06-10",
+    "position_size": 0.15,
+    "notes": "氧化铝多头"
+  },
+  {
+    "symbol": "HC",
+    "direction": "LONG",
+    "entry_price": 3382.00,
+    "entry_date": "2026-06-10",
+    "position_size": 0.15,
+    "notes": "热卷多头"
+  }
+]

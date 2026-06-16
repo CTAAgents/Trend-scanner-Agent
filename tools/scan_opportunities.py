@@ -384,6 +384,8 @@ def main():
                         help="从研报文件加载种子因子（配合 --evolve 使用）")
     parser.add_argument("--health-check", action="store_true",
                         help="运行策略健康度评估")
+    parser.add_argument("--position-health", action="store_true",
+                        help="运行持仓健康度评估（基于技术指标+LLM推理）")
     parser.add_argument("--overfitting-check", action="store_true",
                         help="运行过拟合检测")
     parser.add_argument("--execution-check", action="store_true",
