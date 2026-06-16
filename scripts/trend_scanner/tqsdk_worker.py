@@ -341,75 +341,65 @@ def fetch_all_symbols(exchanges: list = None) -> dict:
 def fetch_quotes_batch(tq_symbols: list) -> dict:
     """
     批量获取行情数据
-    
+
     Args:
         tq_symbols: TqSdk 品种代码列表
-    
+
     Returns:
         {success, error, data: {quotes: {...}}}
     """
     try:
         from tqsdk import TqApi, TqAuth
-        
+
         tq_user = os.environ.get('TQ_USER', '')
         tq_password = os.environ.get('TQ_PASSWORD', '')
-        
+
         if not tq_user or not tq_password:
             return {
                 'success': False,
                 'error': 'TQ_USER 或 TQ_PASSWORD 环境变量未设置',
                 'data': None
             }
-        
+
         auth = TqAuth(tq_user, tq_password)
         api = TqApi(auth=auth)
-        
+
         quotes = {}
-        
-        # 分批获取行情（每批最多20个）
-        batch_size = 20
-        for i in range(0, len(tq_symbols), batch_size):
-            batch = tq_symbols[i:i+batch_size]
-            
+
+        # 一次性订阅所有品种（不分批，减少连接开销）
+        quote_objs = {}
+        for tq_symbol in tq_symbols:
             try:
-                # 获取行情
-                quote_objs = {}
-                for tq_symbol in batch:
-                    try:
-                        quote_objs[tq_symbol] = api.get_quote(tq_symbol)
-                    except:
-                        continue
-                
-                # 等待数据更新（deadline 限制等待时间）
-                try:
-                    api.wait_update(deadline=time.time() + 10)
-                except Exception:
-                    pass
-                
-                # 提取数据
-                for tq_symbol, quote in quote_objs.items():
-                    try:
-                        oi = getattr(quote, 'open_interest', 0) or 0
-                        quotes[tq_symbol] = {
-                            'tq_symbol': tq_symbol,
-                            'last_price': getattr(quote, 'last_price', 0),
-                            'open_interest': oi,
-                            'volume': getattr(quote, 'volume', 0),
-                            'bid_price1': getattr(quote, 'bid_price1', 0),
-                            'ask_price1': getattr(quote, 'ask_price1', 0),
-                            'highest': getattr(quote, 'highest', 0),
-                            'lowest': getattr(quote, 'lowest', 0),
-                            'pre_close': getattr(quote, 'pre_close', 0),
-                        }
-                    except:
-                        continue
-                        
-            except Exception as e:
-                print(f"批量获取行情失败: {e}", file=sys.stderr)
+                quote_objs[tq_symbol] = api.get_quote(tq_symbol)
+            except:
                 continue
-        
+
+        # 一次性等待数据更新
+        try:
+            api.wait_update(deadline=time.time() + 15)
+        except Exception:
+            pass
+
+        # 提取数据
+        for tq_symbol, quote in quote_objs.items():
+            try:
+                oi = getattr(quote, 'open_interest', 0) or 0
+                quotes[tq_symbol] = {
+                    'tq_symbol': tq_symbol,
+                    'last_price': getattr(quote, 'last_price', 0),
+                    'open_interest': oi,
+                    'volume': getattr(quote, 'volume', 0),
+                    'bid_price1': getattr(quote, 'bid_price1', 0),
+                    'ask_price1': getattr(quote, 'ask_price1', 0),
+                    'highest': getattr(quote, 'highest', 0),
+                    'lowest': getattr(quote, 'lowest', 0),
+                    'pre_close': getattr(quote, 'pre_close', 0),
+                }
+            except:
+                continue
+
         api.close()
-        
+
         return {
             'success': True,
             'error': None,
@@ -418,7 +408,7 @@ def fetch_quotes_batch(tq_symbols: list) -> dict:
                 'count': len(quotes)
             }
         }
-        
+
     except SystemExit as e:
         return {
             'success': False,
