@@ -311,7 +311,7 @@ from .memory_bridge import MemoryBridge
 # 交易记录（兼容旧版测试）
 from .models import TradeRecord, TradeSignal, TrendPhaseInfo
 
-__version__ = "5.0.0"
+__version__ = "6.0.0"
 __all__ = [
     # 版本信息
     "__version__", "__version_info__",
