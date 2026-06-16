@@ -308,6 +308,12 @@ class LLMProviderFactory:
             env_var = api_key[2:-1]
             api_key = os.environ.get(env_var, '')
         
+        # 支持api_key_env字段（环境变量名）
+        if not api_key:
+            api_key_env = config.get('api_key_env', '')
+            if api_key_env:
+                api_key = os.environ.get(api_key_env, '')
+        
         # 支持auto模式：优先使用workbuddy，其次尝试openai
         if provider == 'auto':
             # 如果有api_key，尝试使用openai
