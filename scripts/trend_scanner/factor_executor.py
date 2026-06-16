@@ -114,17 +114,19 @@ class FactorExecutor:
         Returns:
             问题列表（空 = 通过）
         """
+        import re
         issues = []
 
-        # 检查是否使用了禁止的模块/函数
+        # 检查是否使用了禁止的模块/函数（使用单词边界匹配，避免误报如 fillna 中的 os）
         for blocked in BLOCKED_MODULES:
-            if blocked in code:
+            pattern = r'\b' + re.escape(blocked) + r'\b'
+            if re.search(pattern, code):
                 issues.append(f"使用了禁止的操作: {blocked}")
 
         # 检查是否有未来数据使用
-        future_patterns = ['shift(-', 'iloc[1:]', 'lead(']
+        future_patterns = [r'shift\(-', r'iloc\[1:\]', r'lead\(']
         for pattern in future_patterns:
-            if pattern in code:
+            if re.search(pattern, code):
                 issues.append(f"可能使用了未来数据: {pattern}")
 
         return issues
