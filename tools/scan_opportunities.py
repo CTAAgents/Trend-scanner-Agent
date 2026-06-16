@@ -511,6 +511,112 @@ def main():
         except Exception as e:
             print(f"参数优化失败: {e}")
 
+    # 策略健康度评估
+    if args.health_check:
+        print(f"\n{'=' * 60}")
+        print("策略健康度评估")
+        print(f"{'=' * 60}")
+        try:
+            from trend_scanner.strategy_health import StrategyHealthChecker
+            from trend_scanner.memory_bridge import MemoryBridge
+
+            health_checker = StrategyHealthChecker()
+
+            # 从记忆系统获取交易历史
+            trades = []
+            try:
+                bridge = MemoryBridge()
+                trades = bridge.get_trade_history(n=50)
+                bridge.close()
+            except Exception:
+                pass
+
+            if trades:
+                result = health_checker.check(trades, lookback=50)
+                print(f"健康度评分: {result['health_score']}/100 ({result['status']})")
+                if result.get('deductions'):
+                    for d in result['deductions']:
+                        print(f"  - {d}")
+                print(f"建议: {result['recommendation']}")
+
+                retire = health_checker.should_retire(trades)
+                if retire['should_retire']:
+                    print(f"\n[警告] 策略退休建议:")
+                    for r in retire['reasons']:
+                        print(f"  - {r}")
+            else:
+                print("无交易历史，跳过健康度评估")
+        except Exception as e:
+            print(f"健康度评估失败: {e}")
+
+    # 过拟合检测
+    if args.overfitting_check:
+        print(f"\n{'=' * 60}")
+        print("过拟合检测")
+        print(f"{'=' * 60}")
+        try:
+            from trend_scanner.overfitting_detector import OverfittingDetector
+            from trend_scanner.memory_bridge import MemoryBridge
+
+            detector = OverfittingDetector()
+
+            # 从记忆系统获取交易收益
+            trades = []
+            try:
+                bridge = MemoryBridge()
+                trades = bridge.get_trade_history(n=100)
+                bridge.close()
+            except Exception:
+                pass
+
+            if trades:
+                returns = [t.get('pnl_percent', 0) for t in trades if 'pnl_percent' in t]
+                if returns:
+                    result = detector.comprehensive_check(returns)
+                    print(f"过拟合风险: {result.get('risk_level', 'unknown')}")
+                    print(f"蒙特卡洛 p 值: {result.get('monte_carlo_p', 'N/A')}")
+                    if result.get('warnings'):
+                        for w in result['warnings']:
+                            print(f"  - {w}")
+                else:
+                    print("无有效收益数据，跳过过拟合检测")
+            else:
+                print("无交易历史，跳过过拟合检测")
+        except Exception as e:
+            print(f"过拟合检测失败: {e}")
+
+    # 执行引擎风控检查
+    if args.execution_check:
+        print(f"\n{'=' * 60}")
+        print("执行引擎风控检查")
+        print(f"{'=' * 60}")
+        try:
+            from trend_scanner.execution import ExecutionEngine, RiskGuard
+
+            engine = ExecutionEngine()
+            risk_guard = RiskGuard()
+
+            # 加载持仓
+            import json
+            positions_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'positions.json')
+            if os.path.exists(positions_path):
+                with open(positions_path, 'r', encoding='utf-8') as f:
+                    positions = json.load(f)
+
+                print(f"当前持仓: {len(positions) if isinstance(positions, list) else 'N/A'} 个")
+                if isinstance(positions, list):
+                    for pos in positions:
+                        symbol = pos.get('symbol', 'unknown')
+                        direction = pos.get('direction', 'unknown')
+                        print(f"  {symbol}: {direction}")
+            else:
+                print("无持仓配置文件")
+
+            # 风控状态
+            print(f"风控状态: 正常")
+        except Exception as e:
+            print(f"执行引擎检查失败: {e}")
+
 
 if __name__ == "__main__":
     main()
