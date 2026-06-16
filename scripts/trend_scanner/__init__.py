@@ -247,6 +247,20 @@ from .data_source import (
     get_active_symbols,
 )
 
+# v5.0 因子进化子系统
+from .factor_evaluator import (
+    FactorEvaluator,
+    FactorEvaluationResult,
+    BUILTIN_FACTORS,
+)
+from .factor_executor import FactorExecutor
+from .factor_gate import FactorGate, GateDecision
+from .factor_evolution_engine import FactorEvolutionEngine, EvolutionResult
+from .factor_param_optimizer import FactorParamOptimizer, OptimizationResult
+from .seed_factor_pool import SeedFactorPool
+from .multi_factor_model import MultiFactorModel, ModelResult
+from .factor_experience_db import FactorExperienceDB
+
 # 交易记录（兼容旧版测试）
 from .models import TradeRecord, TradeSignal, TrendPhaseInfo
 
