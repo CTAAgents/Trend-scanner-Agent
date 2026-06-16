@@ -325,25 +325,31 @@ python tools/scan_opportunities.py --output text --save
 # 2. 指定品种扫描
 python tools/scan_opportunities.py --symbols RB,I,JM,CU --output text
 
-# 3. 因子评估
+# 3. Reasoner深度分析（推荐）
+python tools/scan_opportunities.py --reasoner --output text --save
+
+# 4. 指定品种 + Reasoner分析
+python tools/scan_opportunities.py --symbols JD,EC,BZ --reasoner --output text --save
+
+# 5. 因子评估
 python tools/scan_opportunities.py --evaluate-factors
 
-# 4. 因子进化（5 轮，目标 3 个晋升因子）
+# 6. 因子进化（5 轮，目标 3 个晋升因子）
 python tools/scan_opportunities.py --evolve --evolve-rounds 5 --evolve-target 3
 
-# 5. 从研报加载种子因子并进化
+# 7. 从研报加载种子因子并进化
 python tools/scan_opportunities.py --evolve --load-report data/report.txt
 
-# 6. 参数优化
+# 8. 参数优化
 python tools/scan_opportunities.py --optimize-params --opt-trials 50
 
-# 7. 策略健康度检查
+# 9. 策略健康度检查
 python tools/scan_opportunities.py --health-check
 
-# 8. 过拟合检测
+# 10. 过拟合检测
 python tools/scan_opportunities.py --overfitting-check
 
-# 9. 组合使用：扫描 + 评估 + 健康检查
+# 11. 组合使用：扫描 + 评估 + 健康检查
 python tools/scan_opportunities.py --evaluate-factors --health-check --save
 ```
 
