@@ -429,11 +429,17 @@ python tools/run_reasoner.py --symbol DCE.jm2609
   - 生成置信度评估
   - 输出决策简报（操作建议+风险提示）
   ↓
-[4] 因子评估（--evaluate-factors）
+[4] 持仓健康度评估（--position-health）
+  - 技术面评估（趋势强度、动量、波动率）
+  - 资金面评估（盈亏、回撤、持仓时间）
+  - 市场面评估（宏观状态、相关性）
+  - LLM推理评估（Reasoner Agent）
+  ↓
+[5] 因子评估（--evaluate-factors）
   - 截面 IC/ICIR 计算
   - 门控决策（晋升/观察/淘汰）
   ↓
-[5] 信号输出
+[6] 信号输出
   - 有信号 → 推送 Reasoner Agent
   - 无信号 → 静默
 ```
