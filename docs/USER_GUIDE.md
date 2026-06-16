@@ -222,7 +222,7 @@ A: 编辑 `data/seed_factors.json`，添加因子代码：
 | `data/latest_scan.json` | 最新扫描结果 |
 | `data/market.db` | K线数据库（DuckDB） |
 | `data/meta.db` | 元数据库（SQLite） |
-| `SKILL.md` | 完整技术文档 |
+| `README.md` | 完整技术文档 |
 | `docs/` | 设计文档和方案 |
 
 ---
