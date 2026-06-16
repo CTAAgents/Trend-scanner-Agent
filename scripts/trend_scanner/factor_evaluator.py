@@ -292,6 +292,9 @@ class FactorEvaluator:
             ret_cs = ret[common_symbols]
 
             if method == 'spearman':
+                # 处理常量数组（标准差为 0 时相关系数未定义）
+                if fv_cs.std() == 0 or ret_cs.std() == 0:
+                    continue
                 corr, _ = stats.spearmanr(fv_cs.values, ret_cs.values)
             else:
                 corr = fv_cs.corr(ret_cs)
