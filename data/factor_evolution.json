@@ -1,8 +1,8 @@
 {
-  "evolution_time": "2026-06-16T11:27:02.946058",
+  "evolution_time": "2026-06-16T11:29:32.834331",
   "total_rounds": 3,
   "total_candidates": 15,
-  "duration_seconds": 2.394618272781372,
+  "duration_seconds": 2.952298164367676,
   "status": "max_rounds",
   "promoted_factors": [],
   "rounds": [
@@ -32,14 +32,14 @@
       ],
       "evaluations": {
         "momentum_20d": {
-          "ic_mean": -0.08141588682070082,
-          "ic_std": 0.3405622308767857,
-          "icir": -0.23906317095437637,
-          "rank_ic_mean": -0.08141588682070082,
-          "rank_icir": -0.23906317095437637,
+          "ic_mean": -0.08074183751230088,
+          "ic_std": 0.3412574479074061,
+          "icir": -0.23660095334888834,
+          "rank_ic_mean": -0.08074183751230088,
+          "rank_icir": -0.23660095334888834,
           "ic_positive_pct": 0.44642857142857145,
-          "t_stat": -1.7889849590140878,
-          "long_short_sharpe": -3.7790544635528622,
+          "t_stat": -1.7705594096312496,
+          "long_short_sharpe": -3.7760305789515165,
           "ic_days": 56,
           "cross_section_size_avg": 18.506493506493506
         },
@@ -56,38 +56,38 @@
           "cross_section_size_avg": 0.0
         },
         "volatility_20d": {
-          "ic_mean": 0.011598027405390962,
-          "ic_std": 0.2942449094244368,
-          "icir": 0.03941623808574122,
-          "rank_ic_mean": 0.011598027405390962,
-          "rank_icir": 0.03941623808574122,
+          "ic_mean": 0.01146854359931508,
+          "ic_std": 0.2941165674597641,
+          "icir": 0.038993191367514536,
+          "rank_ic_mean": 0.01146854359931508,
+          "rank_icir": 0.038993191367514536,
           "ic_positive_pct": 0.5714285714285714,
-          "t_stat": 0.29496411678470796,
-          "long_short_sharpe": 1.6064270181103348,
+          "t_stat": 0.2917983250283013,
+          "long_short_sharpe": 1.6099262860816044,
           "ic_days": 56,
           "cross_section_size_avg": 18.506493506493506
         },
         "volume_price_corr": {
-          "ic_mean": -0.04896314065131003,
-          "ic_std": 0.2625462609570642,
-          "icir": -0.18649338395764575,
-          "rank_ic_mean": -0.04896314065131003,
-          "rank_icir": -0.18649338395764575,
+          "ic_mean": -0.04980822606267941,
+          "ic_std": 0.26259808736369444,
+          "icir": -0.18967474806355217,
+          "rank_ic_mean": -0.04980822606267941,
+          "rank_icir": -0.18967474806355217,
           "ic_positive_pct": 0.4107142857142857,
-          "t_stat": -1.395588695339188,
-          "long_short_sharpe": -1.6958439599403734,
+          "t_stat": -1.4193958443529529,
+          "long_short_sharpe": -1.7001652088689407,
           "ic_days": 56,
           "cross_section_size_avg": 18.506493506493506
         },
         "rsi_14d": {
-          "ic_mean": -0.08893727327890608,
-          "ic_std": 0.2942786403302012,
-          "icir": -0.30222130012260573,
-          "rank_ic_mean": -0.08893727327890608,
-          "rank_icir": -0.30222130012260573,
+          "ic_mean": -0.08825966340200839,
+          "ic_std": 0.2944008690336053,
+          "icir": -0.2997941673600621,
+          "rank_ic_mean": -0.08825966340200839,
+          "rank_icir": -0.2997941673600621,
           "ic_positive_pct": 0.36507936507936506,
-          "t_stat": -2.398807203093088,
-          "long_short_sharpe": -2.9831150098186447,
+          "t_stat": -2.3795424340272047,
+          "long_short_sharpe": -2.973337373971354,
           "ic_days": 63,
           "cross_section_size_avg": 20.77922077922078
         }
@@ -139,8 +139,8 @@
           "reasons": [
             "ICIR=0.30 < 0.5",
             "IC>0比例=36.5% < 45%",
-            "t=2.40 >= 2.0",
-            "多空Sharpe=2.98 >= 1.0"
+            "t=2.38 >= 2.0",
+            "多空Sharpe=2.97 >= 1.0"
           ]
         }
       ],
@@ -151,7 +151,7 @@
         "volume_price_corr",
         "rsi_14d"
       ],
-      "timestamp": "2026-06-16T11:27:00.812289"
+      "timestamp": "2026-06-16T11:29:30.160872"
     },
     {
       "round_num": 2,
@@ -177,11 +177,130 @@
           "source": "rule_variant_r2"
         }
       ],
-      "evaluations": {},
-      "decisions": [],
+      "evaluations": {
+        "momentum_20d": {
+          "ic_mean": -0.08074183751230088,
+          "ic_std": 0.3412574479074061,
+          "icir": -0.23660095334888834,
+          "rank_ic_mean": -0.08074183751230088,
+          "rank_icir": -0.23660095334888834,
+          "ic_positive_pct": 0.44642857142857145,
+          "t_stat": -1.7705594096312496,
+          "long_short_sharpe": 0,
+          "ic_days": 56,
+          "cross_section_size_avg": 25.0
+        },
+        "momentum_30d": {
+          "ic_mean": -0.0028587804750854935,
+          "ic_std": 0.32006300360181067,
+          "icir": -0.00893193041030788,
+          "rank_ic_mean": -0.0028587804750854935,
+          "rank_icir": -0.00893193041030788,
+          "ic_positive_pct": 0.6086956521739131,
+          "t_stat": -0.060579299429019524,
+          "long_short_sharpe": 0,
+          "ic_days": 46,
+          "cross_section_size_avg": 25.0
+        },
+        "momentum_40d": {
+          "ic_mean": 0.0231117919863732,
+          "ic_std": 0.30794918876608685,
+          "icir": 0.07505066689403926,
+          "rank_ic_mean": 0.0231117919863732,
+          "rank_icir": 0.07505066689403926,
+          "ic_positive_pct": 0.5555555555555556,
+          "t_stat": 0.4503040013642356,
+          "long_short_sharpe": 0,
+          "ic_days": 36,
+          "cross_section_size_avg": 25.0
+        },
+        "volatility_5d": {
+          "ic_mean": -0.005216429420476969,
+          "ic_std": 0.3105451085764433,
+          "icir": -0.016797654435419647,
+          "rank_ic_mean": -0.005216429420476969,
+          "rank_icir": -0.016797654435419647,
+          "ic_positive_pct": 0.5070422535211268,
+          "t_stat": -0.14153955211090613,
+          "long_short_sharpe": 0,
+          "ic_days": 71,
+          "cross_section_size_avg": 25.0
+        },
+        "volatility_30d": {
+          "ic_mean": 0.04529205186213768,
+          "ic_std": 0.27869296634502405,
+          "icir": 0.16251594884553264,
+          "rank_ic_mean": 0.04529205186213768,
+          "rank_icir": 0.16251594884553264,
+          "ic_positive_pct": 0.5434782608695652,
+          "t_stat": 1.1022367925911083,
+          "long_short_sharpe": 0,
+          "ic_days": 46,
+          "cross_section_size_avg": 25.0
+        }
+      },
+      "decisions": [
+        {
+          "factor_name": "momentum_20d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.24 < 0.5",
+            "IC>0比例=44.6% < 45%",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "momentum_30d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.01 < 0.5",
+            "IC>0比例=60.9% >= 55%",
+            "t=0.06 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "momentum_40d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.08 < 0.5",
+            "IC>0比例=55.6% >= 55%",
+            "t=0.45 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "volatility_5d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.02 < 0.5",
+            "t=0.14 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "volatility_30d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.16 < 0.5",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        }
+      ],
       "promoted": [],
-      "eliminated": [],
-      "timestamp": "2026-06-16T11:27:02.245463"
+      "eliminated": [
+        "momentum_20d",
+        "momentum_30d",
+        "momentum_40d",
+        "volatility_5d",
+        "volatility_30d"
+      ],
+      "timestamp": "2026-06-16T11:29:31.484110"
     },
     {
       "round_num": 3,
@@ -207,17 +326,146 @@
           "source": "rule_variant_r3"
         }
       ],
-      "evaluations": {},
-      "decisions": [],
+      "evaluations": {
+        "momentum_15d": {
+          "ic_mean": -0.055659752952771854,
+          "ic_std": 0.3512488228563113,
+          "icir": -0.15846246116970225,
+          "rank_ic_mean": -0.055659752952771854,
+          "rank_icir": -0.15846246116970225,
+          "ic_positive_pct": 0.4918032786885246,
+          "t_stat": -1.2376313859940378,
+          "long_short_sharpe": 0,
+          "ic_days": 61,
+          "cross_section_size_avg": 25.0
+        },
+        "momentum_20d": {
+          "ic_mean": -0.08074183751230088,
+          "ic_std": 0.3412574479074061,
+          "icir": -0.23660095334888834,
+          "rank_ic_mean": -0.08074183751230088,
+          "rank_icir": -0.23660095334888834,
+          "ic_positive_pct": 0.44642857142857145,
+          "t_stat": -1.7705594096312496,
+          "long_short_sharpe": 0,
+          "ic_days": 56,
+          "cross_section_size_avg": 25.0
+        },
+        "momentum_40d": {
+          "ic_mean": 0.0231117919863732,
+          "ic_std": 0.30794918876608685,
+          "icir": 0.07505066689403926,
+          "rank_ic_mean": 0.0231117919863732,
+          "rank_icir": 0.07505066689403926,
+          "ic_positive_pct": 0.5555555555555556,
+          "t_stat": 0.4503040013642356,
+          "long_short_sharpe": 0,
+          "ic_days": 36,
+          "cross_section_size_avg": 25.0
+        },
+        "volatility_20d": {
+          "ic_mean": 0.01146854359931508,
+          "ic_std": 0.2941165674597641,
+          "icir": 0.038993191367514536,
+          "rank_ic_mean": 0.01146854359931508,
+          "rank_icir": 0.038993191367514536,
+          "ic_positive_pct": 0.5714285714285714,
+          "t_stat": 0.2917983250283013,
+          "long_short_sharpe": 0,
+          "ic_days": 56,
+          "cross_section_size_avg": 25.0
+        },
+        "volatility_5d": {
+          "ic_mean": -0.005216429420476969,
+          "ic_std": 0.3105451085764433,
+          "icir": -0.016797654435419647,
+          "rank_ic_mean": -0.005216429420476969,
+          "rank_icir": -0.016797654435419647,
+          "ic_positive_pct": 0.5070422535211268,
+          "t_stat": -0.14153955211090613,
+          "long_short_sharpe": 0,
+          "ic_days": 71,
+          "cross_section_size_avg": 25.0
+        }
+      },
+      "decisions": [
+        {
+          "factor_name": "momentum_15d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.16 < 0.5",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "momentum_20d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.24 < 0.5",
+            "IC>0比例=44.6% < 45%",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "momentum_40d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.08 < 0.5",
+            "IC>0比例=55.6% >= 55%",
+            "t=0.45 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "volatility_20d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.04 < 0.5",
+            "IC>0比例=57.1% >= 55%",
+            "t=0.29 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        },
+        {
+          "factor_name": "volatility_5d",
+          "decision": "eliminate",
+          "score": 0.1,
+          "reasons": [
+            "ICIR=0.02 < 0.5",
+            "t=0.14 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ]
+        }
+      ],
       "promoted": [],
-      "eliminated": [],
-      "timestamp": "2026-06-16T11:27:02.588267"
+      "eliminated": [
+        "momentum_15d",
+        "momentum_20d",
+        "momentum_40d",
+        "volatility_20d",
+        "volatility_5d"
+      ],
+      "timestamp": "2026-06-16T11:29:32.133747"
     }
   ],
   "feedback_history": [
     "第1轮: momentum_20d 淘汰, 原因: ICIR=0.24 < 0.5, IC>0比例=44.6% < 45%",
     "第1轮: volatility_20d 淘汰, 原因: ICIR=0.04 < 0.5, IC>0比例=57.1% >= 55%",
     "第1轮: volume_price_corr 淘汰, 原因: ICIR=0.19 < 0.5, IC>0比例=41.1% < 45%",
-    "第1轮: rsi_14d 淘汰, 原因: ICIR=0.30 < 0.5, IC>0比例=36.5% < 45%"
+    "第1轮: rsi_14d 淘汰, 原因: ICIR=0.30 < 0.5, IC>0比例=36.5% < 45%",
+    "第2轮: momentum_20d 淘汰, 原因: ICIR=0.24 < 0.5, IC>0比例=44.6% < 45%",
+    "第2轮: momentum_30d 淘汰, 原因: ICIR=0.01 < 0.5, IC>0比例=60.9% >= 55%",
+    "第2轮: momentum_40d 淘汰, 原因: ICIR=0.08 < 0.5, IC>0比例=55.6% >= 55%",
+    "第2轮: volatility_5d 淘汰, 原因: ICIR=0.02 < 0.5, t=0.14 < 1.0",
+    "第2轮: volatility_30d 淘汰, 原因: ICIR=0.16 < 0.5, 多空Sharpe=0.00 < 0.5",
+    "第3轮: momentum_15d 淘汰, 原因: ICIR=0.16 < 0.5, 多空Sharpe=0.00 < 0.5",
+    "第3轮: momentum_20d 淘汰, 原因: ICIR=0.24 < 0.5, IC>0比例=44.6% < 45%",
+    "第3轮: momentum_40d 淘汰, 原因: ICIR=0.08 < 0.5, IC>0比例=55.6% >= 55%",
+    "第3轮: volatility_20d 淘汰, 原因: ICIR=0.04 < 0.5, IC>0比例=57.1% >= 55%",
+    "第3轮: volatility_5d 淘汰, 原因: ICIR=0.02 < 0.5, t=0.14 < 1.0"
   ]
 }
