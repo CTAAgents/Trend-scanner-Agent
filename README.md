@@ -330,6 +330,7 @@ python tools/scan_opportunities.py [选项]
 | 参数 | 说明 | 示例 |
 |------|------|------|
 | `--health-check` | 策略健康度评估 | `--health-check` |
+| `--position-health` | 持仓健康度评估 | `--position-health` |
 | `--overfitting-check` | 过拟合检测 | `--overfitting-check` |
 | `--execution-check` | 执行引擎风控检查 | `--execution-check` |
 
