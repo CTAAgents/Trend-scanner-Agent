@@ -125,7 +125,10 @@ class FactorEvolutionEngine:
 
         # 加载数据
         if kline_data is None:
-            count = self.evaluator.load_data(days=days, db_path=db_path)
+            # 如果提供了 db_path，设置到 evaluator
+            if db_path:
+                self.evaluator.db_path = db_path
+            count = self.evaluator.load_data(days=days)
             logger.info(f"从 DuckDB 加载 {count} 个品种的数据")
             if count < 10:
                 return EvolutionResult(

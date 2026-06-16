@@ -86,6 +86,7 @@ def not_factor(df):
 
     def test_safety_check_blocks_dangerous_code(self):
         """测试安全检查阻止危险代码"""
+        from trend_scanner.factor_executor import FactorExecutor
         code = '''
 def factor(df):
     import os
