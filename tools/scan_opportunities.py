@@ -382,6 +382,12 @@ def main():
                         help="参数优化试验次数（默认 30）")
     parser.add_argument("--load-report", type=str, default=None,
                         help="从研报文件加载种子因子（配合 --evolve 使用）")
+    parser.add_argument("--health-check", action="store_true",
+                        help="运行策略健康度评估")
+    parser.add_argument("--overfitting-check", action="store_true",
+                        help="运行过拟合检测")
+    parser.add_argument("--execution-check", action="store_true",
+                        help="运行执行引擎风控检查")
     
     args = parser.parse_args()
     
