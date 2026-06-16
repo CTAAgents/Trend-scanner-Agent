@@ -276,7 +276,7 @@ from .report_parser import ReportParser
 
 # 信念传播与概念性反馈（FinCon 架构）
 from .belief_propagation import BeliefPropagationManager
-from .conceptual_feedback import ConceptualFeedbackManager
+from .conceptual_feedback import ConceptualFeedbackGenerator
 
 # RL 接口设计（GIFT 架构）
 from .rl_interface_designer import RLInterfaceDesigner
