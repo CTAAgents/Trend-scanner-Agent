@@ -49,10 +49,16 @@
       "economic_rationale": "RSI 在趋势和震荡行情中的有效逻辑不同：趋势中应顺势（RSI>50做多），震荡中应逆势（RSI>70做空）",
       "source": "preset",
       "category": "composite",
-      "status": "pending",
-      "evaluation": {},
+      "status": "discarded",
+      "evaluation": {
+        "icir": -0.028877618475618858,
+        "ic_positive_pct": 0.4716981132075472,
+        "t_stat": -0.2973132791775046,
+        "long_short_sharpe": 1.7427163727549477,
+        "ic_days": 106
+      },
       "created_at": "2026-06-16T11:40:14.952221",
-      "updated_at": "2026-06-16T11:40:14.952221"
+      "updated_at": "2026-06-16T12:34:25.518603"
     },
     {
       "name": "multi_timeframe_momentum",
@@ -75,9 +81,9 @@
       "composite": 1
     },
     "statuses": {
-      "pending": 4,
-      "discarded": 1
+      "pending": 3,
+      "discarded": 2
     }
   },
-  "updated_at": "2026-06-16T12:18:26.371614"
+  "updated_at": "2026-06-16T12:34:26.748894"
 }
