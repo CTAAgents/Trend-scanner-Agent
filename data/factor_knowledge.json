@@ -614,12 +614,36 @@
       "regime_effectiveness": {},
       "created_at": "2026-06-15 17:00:00",
       "last_updated": "2026-06-16 07:53:01"
+    },
+    {
+      "id": "factor_050",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 08:30:13"
+    },
+    {
+      "id": "factor_051",
+      "name": "测试因子",
+      "code": "def factor(df): return df['close'].pct_change(5)",
+      "description": "这是一个测试因子",
+      "logic": "5日收益率",
+      "source": "test",
+      "performance": {},
+      "regime_effectiveness": {},
+      "created_at": "2026-06-15 17:00:00",
+      "last_updated": "2026-06-16 08:30:13"
     }
   ],
   "metadata": {
     "version": "1.0",
-    "total_factors": 49,
-    "last_updated": "2026-06-16 07:53:01",
+    "total_factors": 51,
+    "last_updated": "2026-06-16 08:30:13",
     "description": "因子知识库，存储和管理生成的因子代码及其性能指标",
     "factor_types": [
       "动量因子",

@@ -6,7 +6,7 @@
 
 ## 一句话概括
 
-六层管线（数据采集 → Scanner → Reasoner → Debater → Monitor → Evolver），TqSdk 拉取数据写入本地 DuckDB，纯 Python 脚本做计算，LLM Agent 做推理，每日自动扫描所有非僵尸期货品种，只在有信号时触发推理，输出决策简报供人参考。
+八层管线（数据采集 → Scanner → Reasoner → Debater → 仓位管理 → 动态止损 → Monitor → Evolver），TqSdk 拉取数据写入本地 DuckDB，纯 Python 脚本做计算，LLM Agent 做推理，每日自动扫描所有非僵尸期货品种，信号输出附带仓位建议和止损价位，Evolver 阶段执行策略健康度评估和过拟合检测。
 
 ## 快速开始
 
