@@ -388,6 +388,8 @@ def main():
                         help="运行过拟合检测")
     parser.add_argument("--execution-check", action="store_true",
                         help="运行执行引擎风控检查")
+    parser.add_argument("--reasoner", action="store_true",
+                        help="启用Reasoner Agent深度分析（输出决策简报）")
     
     args = parser.parse_args()
     
