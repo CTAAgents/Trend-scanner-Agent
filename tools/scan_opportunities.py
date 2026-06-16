@@ -403,6 +403,29 @@ def main():
         write_scan_result(result)
         print(f"\n结果已保存到 data/latest_scan.json")
 
+    # 截面因子评估
+    if args.evaluate_factors:
+        print(f"\n{'=' * 60}")
+        print("截面因子评估")
+        print(f"{'=' * 60}")
+        try:
+            from trend_scanner.factor_evaluator import FactorEvaluator, BUILTIN_FACTORS
+
+            evaluator = FactorEvaluator()
+            count = evaluator.load_data(days=120)
+            print(f"加载 {count} 个品种的数据")
+
+            if count >= 10:
+                results = evaluator.evaluate_batch(BUILTIN_FACTORS)
+                report = evaluator.generate_report(results)
+                print(report)
+                evaluator.save_results(results)
+                print("\n评估结果已保存到 data/factor_evaluation.json")
+            else:
+                print(f"品种数量不足（{count} < 10），跳过截面评估")
+        except Exception as e:
+            print(f"因子评估失败: {e}")
+
 
 if __name__ == "__main__":
     main()
