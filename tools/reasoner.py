@@ -187,7 +187,7 @@ class ReasonerAgent:
         print(f"[Reasoner] 找到 {len(similar_experiences)} 条相似经验", flush=True)
         
         # 3. 聚合经验
-        experience_aggregation = self.experience_memory.aggregate(similar_experiences)
+        experience_aggregation = self.experience_memory.aggregate_routes(similar_experiences)
         
         # 4. 执行推理
         try:
