@@ -205,7 +205,15 @@ python tools/scan_opportunities.py --evolve --evolve-rounds 5
 
 ## 二、模块清单
 
-### 2.1 v5.0 因子进化子系统（8 个模块）
+### 2.1 v6.0 新增模块（3 个模块）
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| PositionHealthChecker | `position_health.py` | 持仓健康度评估（技术面+资金面+市场面+LLM推理） |
+| ReasonerAgent | `reasoner.py` | Reasoner Agent 深度分析（LLM推理→决策简报） |
+| TqSdkBridge | `tqsdk_bridge.py` | TqSdk 桥接器（解决 sys.exit 问题） |
+
+### 2.2 v5.0 因子进化子系统（8 个模块）
 
 | 模块 | 文件 | 功能 |
 |------|------|------|
