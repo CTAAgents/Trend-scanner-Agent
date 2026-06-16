@@ -16,6 +16,9 @@ setup(
         "ta-lib>=0.4.28",
         "matplotlib>=3.7.0",
         "requests>=2.28.0",
+        "optuna>=4.0.0",
+        "lightgbm>=4.0.0",
+        "duckdb>=1.0.0",
     ],
     entry_points={
         "console_scripts": [
