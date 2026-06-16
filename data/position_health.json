@@ -1,0 +1,183 @@
+[
+  {
+    "symbol": "JM",
+    "direction": "LONG",
+    "health_score": 89.0,
+    "health_grade": "健康",
+    "details": {
+      "technical": {
+        "score": 90,
+        "trend_strength": 0.453,
+        "er": 0.223,
+        "r_squared": 0.544,
+        "adx": 47.5,
+        "rsi": 53.6,
+        "tsi": 20.2,
+        "macd_hist": -5.0,
+        "volatility_pct": 3.7,
+        "issues": [
+          "波动率高(3.7%)"
+        ]
+      },
+      "capital": {
+        "score": 100,
+        "current_price": 1343.0,
+        "entry_price": 1343.0,
+        "pnl_pct": 0.0,
+        "drawdown_pct": -9.65,
+        "holding_days": 6,
+        "position_size": 0.15,
+        "highest_60d": 1486.5,
+        "issues": []
+      },
+      "market": {
+        "score": 90,
+        "macro_state": "recession",
+        "strategy_weights": {
+          "trend_following": 0.6,
+          "mean_reversion": 0.1,
+          "event_driven": 0.1,
+          "defensive": 0.2
+        },
+        "issues": [
+          "衰退期，多头承压"
+        ]
+      },
+      "reasoning": {
+        "score": 50,
+        "confidence": 0.5,
+        "summary": "```json\n{\n    \"routes\": [\n        {\n            \"route_id\": \"A\",\n            \"name\": \"趋势跟随（保守减仓/观望）\",\n            \"action\": \"基于当前强劲的上升趋势结构（STRONG_BULL, HIGHER_HIGHS），维持多头思维。但由于出现显著的动量背离（MACD看跌且扩张，随机指标",
+        "routes_count": 1,
+        "warnings": [
+          "LLM 响应格式不标准，已降级处理"
+        ]
+      }
+    },
+    "recommendation": "持仓健康，可继续持有",
+    "risk_factors": [
+      "波动率偏高",
+      "衰退期，多头承压"
+    ],
+    "timestamp": "2026-06-16T21:18:48.121658"
+  },
+  {
+    "symbol": "AO",
+    "direction": "LONG",
+    "health_score": 93.0,
+    "health_grade": "健康",
+    "details": {
+      "technical": {
+        "score": 100,
+        "trend_strength": 0.537,
+        "er": 0.353,
+        "r_squared": 0.431,
+        "adx": 36.5,
+        "rsi": 60.5,
+        "tsi": 14.8,
+        "macd_hist": 11.03,
+        "volatility_pct": 2.07,
+        "issues": []
+      },
+      "capital": {
+        "score": 100,
+        "current_price": 2907.0,
+        "entry_price": 2907.0,
+        "pnl_pct": 0.0,
+        "drawdown_pct": -7.3,
+        "holding_days": 6,
+        "position_size": 0.15,
+        "highest_60d": 3136.0,
+        "issues": []
+      },
+      "market": {
+        "score": 90,
+        "macro_state": "recession",
+        "strategy_weights": {
+          "trend_following": 0.6,
+          "mean_reversion": 0.1,
+          "event_driven": 0.1,
+          "defensive": 0.2
+        },
+        "issues": [
+          "衰退期，多头承压"
+        ]
+      },
+      "reasoning": {
+        "score": 50,
+        "confidence": 0.5,
+        "summary": "{\n    \"routes\": [\n        {\n            \"route_id\": \"A\",\n            \"name\": \"顺势轻仓做多\",\n            \"action\": \"等待价格回调至EMA20均线（约2850-2870区间）附近并出现企稳信号（如长下影线、看涨吞没）后入场做多。持仓时间中短线。\",\n            \"confidence\"",
+        "routes_count": 1,
+        "warnings": [
+          "LLM 响应格式不标准，已降级处理"
+        ]
+      }
+    },
+    "recommendation": "持仓健康，可继续持有",
+    "risk_factors": [
+      "衰退期，多头承压"
+    ],
+    "timestamp": "2026-06-16T21:20:15.167858"
+  },
+  {
+    "symbol": "HC",
+    "direction": "LONG",
+    "health_score": 81.0,
+    "health_grade": "良好",
+    "details": {
+      "technical": {
+        "score": 70,
+        "trend_strength": 0.387,
+        "er": 0.136,
+        "r_squared": 0.139,
+        "adx": 15.1,
+        "rsi": 48.9,
+        "tsi": -4.1,
+        "macd_hist": -1.25,
+        "volatility_pct": 0.97,
+        "issues": [
+          "TSI为负(-4.1)，下跌动量",
+          "趋势强度中等(0.387)",
+          "趋势不清晰(R²=0.14)"
+        ]
+      },
+      "capital": {
+        "score": 100,
+        "current_price": 3382.0,
+        "entry_price": 3382.0,
+        "pnl_pct": 0.0,
+        "drawdown_pct": -3.73,
+        "holding_days": 6,
+        "position_size": 0.15,
+        "highest_60d": 3513.0,
+        "issues": []
+      },
+      "market": {
+        "score": 90,
+        "macro_state": "recession",
+        "strategy_weights": {
+          "trend_following": 0.6,
+          "mean_reversion": 0.1,
+          "event_driven": 0.1,
+          "defensive": 0.2
+        },
+        "issues": [
+          "衰退期，多头承压"
+        ]
+      },
+      "reasoning": {
+        "score": 50,
+        "confidence": 0.5,
+        "summary": "```json\n{\n    \"routes\": [\n        {\n            \"route_id\": \"A\",\n            \"name\": \"区间震荡交易 (高抛低吸)\",\n            \"action\": \"在价格回测近期支撑区域（如3350附近）时轻仓试多，止损设于支撑下方；或在价格反弹至阻力区域（如3420-3450）时轻仓试空，止损设于阻力上方。\",",
+        "routes_count": 1,
+        "warnings": [
+          "LLM 响应格式不标准，已降级处理"
+        ]
+      }
+    },
+    "recommendation": "持仓良好，关注风险",
+    "risk_factors": [
+      "衰退期，多头承压"
+    ],
+    "timestamp": "2026-06-16T21:21:50.878090"
+  }
+]
