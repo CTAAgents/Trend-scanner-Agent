@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-06-16T15:55:13.295982",
+  "scan_time": "2026-06-16T15:59:32.888438",
   "total_scanned": 86,
   "signals": [
     {
@@ -36,10 +36,20 @@
         "risk_points": 611.08
       },
       "reasoner_brief": {
-        "confidence": 0,
-        "recommended_action": "分析失败",
-        "reasoning": "'ExperienceMemory' object has no attribute 'aggregate'",
-        "error": true
+        "confidence": 0.5,
+        "recommended_action": "暂不操作，等待更明确的信号",
+        "reasoning": "LLM 不可用，使用规则退化建议",
+        "routes_count": 1,
+        "warnings": [
+          "当前使用规则退化模式，建议质量有限"
+        ],
+        "uncertainty": {
+          "cluster_confidence": 0.8,
+          "retrieval_confidence": 0.3,
+          "constraint_confidence": 0.4,
+          "overall_confidence": 0.48
+        },
+        "generation_time_ms": 0
       }
     },
     {
@@ -76,10 +86,20 @@
         "risk_points": 307.83
       },
       "reasoner_brief": {
-        "confidence": 0,
-        "recommended_action": "分析失败",
-        "reasoning": "'ExperienceMemory' object has no attribute 'aggregate'",
-        "error": true
+        "confidence": 0.5,
+        "recommended_action": "暂不操作，等待更明确的信号",
+        "reasoning": "LLM 不可用，使用规则退化建议",
+        "routes_count": 1,
+        "warnings": [
+          "当前使用规则退化模式，建议质量有限"
+        ],
+        "uncertainty": {
+          "cluster_confidence": 0.8,
+          "retrieval_confidence": 0.3,
+          "constraint_confidence": 0.4,
+          "overall_confidence": 0.48
+        },
+        "generation_time_ms": 0
       }
     },
     {
@@ -116,10 +136,20 @@
         "risk_points": 501.58
       },
       "reasoner_brief": {
-        "confidence": 0,
-        "recommended_action": "分析失败",
-        "reasoning": "'ExperienceMemory' object has no attribute 'aggregate'",
-        "error": true
+        "confidence": 0.5,
+        "recommended_action": "暂不操作，等待更明确的信号",
+        "reasoning": "LLM 不可用，使用规则退化建议",
+        "routes_count": 1,
+        "warnings": [
+          "当前使用规则退化模式，建议质量有限"
+        ],
+        "uncertainty": {
+          "cluster_confidence": 0.7,
+          "retrieval_confidence": 0.3,
+          "constraint_confidence": 0.4,
+          "overall_confidence": 0.45
+        },
+        "generation_time_ms": 0
       }
     },
     {
@@ -156,10 +186,20 @@
         "risk_points": 70.27
       },
       "reasoner_brief": {
-        "confidence": 0,
-        "recommended_action": "分析失败",
-        "reasoning": "'ExperienceMemory' object has no attribute 'aggregate'",
-        "error": true
+        "confidence": 0.5,
+        "recommended_action": "暂不操作，等待更明确的信号",
+        "reasoning": "LLM 不可用，使用规则退化建议",
+        "routes_count": 1,
+        "warnings": [
+          "当前使用规则退化模式，建议质量有限"
+        ],
+        "uncertainty": {
+          "cluster_confidence": 0.8,
+          "retrieval_confidence": 0.3,
+          "constraint_confidence": 0.4,
+          "overall_confidence": 0.48
+        },
+        "generation_time_ms": 1
       }
     },
     {
@@ -196,10 +236,20 @@
         "risk_points": 1225.53
       },
       "reasoner_brief": {
-        "confidence": 0,
-        "recommended_action": "分析失败",
-        "reasoning": "'ExperienceMemory' object has no attribute 'aggregate'",
-        "error": true
+        "confidence": 0.5,
+        "recommended_action": "暂不操作，等待更明确的信号",
+        "reasoning": "LLM 不可用，使用规则退化建议",
+        "routes_count": 1,
+        "warnings": [
+          "当前使用规则退化模式，建议质量有限"
+        ],
+        "uncertainty": {
+          "cluster_confidence": 0.7,
+          "retrieval_confidence": 0.3,
+          "constraint_confidence": 0.4,
+          "overall_confidence": 0.45
+        },
+        "generation_time_ms": 0
       }
     }
   ],
@@ -310,7 +360,7 @@
       "defensive": 0.2
     },
     "recommendation": "经济衰退期，趋势跟踪为主，降低仓位",
-    "timestamp": "2026-06-16T15:54:52.976098"
+    "timestamp": "2026-06-16T15:59:13.834761"
   },
   "reasoner_analyzed": true
 }
