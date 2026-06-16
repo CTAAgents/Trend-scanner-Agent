@@ -64,88 +64,6 @@
       "created_at": "2026-06-16T12:34:25.516604"
     },
     {
-      "factor_id": "volatility_20d_r1",
-      "trajectory": [
-        {
-          "round": 1,
-          "factor_name": "volatility_20d",
-          "logic": "",
-          "params": {},
-          "icir": -0.02593015361793861,
-          "t_stat": -0.2580017709209369,
-          "decision": "eliminate",
-          "reasons": [
-            "ICIR=0.03 < 0.5",
-            "t=0.26 < 1.0",
-            "多空Sharpe=0.47 < 0.5"
-          ],
-          "timestamp": "2026-06-16T12:39:35.846306"
-        }
-      ],
-      "failure_patterns": [
-        "t 统计量不显著: volatility_20d",
-        "简单波动率因子截面区分力不足",
-        "ICIR 过低: volatility_20d 的 ICIR=-0.03"
-      ],
-      "success_patterns": [],
-      "lessons": [
-        "简单技术因子（动量/波动率/RSI）在期货市场截面预测力弱",
-        "需要更复杂的因子逻辑或更多数据支撑"
-      ],
-      "category": "unknown",
-      "created_at": "2026-06-16T12:39:35.846306"
-    },
-    {
-      "factor_id": "adaptive_momentum_r2",
-      "trajectory": [
-        {
-          "round": 2,
-          "factor_name": "adaptive_momentum",
-          "logic": "",
-          "params": {},
-          "icir": -0.173788545179562,
-          "t_stat": -1.3348951448342639,
-          "decision": "observe",
-          "reasons": [
-            "ICIR=0.17 < 0.5",
-            "多空Sharpe=1.31 >= 1.0"
-          ],
-          "timestamp": "2026-06-16T12:39:37.723226"
-        }
-      ],
-      "failure_patterns": [],
-      "success_patterns": [],
-      "lessons": [],
-      "category": "unknown",
-      "created_at": "2026-06-16T12:39:37.723226"
-    },
-    {
-      "factor_id": "volume_breakout_r2",
-      "trajectory": [
-        {
-          "round": 2,
-          "factor_name": "volume_breakout",
-          "logic": "",
-          "params": {},
-          "icir": 0.10207883441355108,
-          "t_stat": 1.0207883441355108,
-          "decision": "observe",
-          "reasons": [
-            "ICIR=0.10 < 0.5",
-            "IC>0比例=57.0% >= 55%"
-          ],
-          "timestamp": "2026-06-16T12:39:37.726223"
-        }
-      ],
-      "failure_patterns": [],
-      "success_patterns": [],
-      "lessons": [
-        "平均 ICIR=0.10，因子整体预测力不足"
-      ],
-      "category": "unknown",
-      "created_at": "2026-06-16T12:39:37.726223"
-    },
-    {
       "factor_id": "multi_timeframe_momentum_r2",
       "trajectory": [
         {
@@ -178,6 +96,120 @@
       "created_at": "2026-06-16T12:39:37.728223"
     },
     {
+      "factor_id": "volatility_20d_r1",
+      "trajectory": [
+        {
+          "round": 1,
+          "factor_name": "volatility_20d",
+          "logic": "",
+          "params": {},
+          "icir": -0.02593015361793861,
+          "t_stat": -0.2580017709209369,
+          "decision": "eliminate",
+          "reasons": [
+            "ICIR=0.03 < 0.5",
+            "t=0.26 < 1.0",
+            "多空Sharpe=0.47 < 0.5"
+          ],
+          "timestamp": "2026-06-16T12:45:31.776704"
+        }
+      ],
+      "failure_patterns": [
+        "简单波动率因子截面区分力不足",
+        "t 统计量不显著: volatility_20d",
+        "ICIR 过低: volatility_20d 的 ICIR=-0.03"
+      ],
+      "success_patterns": [],
+      "lessons": [
+        "简单技术因子（动量/波动率/RSI）在期货市场截面预测力弱",
+        "需要更复杂的因子逻辑或更多数据支撑"
+      ],
+      "category": "unknown",
+      "created_at": "2026-06-16T12:45:31.776704"
+    },
+    {
+      "factor_id": "adaptive_momentum_r2",
+      "trajectory": [
+        {
+          "round": 2,
+          "factor_name": "adaptive_momentum",
+          "logic": "",
+          "params": {},
+          "icir": -0.173788545179562,
+          "t_stat": -1.3348951448342639,
+          "decision": "observe",
+          "reasons": [
+            "ICIR=0.17 < 0.5",
+            "多空Sharpe=1.31 >= 1.0"
+          ],
+          "timestamp": "2026-06-16T12:45:32.765136"
+        }
+      ],
+      "failure_patterns": [],
+      "success_patterns": [],
+      "lessons": [],
+      "category": "unknown",
+      "created_at": "2026-06-16T12:45:32.765136"
+    },
+    {
+      "factor_id": "volume_breakout_r2",
+      "trajectory": [
+        {
+          "round": 2,
+          "factor_name": "volume_breakout",
+          "logic": "",
+          "params": {},
+          "icir": 0.10207883441355108,
+          "t_stat": 1.0207883441355108,
+          "decision": "observe",
+          "reasons": [
+            "ICIR=0.10 < 0.5",
+            "IC>0比例=57.0% >= 55%"
+          ],
+          "timestamp": "2026-06-16T12:45:32.767133"
+        }
+      ],
+      "failure_patterns": [],
+      "success_patterns": [],
+      "lessons": [
+        "平均 ICIR=0.10，因子整体预测力不足"
+      ],
+      "category": "unknown",
+      "created_at": "2026-06-16T12:45:32.767133"
+    },
+    {
+      "factor_id": "momentum_20d_r2",
+      "trajectory": [
+        {
+          "round": 2,
+          "factor_name": "momentum_20d",
+          "logic": "",
+          "params": {},
+          "icir": -0.03718001877097864,
+          "t_stat": -0.36993651588512055,
+          "decision": "eliminate",
+          "reasons": [
+            "ICIR=0.04 < 0.5",
+            "t=0.37 < 1.0",
+            "多空Sharpe=0.00 < 0.5"
+          ],
+          "timestamp": "2026-06-16T12:45:32.768134"
+        }
+      ],
+      "failure_patterns": [
+        "简单动量因子在期货市场预测力弱",
+        "t 统计量不显著: momentum_20d",
+        "ICIR 过低: momentum_20d 的 ICIR=-0.04"
+      ],
+      "success_patterns": [],
+      "lessons": [
+        "简单技术因子（动量/波动率/RSI）在期货市场截面预测力弱",
+        "需要更复杂的因子逻辑或更多数据支撑"
+      ],
+      "category": "unknown",
+      "created_at": "2026-06-16T12:45:32.768134"
+    },
+    {
       "factor_id": "momentum_20d_r1",
       "trajectory": [
         {
@@ -193,13 +225,13 @@
             "IC>0比例=44.6% < 45%",
             "多空Sharpe=3.76 >= 1.0"
           ],
-          "timestamp": "2026-06-16T12:39:39.941946"
+          "timestamp": "2026-06-16T12:45:33.835517"
         }
       ],
       "failure_patterns": [
-        "ICIR 过低: momentum_20d 的 ICIR=-0.23",
         "简单动量因子在期货市场预测力弱",
-        "IC 方向不稳定: momentum_20d"
+        "IC 方向不稳定: momentum_20d",
+        "ICIR 过低: momentum_20d 的 ICIR=-0.23"
       ],
       "success_patterns": [],
       "lessons": [
@@ -207,7 +239,7 @@
         "需要更复杂的因子逻辑或更多数据支撑"
       ],
       "category": "unknown",
-      "created_at": "2026-06-16T12:39:39.941946"
+      "created_at": "2026-06-16T12:45:33.835517"
     },
     {
       "factor_id": "momentum_60d_r1",
@@ -223,24 +255,24 @@
           "reasons": [
             "IC 样本不足 (16 < 30)"
           ],
-          "timestamp": "2026-06-16T12:39:39.944943"
+          "timestamp": "2026-06-16T12:45:33.836517"
         }
       ],
       "failure_patterns": [],
       "success_patterns": [],
       "lessons": [],
       "category": "unknown",
-      "created_at": "2026-06-16T12:39:39.944943"
+      "created_at": "2026-06-16T12:45:33.836517"
     }
   ],
   "summary": {
-    "total_experiences": 8,
-    "total_lessons": 11,
-    "total_failure_patterns": 14,
+    "total_experiences": 9,
+    "total_lessons": 13,
+    "total_failure_patterns": 17,
     "total_success_patterns": 0,
     "categories": {
-      "unknown": 8
+      "unknown": 9
     }
   },
-  "updated_at": "2026-06-16T12:39:39.944943"
+  "updated_at": "2026-06-16T12:45:33.836517"
 }
