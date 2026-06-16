@@ -66,14 +66,15 @@ class LLMProvider(ABC):
 class OpenAIProvider(LLMProvider):
     """OpenAI 提供者"""
     
-    def __init__(self, api_key: str, model: str = "gpt-4"):
+    def __init__(self, api_key: str, model: str = "gpt-4", timeout: int = 120):
         try:
             import openai
-            self.client = openai.OpenAI(api_key=api_key)
+            self.client = openai.OpenAI(api_key=api_key, timeout=timeout)
         except ImportError:
             raise ImportError("请安装 openai: pip install openai")
         
         self._model = model
+        self._timeout = timeout
     
     def generate(self, prompt: str, **kwargs) -> str:
         response = self.client.chat.completions.create(
