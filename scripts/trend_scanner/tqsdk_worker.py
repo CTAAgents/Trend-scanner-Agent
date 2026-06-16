@@ -50,33 +50,115 @@ def fetch_kline(symbol: str, days: int = 120, period: str = "daily") -> dict:
         
         auth = TqAuth(tq_user, tq_password)
         
-        # 主力合约映射
+        # 主力合约映射（完整版）
         MAIN_CONTRACT_MAP = {
+            # 黑色系
             'RB': 'KQ.m@SHFE.rb',
             'HC': 'KQ.m@SHFE.hc',
             'I': 'KQ.m@DCE.i',
             'J': 'KQ.m@DCE.j',
             'JM': 'KQ.m@DCE.jm',
+            'SF': 'KQ.m@CZCE.SF',
+            'SM': 'KQ.m@CZCE.SM',
+
+            # 有色金属
             'CU': 'KQ.m@SHFE.cu',
             'AL': 'KQ.m@SHFE.al',
             'ZN': 'KQ.m@SHFE.zn',
+            'PB': 'KQ.m@SHFE.pb',
             'NI': 'KQ.m@SHFE.ni',
+            'SN': 'KQ.m@SHFE.sn',
+
+            # 能源化工
             'SC': 'KQ.m@INE.sc',
             'FU': 'KQ.m@SHFE.fu',
             'BU': 'KQ.m@SHFE.bu',
             'RU': 'KQ.m@SHFE.ru',
             'TA': 'KQ.m@CZCE.TA',
             'MA': 'KQ.m@CZCE.MA',
+            'SA': 'KQ.m@CZCE.SA',
+            'FG': 'KQ.m@CZCE.FG',
+            'EG': 'KQ.m@DCE.EG',
+            'EB': 'KQ.m@DCE.EB',
+            'PP': 'KQ.m@DCE.pp',
+            'V': 'KQ.m@DCE.v',
+            'L': 'KQ.m@DCE.l',
+
+            # 农产品
             'CF': 'KQ.m@CZCE.CF',
             'SR': 'KQ.m@CZCE.SR',
+            'AP': 'KQ.m@CZCE.AP',
+            'RM': 'KQ.m@CZCE.RM',
             'OI': 'KQ.m@CZCE.OI',
             'M': 'KQ.m@DCE.m',
             'Y': 'KQ.m@DCE.y',
             'P': 'KQ.m@DCE.p',
             'C': 'KQ.m@DCE.c',
             'CS': 'KQ.m@DCE.cs',
+            'A': 'KQ.m@DCE.a',
+            'B': 'KQ.m@DCE.b',
+            'JD': 'KQ.m@DCE.jd',
+            'LH': 'KQ.m@DCE.lh',
+
+            # 贵金属
             'AU': 'KQ.m@SHFE.au',
             'AG': 'KQ.m@SHFE.ag',
+
+            # 中金所 - 股指期货
+            'IF': 'KQ.m@CFFEX.if',
+            'IC': 'KQ.m@CFFEX.ic',
+            'IH': 'KQ.m@CFFEX.ih',
+            'IM': 'KQ.m@CFFEX.im',
+
+            # 中金所 - 国债期货
+            'T': 'KQ.m@CFFEX.t',
+            'TF': 'KQ.m@CFFEX.tf',
+            'TL': 'KQ.m@CFFEX.tl',
+            'TS': 'KQ.m@CFFEX.ts',
+
+            # 上期所 - 补充品种
+            'AO': 'KQ.m@SHFE.ao',
+            'BR': 'KQ.m@SHFE.br',
+            'SP': 'KQ.m@SHFE.sp',
+            'SS': 'KQ.m@SHFE.ss',
+            'WR': 'KQ.m@SHFE.wr',
+            'AD': 'KQ.m@SHFE.ad',
+            'OP': 'KQ.m@SHFE.op',
+
+            # 上期能源 - 补充品种
+            'BC': 'KQ.m@INE.bc',
+            'EC': 'KQ.m@INE.ec',
+            'LU': 'KQ.m@INE.lu',
+            'NR': 'KQ.m@INE.nr',
+
+            # 大商所 - 补充品种
+            'BB': 'KQ.m@DCE.bb',
+            'BZ': 'KQ.m@DCE.bz',
+            'FB': 'KQ.m@DCE.fb',
+            'LF': 'KQ.m@DCE.lf',
+            'LG': 'KQ.m@DCE.lg',
+            'PG': 'KQ.m@DCE.pg',
+            'PPF': 'KQ.m@DCE.ppf',
+            'RR': 'KQ.m@DCE.rr',
+            'VF': 'KQ.m@DCE.vf',
+
+            # 郑商所 - 补充品种
+            'CJ': 'KQ.m@CZCE.CJ',
+            'CY': 'KQ.m@CZCE.CY',
+            'JR': 'KQ.m@CZCE.JR',
+            'LR': 'KQ.m@CZCE.LR',
+            'PF': 'KQ.m@CZCE.PF',
+            'PK': 'KQ.m@CZCE.PK',
+            'PL': 'KQ.m@CZCE.PL',
+            'PM': 'KQ.m@CZCE.PM',
+            'PR': 'KQ.m@CZCE.PR',
+            'PX': 'KQ.m@CZCE.PX',
+            'RI': 'KQ.m@CZCE.RI',
+            'RS': 'KQ.m@CZCE.RS',
+            'SH': 'KQ.m@CZCE.SH',
+            'UR': 'KQ.m@CZCE.UR',
+            'WH': 'KQ.m@CZCE.WH',
+            'ZC': 'KQ.m@CZCE.ZC',
         }
         
         # 获取 TqSdk 符号
