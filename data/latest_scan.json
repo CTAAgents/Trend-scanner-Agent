@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-06-16T16:21:20.680418",
+  "scan_time": "2026-06-16T16:25:20.524789",
   "total_scanned": 1,
   "signals": [
     {
@@ -38,7 +38,7 @@
       "reasoner_brief": {
         "confidence": 0.5,
         "recommended_action": "请参考推理文本",
-        "reasoning": "```json\n{\n    \"routes\": [\n        {\n            \"route_id\": \"A\",\n            \"name\": \"顺势轻仓做多\",\n            \"action\": \"在价格于4700点上方企稳或小幅回踩关键均线支撑时，轻仓入场做多。\",\n            \"confidence\": 0.65,\n            \"reasoning\": \"当前市场结构（MATURE阶段，置信度80%）和趋势指标（ADX高位、均线多头排列、MACD扩张）均强烈指向上升趋势仍在延续。价格刚创出新高，且处于‘HIGHER_HIGHS’结构中。主要的不确定性在于‘趋势成熟’，这通常意味着趋势动能可能正在加速至顶峰，而非立即反转。因此，仍可顺势操作，但必须大幅降低仓位预期，并设置严格止损。成交量未确认和随机指标超买是主要的负面信号，表明追高风险巨大，应等待价格自然回调或震荡消化后再寻找机会。\",\n            \"constraints\": [\n                {\n                    \"",
+        "reasoning": "",
         "routes_count": 1,
         "warnings": [
           "LLM 响应格式不标准，已降级处理"
@@ -49,7 +49,7 @@
           "constraint_confidence": 0.4,
           "overall_confidence": 0.48
         },
-        "generation_time_ms": 119028
+        "generation_time_ms": 102864
       }
     }
   ],
@@ -78,7 +78,7 @@
       "defensive": 0.2
     },
     "recommendation": "经济衰退期，趋势跟踪为主，降低仓位",
-    "timestamp": "2026-06-16T16:21:10.419013"
+    "timestamp": "2026-06-16T16:25:10.193039"
   },
   "reasoner_analyzed": true
 }
