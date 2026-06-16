@@ -37,6 +37,55 @@ from data_formats import (
     write_monitor_result, read_monitor_result
 )
 
+
+def get_realtime_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
+    """
+    获取实时行情（快速，不下载K线）
+
+    参数:
+        symbols: 品种列表（如 ['DCE.jm2609', 'SHFE.ao2609']）
+
+    返回:
+        {symbol: {last_price, open_interest, volume, change_percent}}
+    """
+    import os
+    tq_user = os.environ.get('TQ_USER', '')
+    tq_password = os.environ.get('TQ_PASSWORD', '')
+
+    if not tq_user or not tq_password:
+        return {}
+
+    try:
+        from tqsdk import TqApi, TqAuth
+        auth = TqAuth(tq_user, tq_password)
+
+        with TqApi(auth=auth) as api:
+            quotes = {}
+            for sym in symbols:
+                try:
+                    quotes[sym] = api.get_quote(sym)
+                except:
+                    pass
+
+            api.wait_update(deadline=time.time() + 10)
+
+            result = {}
+            for sym in symbols:
+                if sym in quotes:
+                    q = quotes[sym]
+                    result[sym] = {
+                        'last_price': getattr(q, 'last_price', 0) or 0,
+                        'open_interest': getattr(q, 'open_interest', 0) or 0,
+                        'volume': getattr(q, 'volume', 0) or 0,
+                        'change_percent': getattr(q, 'change_percent', 0) or 0,
+                        'highest': getattr(q, 'highest', 0) or 0,
+                        'lowest': getattr(q, 'lowest', 0) or 0,
+                    }
+            return result
+    except Exception as e:
+        print(f"  获取实时行情失败: {e}", file=sys.stderr)
+        return {}
+
 # 状态缓存文件
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 STATE_FILE = os.path.join(DATA_DIR, 'heartbeat_state.json')
