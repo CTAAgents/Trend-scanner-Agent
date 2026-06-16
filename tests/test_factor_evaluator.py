@@ -30,11 +30,13 @@ from trend_scanner.factor_evaluator import (
 # 测试数据生成
 # ============================================================
 
-def generate_mock_kline(symbol: str, days: int = 120, seed: int = 42) -> pd.DataFrame:
+def generate_mock_kline(symbol: str, days: int = 120, seed: int = 42,
+                        dates: pd.DatetimeIndex = None) -> pd.DataFrame:
     """生成模拟 K 线数据"""
     np.random.seed(seed + hash(symbol) % 1000)
 
-    dates = pd.date_range(end=datetime.now(), periods=days, freq='B')
+    if dates is None:
+        dates = pd.date_range(end=pd.Timestamp('2026-06-15'), periods=days, freq='B')
     base_price = 100 + np.random.randint(0, 900)
     returns = np.random.normal(0.0005, 0.02, days)
     prices = base_price * np.exp(np.cumsum(returns))
