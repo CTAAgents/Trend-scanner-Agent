@@ -1,13 +1,12 @@
 ---
 name: trend-scanner-agent
 description: >
-  推理重于规则的期货趋势跟踪决策辅助系统 v5.0。
-  闭环迭代因子进化引擎（Generate→Eval→Gate→Memory），
-  截面 IC/ICIR 评估，贝叶斯参数优化，多因子组合模型。
+  推理重于规则的期货趋势跟踪决策辅助系统 v6.0。
+  Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
   数据源：TqSdk（首选）+ 通达信 MCP（备选）+ 本地数据库缓存。
 ---
 
-# Trend Scanner Agent v5.0
+# Trend Scanner Agent v6.0
 
 > 推理重于规则的期货趋势跟踪决策辅助系统
 
@@ -15,7 +14,7 @@ description: >
 
 ## 一句话概括
 
-闭环迭代因子进化引擎 + 八层管线架构，TqSdk 拉取数据写入本地 DuckDB，纯 Python 做计算，LLM 做推理，每日自动扫描 60+ 非僵尸期货品种，信号输出附带仓位建议和止损价位。
+Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，TqSdk 拉取数据写入本地 DuckDB，纯 Python 做计算，LLM 做推理，每日自动扫描 60+ 非僵尸期货品种，信号输出附带仓位建议和止损价位。
 
 ## 核心理念
 
@@ -36,6 +35,12 @@ python tools/sync_data.py sync --days 120
 # 运行扫描
 python tools/scan_opportunities.py --output text --save
 
+# Reasoner深度分析（推荐）
+python tools/scan_opportunities.py --reasoner --output text --save
+
+# 持仓健康度评估
+python tools/scan_opportunities.py --position-health
+
 # 因子评估
 python tools/scan_opportunities.py --evaluate-factors
 
@@ -43,8 +48,10 @@ python tools/scan_opportunities.py --evaluate-factors
 python tools/scan_opportunities.py --evolve --evolve-rounds 5
 ```
 
-## v5.0 新特性
+## v6.0 新特性
 
+- **Reasoner Agent 深度分析**: LLM 驱动的信号推理，输出置信度评估和操作建议
+- **持仓健康度评估**: 多维度评估持仓状态（技术面+资金面+市场面+LLM推理）
 - **闭环因子进化**: Generate → Eval → Gate → Memory 自动迭代
 - **截面 IC/ICIR 评估**: 多品种截面预测能力量化
 - **贝叶斯参数优化**: Optuna TPE 自动搜索最优参数
