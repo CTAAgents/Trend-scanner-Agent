@@ -330,6 +330,33 @@ class FactorEvolutionEngine:
                         )
                         self.knowledge_manager.add_factor(result)
 
+        # [6] 记录到经验数据库
+        if self.experience_db:
+            for d in decisions:
+                trajectory = [{
+                    'round': round_num,
+                    'factor_name': d.factor_name,
+                    'logic': '',
+                    'params': {},
+                    'icir': d.metrics.get('icir', 0),
+                    't_stat': d.metrics.get('t_stat', 0),
+                    'decision': d.decision,
+                    'reasons': d.reasons,
+                    'timestamp': datetime.now().isoformat(),
+                }]
+                self.experience_db.record_trajectory(
+                    factor_id=f"{d.factor_name}_r{round_num}",
+                    trajectory=trajectory,
+                )
+
+        # [7] 更新种子因子池状态
+        if self.seed_pool:
+            for d in decisions:
+                if d.decision == 'promote':
+                    self.seed_pool.update_status(d.factor_name, 'validated', d.metrics)
+                elif d.decision == 'eliminate':
+                    self.seed_pool.update_status(d.factor_name, 'discarded', d.metrics)
+
         logger.info(
             f"轮次 {round_num}: 候选 {len(candidates)}, "
             f"晋升 {len(round_result.promoted)}, 淘汰 {len(round_result.eliminated)}"
