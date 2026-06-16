@@ -106,11 +106,11 @@
 
 | 步骤 | 产出物 | 检查点 |
 |------|--------|--------|
-| 1. 更新文档 | SKILL.md、docs/设计文档 | 需求明确、接口定义清晰 |
+| 1. 更新文档 | README.md、docs/设计文档 | 需求明确、接口定义清晰 |
 | 2. 编写测试 | test_*.py | 测试覆盖正常/边界/异常场景 |
 | 3. 实施代码 | *.py | 遵循本准则四条原则 |
 | 4. 运行测试 | 测试报告 | 所有测试通过、覆盖率达标 |
-| 5. 更新文档 | SKILL.md、docs/TESTING.md、memory/MEMORY.md | 文档与代码一致 |
+| 5. 更新文档 | README.md、docs/TESTING.md、memory/MEMORY.md | 文档与代码一致 |
 | 6. 提交 GitHub | Git commit | 提交信息清晰描述更改 |
 
 ### 文档更新清单
