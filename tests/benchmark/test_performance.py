@@ -1,5 +1,5 @@
 """
-Trend-scanner-Agent v4.0 性能基准测试
+Trend-scanner-Agent v5.0 性能基准测试
 
 验证各模块的执行时间在可接受范围内：
 
