@@ -77,19 +77,43 @@
       },
       "created_at": "2026-06-16T11:40:14.953220",
       "updated_at": "2026-06-16T12:39:37.730222"
+    },
+    {
+      "name": "VGRSI_A0",
+      "code": "\nimport numpy as np\nimport pandas as pd\n\ndef factor(df, window_size=100, threshold_upper=70, threshold_lower=30):\n    \"\"\"\n    VGRSI A0 (Visibility Graph Relative Strength Index - Mean Aggregation)\n    \n    基于可见图的 RSI 变体，使用均值聚合模式捕捉趋势持续性。\n    \n    Args:\n        df: DataFrame with 'close' column\n        window_size: 可见性计算的回看窗口\n        threshold_upper: 买入信号阈值\n        threshold_lower: 卖出信号阈值\n    \n    Returns:\n        pd.Series: VGRSI A0 值 (0-100)\n    \"\"\"\n    from scripts.trend_scanner.visibility_graph import VGRSI\n    \n    calculator = VGRSI(\n        window_size=window_size,\n        aggregation_mode='A0',\n        threshold_upper=threshold_upper,\n        threshold_lower=threshold_lower\n    )\n    \n    vgrsi_values = calculator.calculate(df['close'].values)\n    return pd.Series(vgrsi_values, index=df.index)\n",
+      "logic": "基于可见图的 RSI 变体，使用均值聚合模式。将价格时间序列转换为可见图网络，利用价格点之间的几何可见关系替代传统 RSI 的简单价格变化。A0 模式使用均值聚合，捕捉趋势持续性。",
+      "economic_rationale": "可见图捕捉价格序列的拓扑结构特征，而非简单的趋势或动量。当价格点之间的可见性关系呈现特定模式时，表明市场处于趋势持续状态。",
+      "source": "arXiv:2605.01300 - Visibility Graphs Can Make Money in Financial Markets",
+      "category": "momentum",
+      "status": "pending",
+      "evaluation": {},
+      "created_at": "2026-06-17T10:29:41.088108",
+      "updated_at": "2026-06-17T10:29:41.088108"
+    },
+    {
+      "name": "VGRSI_A1",
+      "code": "\nimport numpy as np\nimport pandas as pd\n\ndef factor(df, window_size=100, threshold_upper=70, threshold_lower=30):\n    \"\"\"\n    VGRSI A1 (Visibility Graph Relative Strength Index - Ratio Aggregation)\n    \n    基于可见图的 RSI 变体，使用比率聚合模式捕捉突破脉冲。\n    \n    Args:\n        df: DataFrame with 'close' column\n        window_size: 可见性计算的回看窗口\n        threshold_upper: 买入信号阈值\n        threshold_lower: 卖出信号阈值\n    \n    Returns:\n        pd.Series: VGRSI A1 值 (0-100)\n    \"\"\"\n    from scripts.trend_scanner.visibility_graph import VGRSI\n    \n    calculator = VGRSI(\n        window_size=window_size,\n        aggregation_mode='A1',\n        threshold_upper=threshold_upper,\n        threshold_lower=threshold_lower\n    )\n    \n    vgrsi_values = calculator.calculate(df['close'].values)\n    return pd.Series(vgrsi_values, index=df.index)\n",
+      "logic": "基于可见图的 RSI 变体，使用比率聚合模式。将价格时间序列转换为可见图网络，利用价格点之间的几何可见关系替代传统 RSI 的简单价格变化。A1 模式使用比率聚合，捕捉突破脉冲。",
+      "economic_rationale": "可见图捕捉价格序列的拓扑结构特征。当可见性关系中正向关系显著多于负向关系时，表明市场处于突破状态。",
+      "source": "arXiv:2605.01300 - Visibility Graphs Can Make Money in Financial Markets",
+      "category": "momentum",
+      "status": "pending",
+      "evaluation": {},
+      "created_at": "2026-06-17T10:29:41.089106",
+      "updated_at": "2026-06-17T10:29:41.089106"
     }
   ],
   "summary": {
-    "total": 5,
+    "total": 7,
     "categories": {
-      "momentum": 3,
+      "momentum": 5,
       "volume": 1,
       "composite": 1
     },
     "statuses": {
-      "pending": 2,
+      "pending": 4,
       "discarded": 3
     }
   },
-  "updated_at": "2026-06-16T13:00:45.566900"
+  "updated_at": "2026-06-17T10:29:41.090106"
 }
