@@ -267,14 +267,14 @@ class WalkForwardValidator:
         
         # 简单的阈值策略
         for i in range(1, len(factor_values)):
-            if pd.isna(factor_values[i]) or pd.isna(factor_values[i-1]):
+            if pd.isna(factor_values.iloc[i]) or pd.isna(factor_values.iloc[i-1]):
                 continue
             
             # 买入信号: 因子值从下方穿越上阈值
-            if factor_values[i] > 70 and factor_values[i-1] <= 70:
+            if factor_values.iloc[i] > 70 and factor_values.iloc[i-1] <= 70:
                 signals.iloc[i] = 1
             # 卖出信号: 因子值从上方穿越下阈值
-            elif factor_values[i] < 30 and factor_values[i-1] >= 30:
+            elif factor_values.iloc[i] < 30 and factor_values.iloc[i-1] >= 30:
                 signals.iloc[i] = -1
         
         return signals
