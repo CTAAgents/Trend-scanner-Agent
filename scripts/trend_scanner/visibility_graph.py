@@ -184,7 +184,11 @@ class VGRSI:
         negative_count = 0
         
         for j in visible_points:
-            f_ij = (prices[j] - p_i) / p_i
+            # 避免除零
+            if abs(p_i) < 1e-10:
+                f_ij = 0.0
+            else:
+                f_ij = (prices[j] - p_i) / p_i
             if f_ij > 0:
                 positive_count += 1
             elif f_ij < 0:

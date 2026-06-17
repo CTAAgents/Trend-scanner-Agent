@@ -32,12 +32,16 @@ class TestVisibilityGraph:
     
     def test_backward_visibility_basic(self):
         """测试基本的可见性关系"""
-        # 简单上升序列：所有点都可见
+        # 简单上升序列：相邻点总是可见的
         prices = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
         assert VisibilityGraph.backward_visibility(prices, 0, 1) == True
-        assert VisibilityGraph.backward_visibility(prices, 0, 2) == True
-        assert VisibilityGraph.backward_visibility(prices, 0, 3) == True
-        assert VisibilityGraph.backward_visibility(prices, 0, 4) == True
+        assert VisibilityGraph.backward_visibility(prices, 1, 2) == True
+        assert VisibilityGraph.backward_visibility(prices, 2, 3) == True
+        assert VisibilityGraph.backward_visibility(prices, 3, 4) == True
+        
+        # 对于线性序列，非相邻点不可见（中间点在连接线上）
+        assert VisibilityGraph.backward_visibility(prices, 0, 2) == False
+        assert VisibilityGraph.backward_visibility(prices, 0, 3) == False
     
     def test_backward_visibility_with_obstacle(self):
         """测试有障碍物时的可见性"""
