@@ -1,6 +1,6 @@
 # 用户手册
 
-> Trend Scanner Agent v5.0 — 期货趋势跟踪决策辅助系统
+> Trend Scanner Agent v6.0 — 期货趋势跟踪决策辅助系统
 
 ---
 
