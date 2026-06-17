@@ -161,9 +161,9 @@ Walk-Forward 验证与贝叶斯优化互补：
 |--------|------|------|----------|------|
 | P0 | VGRSI 因子实现 + 纳入因子库 | ✅ 完成 | 2026-06-17 | visibility_graph.py + 种子因子池 |
 | P1 | Walk-Forward 验证框架 | ✅ 完成 | 2026-06-17 | walk_forward_validator.py |
-| P1 | 可见图算子注入因子生成器 | ❌ 待实施 | - | 扩展 LLM 因子生成的搜索空间 |
-| P2 | 多周期 VGRSI 一致性因子 | ❌ 待实施 | - | M1/M5/M30 共识信号作为复合因子 |
-| P3 | 波动幅度中位数作为止损锚点 | ❌ 待实施 | - | Reasoner 推理参考框架 |
+| P1 | 可见图算子注入因子生成器 | ✅ 完成 | 2026-06-17 | visibility_graph_operator.py |
+| P2 | 多周期 VGRSI 一致性因子 | ✅ 完成 | 2026-06-17 | MultiTimeframeVGRSIFactor 类 |
+| P3 | 波动幅度中位数作为止损锚点 | ✅ 完成 | 2026-06-17 | volatility_anchor.py |
 
 ---
 
