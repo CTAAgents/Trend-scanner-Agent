@@ -257,6 +257,7 @@ class ReasoningEngine:
         multi_dimension_result: dict | None = None,
         trade_history: list[float] | None = None,
         circuit_breaker_status: dict | None = None,
+        rl_signal: dict | None = None,
     ) -> dict:
         """
         执行推理
@@ -288,6 +289,7 @@ class ReasoningEngine:
             multi_dimension_result=multi_dimension_result,
             trade_history=trade_history,
             circuit_breaker_status=circuit_breaker_status,
+            rl_signal=rl_signal,
         )
 
         # 4. 调用 LLM
@@ -702,6 +704,7 @@ class ReasoningEngine:
         multi_dimension_result: dict | None = None,
         trade_history: list[float] | None = None,
         circuit_breaker_status: dict | None = None,
+        rl_signal: dict | None = None,
     ) -> str:
         """
         构建用户提示词
@@ -1002,6 +1005,75 @@ class ReasoningEngine:
             except Exception as e:
                 logger.warning(f"注入多维度评分失败: {e}")
 
+        # 8.2 RL 策略信号（新增）
+        if rl_signal:
+            try:
+                parts.append("")
+                parts.append("# RL 策略信号")
+                parts.append("基于强化学习（PPO）策略的信号，作为传统技术指标的补充参考：")
+                parts.append("")
+                
+                # 信号概览
+                rl_direction = rl_signal.get('direction', 'NEUTRAL')
+                rl_strength = rl_signal.get('strength', 0)
+                rl_confidence = rl_signal.get('confidence', 0)
+                rl_source = rl_signal.get('source', 'rl')
+                
+                # 方向标记
+                if rl_direction == 'LONG':
+                    direction_mark = '↑ 做多'
+                elif rl_direction == 'SHORT':
+                    direction_mark = '↓ 做空'
+                else:
+                    direction_mark = '→ 中性'
+                
+                parts.append(f"- **信号方向**: {direction_mark}")
+                parts.append(f"- **信号强度**: {rl_strength:.2f} (范围: 0~1)")
+                parts.append(f"- **置信度**: {rl_confidence:.0%}")
+                parts.append(f"- **信号来源**: {rl_source}")
+                parts.append("")
+                
+                # 集成信息（如果有）
+                if rl_source == 'rl_ensemble':
+                    consistency = rl_signal.get('consistency', 0)
+                    n_models = rl_signal.get('n_models', 0)
+                    parts.append("## 集成模型信息")
+                    parts.append(f"- **模型数量**: {n_models} 个")
+                    parts.append(f"- **一致性**: {consistency:.0%}")
+                    
+                    if consistency > 0.8:
+                        parts.append("- **评价**: 模型高度一致，信号可靠")
+                    elif consistency > 0.5:
+                        parts.append("- **评价**: 模型中等一致，信号有一定参考价值")
+                    else:
+                        parts.append("- **评价**: 模型分歧较大，信号需谨慎参考")
+                    parts.append("")
+                
+                # 与传统信号对比
+                parts.append("## 与传统信号对比")
+                parts.append("RL 信号与传统技术指标信号的对比：")
+                parts.append("- 传统信号基于规则（ER、TSI、R²等阈值判断）")
+                parts.append("- RL 信号基于历史数据学习的模式识别")
+                parts.append("- 两者一致时信号更可靠，冲突时建议谨慎")
+                parts.append("")
+                
+                # 使用建议
+                parts.append("## 使用建议")
+                if rl_confidence > 0.7:
+                    parts.append("- RL 信号置信度较高，可作为重要参考")
+                elif rl_confidence > 0.4:
+                    parts.append("- RL 信号置信度中等，建议结合其他指标综合判断")
+                else:
+                    parts.append("- RL 信号置信度较低，建议主要参考传统指标")
+                
+                if rl_strength > 0.5:
+                    parts.append("- RL 信号强度较高，建议关注")
+                else:
+                    parts.append("- RL 信号强度一般，可作为辅助参考")
+                    
+            except Exception as e:
+                logger.warning(f"注入 RL 信号失败: {e}")
+
         # 8.5 蒙特卡洛模拟（Davey Step 5）
         if trade_history and len(trade_history) >= 3:
             try:
@@ -1083,6 +1155,38 @@ class ReasoningEngine:
             parts.append(
                 "5. 多维度评分是五维度综合结果，重点关注维度间一致性。当维度一致性高时信号更可靠；分歧大时建议谨慎。"
             )
+
+        # 10. 反叙事约束（v0.2.0 新增 - 借鉴 ai-investment-skills）
+        parts.append("")
+        parts.append("# 反叙事约束（质量控制）")
+        parts.append("以下规则强制执行，防止构建误导性市场叙事：")
+        parts.append("")
+        parts.append("## 1. 数字优于叙事")
+        parts.append("- **必须**用具体数字描述市场状态，禁止模糊表述")
+        parts.append("- 正确示例：'ER=0.65, TSI=25.3, RSI=58'")
+        parts.append("- 错误示例：'趋势强劲'、'动量充足'、'超买'")
+        parts.append("")
+        parts.append("## 2. 交叉验证")
+        parts.append("- 任何价格/指标主张必须有 2+ 数据源支持")
+        parts.append("- 如果数据源不一致，必须说明差异并给出判断依据")
+        parts.append("- 禁止单一数据源支撑的确定性结论")
+        parts.append("")
+        parts.append("## 3. 禁止叙事重复")
+        parts.append("- 每次分析必须基于当前数据，禁止复制粘贴之前的分析")
+        parts.append("- 如果市场状态相似，必须指出与上次分析的差异点")
+        parts.append("- 禁止使用'如前所述'、'之前分析过'等表述")
+        parts.append("")
+        parts.append("## 4. 卖出检查清单")
+        parts.append("- 禁止恐慌性卖出，必须先检查：")
+        parts.append("  a) 是否触底？（技术指标是否超卖）")
+        parts.append("  b) 是否有新催化剂？（基本面是否恶化）")
+        parts.append("  c) 止损逻辑是否仍然有效？")
+        parts.append("  d) 仓位大小是否合理？")
+        parts.append("")
+        parts.append("## 5. 置信度透明")
+        parts.append("- 每个操作方案必须附带置信度评估（高/中/低）")
+        parts.append("- 低置信度方案必须说明原因（数据不足、指标矛盾等）")
+        parts.append("- 禁止对不确定的结论给出高置信度")
 
         return "\n".join(parts)
 
