@@ -11,10 +11,10 @@
 - 新品种出现强信号
 
 使用方式：
-    python tools/heartbeat.py                    # 单次心跳检查（配置文件中的品种）
-    python tools/heartbeat.py --all              # 扫描全部非僵尸品种
+    python tools/heartbeat.py                    # 单次心跳检查（全部品种）
     python tools/heartbeat.py --loop             # 持续循环（每 5 分钟）
     python tools/heartbeat.py --positions-only   # 只监控持仓
+    python tools/heartbeat.py --config-only      # 仅扫描配置文件中的品种
 """
 
 import json
@@ -476,7 +476,7 @@ def main():
     parser.add_argument("--loop", action="store_true", help="持续循环（每 5 分钟）")
     parser.add_argument("--interval", type=int, default=300, help="心跳间隔（秒，默认 300）")
     parser.add_argument("--positions-only", action="store_true", help="只监控持仓")
-    parser.add_argument("--all", action="store_true", help="扫描全部品种（非僵尸品种）")
+    parser.add_argument("--config-only", action="store_true", help="仅扫描配置文件中的品种（默认扫描全部86个主力合约）")
     parser.add_argument("--output", choices=["json", "text"], default="text", help="输出格式")
     parser.add_argument("--save", action="store_true", help="保存结果到 data/latest_heartbeat.json")
     
