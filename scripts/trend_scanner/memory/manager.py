@@ -290,6 +290,211 @@ class UnifiedMemoryManager:
         """获取活跃模式"""
         return self.sqlite_store.get_active_patterns(pattern_type=pattern_type)
     
+    # ========== 因子管理（v6.0 新增） ==========
+    
+    def store_factor_result(self, factor_result: Dict[str, Any]) -> str:
+        """
+        存储因子结果
+        
+        Args:
+            factor_result: 因子结果字典，包含：
+                - factor_name: 因子名称
+                - code: 因子代码
+                - source: 来源
+                - evaluation: 评估结果
+                - walk_forward: Walk-Forward 验证结果
+                - decision: 门控决策
+                
+        Returns:
+            因子ID
+        """
+        factor_id = factor_result.get('factor_id', self._generate_id('FAC'))
+        factor_result['factor_id'] = factor_id
+        
+        # 存储为经验
+        experience = {
+            'experience_id': factor_id,
+            'timestamp': datetime.now().isoformat(),
+            'symbol': 'FACTOR',
+            'experience_type': 'factor_result',
+            'factor_name': factor_result.get('factor_name', ''),
+            'factor_code': factor_result.get('code', ''),
+            'factor_source': factor_result.get('source', ''),
+            'evaluation': json.dumps(factor_result.get('evaluation', {}), ensure_ascii=False),
+            'walk_forward': json.dumps(factor_result.get('walk_forward', {}), ensure_ascii=False),
+            'decision': factor_result.get('decision', 'observe')
+        }
+        self.store_experience(experience)
+        
+        return factor_id
+    
+    def get_factor_history(self, factor_name: str = None) -> List[Dict[str, Any]]:
+        """
+        获取因子历史
+        
+        Args:
+            factor_name: 因子名称（可选）
+            
+        Returns:
+            因子历史列表
+        """
+        return self.sqlite_store.get_experiences_by_type('factor_result', symbol= factor_name)
+    
+    def store_factor_evaluation(self, evaluation: Dict[str, Any]) -> str:
+        """
+        存储因子评估结果
+        
+        Args:
+            evaluation: 评估结果字典
+                
+        Returns:
+            评估ID
+        """
+        eval_id = evaluation.get('eval_id', self._generate_id('EVAL'))
+        evaluation['eval_id'] = eval_id
+        
+        # 存储为经验
+        experience = {
+            'experience_id': eval_id,
+            'timestamp': datetime.now().isoformat(),
+            'symbol': 'FACTOR',
+            'experience_type': 'factor_evaluation',
+            'factor_name': evaluation.get('factor_name', ''),
+            'ic': evaluation.get('ic', 0),
+            'icir': evaluation.get('icir', 0),
+            't_stat': evaluation.get('t_stat', 0),
+            'decision': evaluation.get('decision', 'observe')
+        }
+        self.store_experience(experience)
+        
+        return eval_id
+    
+    # ========== Walk-Forward 管理（v6.0 新增） ==========
+    
+    def store_walk_forward_result(self, wf_result: Dict[str, Any]) -> str:
+        """
+        存储 Walk-Forward 验证结果
+        
+        Args:
+            wf_result: Walk-Forward 结果字典
+                
+        Returns:
+            结果ID
+        """
+        wf_id = wf_result.get('wf_id', self._generate_id('WF'))
+        wf_result['wf_id'] = wf_id
+        
+        # 存储为经验
+        experience = {
+            'experience_id': wf_id,
+            'timestamp': datetime.now().isoformat(),
+            'symbol': 'FACTOR',
+            'experience_type': 'walk_forward_result',
+            'factor_name': wf_result.get('factor_name', ''),
+            'total_windows': wf_result.get('total_windows', 0),
+            'passed_windows': wf_result.get('passed_windows', 0),
+            'pass_rate': wf_result.get('pass_rate', 0),
+            'avg_oos_sharpe': wf_result.get('avg_oos_sharpe', 0),
+            'config': json.dumps(wf_result.get('config', {}), ensure_ascii=False)
+        }
+        self.store_experience(experience)
+        
+        return wf_id
+    
+    def get_walk_forward_history(self, factor_name: str = None) -> List[Dict[str, Any]]:
+        """
+        获取 Walk-Forward 验证历史
+        
+        Args:
+            factor_name: 因子名称（可选）
+            
+        Returns:
+            Walk-Forward 历史列表
+        """
+        return self.sqlite_store.get_experiences_by_type('walk_forward_result', symbol=factor_name)
+    
+    # ========== 可见图因子管理（v6.0 新增） ==========
+    
+    def store_visibility_graph_factor(self, factor_info: Dict[str, Any]) -> str:
+        """
+        存储可见图因子信息
+        
+        Args:
+            factor_info: 因子信息字典
+                
+        Returns:
+            因子ID
+        """
+        vg_id = factor_info.get('vg_id', self._generate_id('VG'))
+        factor_info['vg_id'] = vg_id
+        
+        # 存储为经验
+        experience = {
+            'experience_id': vg_id,
+            'timestamp': datetime.now().isoformat(),
+            'symbol': 'FACTOR',
+            'experience_type': 'visibility_graph_factor',
+            'factor_name': factor_info.get('factor_name', ''),
+            'operator': factor_info.get('operator', ''),
+            'params': json.dumps(factor_info.get('params', {}), ensure_ascii=False),
+            'performance': json.dumps(factor_info.get('performance', {}), ensure_ascii=False)
+        }
+        self.store_experience(experience)
+        
+        return vg_id
+    
+    def get_visibility_graph_factors(self) -> List[Dict[str, Any]]:
+        """
+        获取所有可见图因子
+        
+        Returns:
+            可见图因子列表
+        """
+        return self.sqlite_store.get_experiences_by_type('visibility_graph_factor')
+    
+    # ========== 波动率锚点管理（v6.0 新增） ==========
+    
+    def store_volatility_anchor(self, anchor_info: Dict[str, Any]) -> str:
+        """
+        存储波动率锚点信息
+        
+        Args:
+            anchor_info: 锚点信息字典
+                
+        Returns:
+            锚点ID
+        """
+        anchor_id = anchor_info.get('anchor_id', self._generate_id('ANCHOR'))
+        anchor_info['anchor_id'] = anchor_id
+        
+        # 存储为经验
+        experience = {
+            'experience_id': anchor_id,
+            'timestamp': datetime.now().isoformat(),
+            'symbol': anchor_info.get('symbol', ''),
+            'experience_type': 'volatility_anchor',
+            'params': json.dumps(anchor_info.get('params', {}), ensure_ascii=False),
+            'anchor_value': anchor_info.get('anchor_value', 0),
+            'stop_loss': anchor_info.get('stop_loss', 0),
+            'effectiveness': json.dumps(anchor_info.get('effectiveness', {}), ensure_ascii=False)
+        }
+        self.store_experience(experience)
+        
+        return anchor_id
+    
+    def get_volatility_anchor(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        获取波动率锚点
+        
+        Args:
+            symbol: 品种代码
+            
+        Returns:
+            锚点信息
+        """
+        results = self.sqlite_store.get_experiences_by_type('volatility_anchor', symbol=symbol)
+        return results[0] if results else None
+    
     # ========== 分析查询（DuckDB） ==========
     
     def analyze_performance(self, symbol: str = None, days: int = 30) -> Dict[str, Any]:
