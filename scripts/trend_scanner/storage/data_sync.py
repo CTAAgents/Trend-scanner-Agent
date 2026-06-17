@@ -388,8 +388,22 @@ class DataSyncManager:
         Returns:
             活跃品种列表
         """
-        # 从 SQLite 获取
-        return self.sqlite.get_active_symbols(min_oi)
+        # 从 SQLite 获取（COALESCE 处理 NULL OI）
+        symbols = self.sqlite.get_active_symbols(min_oi)
+        
+        # 如果 SQLite 的 OI 全为 NULL，尝试从 DuckDB quotes 表补充
+        if symbols and all(s.get('open_interest') is None for s in symbols):
+            print("[提示] symbols 表 OI 为空，从 DuckDB quotes 表补充...")
+            for s in symbols:
+                quote = self.duckdb.get_latest_quote(s['symbol'])
+                if quote and quote.get('open_interest'):
+                    s['open_interest'] = quote['open_interest']
+            
+            # 重新筛选
+            symbols = [s for s in symbols if (s.get('open_interest') or 0) >= min_oi]
+            symbols.sort(key=lambda x: x.get('open_interest') or 0, reverse=True)
+        
+        return symbols
     
     # ============================================================
     # 统计信息
