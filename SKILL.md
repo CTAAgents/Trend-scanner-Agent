@@ -43,6 +43,7 @@ python tools/scan_opportunities.py --evolve --evolve-rounds 5
 | **五维度筛选评分** | `--use-multi-dimension` | 核心 |
 | **Reasoner深度分析** | `--reasoner --output text --save` | 核心 |
 | **持仓健康度评估** | `--position-health` | 核心 |
+| **RL 策略信号** | `--use-rl` | RL 模块 |
 | **蒙特卡洛模拟** | 内置（自动触发） | Davey Step 5 |
 | **策略孵化** | 内置（自动触发） | Davey Step 6 |
 | **停止交易阈值** | 内置（自动触发） | Davey Step 7 |
@@ -63,6 +64,39 @@ python tools/scan_opportunities.py --evolve --evolve-rounds 5
 | 策略孵化 | `strategy_incubator.py` | 实盘数据验证3-6个月，对比回测预期 |
 | 停止交易阈值 | `circuit_breaker.py` | 策略级熔断（最大亏损/回撤/连续亏损） |
 | 多策略组合 | `strategy_portfolio.py` | 策略权重优化/相关性控制/分散化 |
+
+## RL 强化学习模块（新增）
+
+借鉴 ElegantRL 架构设计的强化学习模块，支持 PPO 策略训练和集成：
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| AgentBase | `rl/base.py` | Agent 基类，定义 perceive→reason→execute→reflect 生命周期 |
+| PPO Agent | `rl/agent_ppo.py` | PPO 算法实现（GAE + Ratio Clipping + 熵正则化） |
+| 网络架构 | `rl/networks.py` | ActorPPO、CriticPPO、StateNormalizer |
+| Gym 环境 | `rl/futures_env.py` | FuturesTradingEnv、MultiAssetVecEnv |
+| 训练器 | `rl/trainer.py` | RLTrainer、evaluate_agent |
+| Walk-Forward 验证 | `rl/walk_forward_rl.py` | RLWalkForwardValidator（IS/OOS 一致性检查） |
+| Scanner 集成 | `rl/scanner_integration.py` | RLSignalGenerator、integrate_rl_signal_to_scanner |
+
+**使用方式**：
+
+```bash
+# 训练 PPO 策略
+python tools/train_ppo.py --symbol RB --days 200 --train-steps 10000
+
+# 多品种并行训练
+python tools/train_ppo.py --symbol I,J,JM --multi-asset
+
+# Walk-Forward 验证
+python tools/train_ppo.py --symbol RB --walk-forward
+
+# 超参调优
+python tools/tune_rl_hyperparams.py --symbol RB --trials 20
+
+# 使用 RL 信号扫描
+python tools/scan_opportunities.py --use-rl
+```
 
 ## 触发词
 

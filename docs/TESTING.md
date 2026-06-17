@@ -7,15 +7,15 @@
 
 | 指标 | 数值 |
 |------|------|
-| **总测试数** | 575 |
-| **通过** | 575 |
+| **总测试数** | 525+ |
+| **通过** | 525+ |
 | **跳过** | 1 |
 | **失败** | 0 |
 | **覆盖率** | 100%（核心模块） |
 
 ## 测试文件清单
 
-### 单元测试（350 个）
+### 单元测试（350+ 个）
 
 | 测试文件 | 测试数 | 覆盖模块 |
 |----------|--------|----------|
@@ -42,12 +42,18 @@
 | `test_strategy_incubator.py` | 18 | StrategyIncubator（孵化会话+信号记录+评估） |
 | `test_circuit_breaker.py` | 16 | CircuitBreaker（熔断规则+冷却期+状态管理） |
 | `test_strategy_portfolio.py` | 20 | StrategyPortfolio（权重优化+分散化+相关性） |
+| **test_trend_scanner_config.py** | 31 | TrendScannerConfig（统一配置） |
+| **test_rl_base.py** | 19 | AgentBase, ReplayBuffer, FuturesTradingEnv |
+| **test_ppo.py** | 30 | AgentPPO, ActorPPO, CriticPPO, RLTrainer |
+| **test_walk_forward_rl.py** | 11 | RLWalkForwardValidator |
+| **test_scanner_integration.py** | 11 | RLSignalGenerator, integrate_rl_signal_to_scanner |
 
-### 端到端测试（14 个）
+### 端到端测试（20 个）
 
 | 测试文件 | 测试数 | 说明 |
 |----------|--------|------|
 | `test_e2e_pipeline.py` | 14 | 完整管道端到端测试 |
+| **test_e2e_rl_pipeline.py** | 6 | RL 端到端流程测试 |
 
 ### 集成测试（22 个）
 

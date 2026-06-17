@@ -102,6 +102,7 @@ python tools/scan_opportunities.py [选项]
 | `--symbols` | 指定品种 | `--symbols RB,I,JM` |
 | `--output` | 输出格式 | `--output text` |
 | `--reasoner` | Reasoner深度分析 | `--reasoner` |
+| `--use-rl` | 启用 RL 信号 | `--use-rl` |
 | `--evaluate-factors` | 因子评估 | `--evaluate-factors` |
 | `--evolve` | 因子进化 | `--evolve --evolve-rounds 5` |
 | `--position-health` | 持仓健康度 | `--position-health` |
@@ -120,6 +121,9 @@ python tools/scan_opportunities.py --reasoner --output text --save
 # 指定品种 + Reasoner
 python tools/scan_opportunities.py --symbols RB,I,JM --reasoner --output text
 
+# 使用 RL 信号扫描（需要先训练模型）
+python tools/scan_opportunities.py --use-rl
+
 # 因子进化
 python tools/scan_opportunities.py --evolve --evolve-rounds 5
 
@@ -128,6 +132,22 @@ python tools/scan_opportunities.py --arbitrage --output text
 
 # 持仓健康度
 python tools/scan_opportunities.py --position-health
+```
+
+### RL 策略训练
+
+```bash
+# 训练 PPO 策略
+python tools/train_ppo.py --symbol RB --days 200 --train-steps 10000
+
+# 多品种并行训练
+python tools/train_ppo.py --symbol I,J,JM --multi-asset
+
+# Walk-Forward 验证
+python tools/train_ppo.py --symbol RB --walk-forward
+
+# 超参调优
+python tools/tune_rl_hyperparams.py --symbol RB --trials 20
 ```
 
 ### 数据同步
@@ -172,7 +192,7 @@ python tools/sync_data.py stats
 python -m pytest tests/ -v
 ```
 
-**测试状态**: 475 个测试全部通过
+**测试状态**: 525+ 个测试全部通过
 
 ---
 
