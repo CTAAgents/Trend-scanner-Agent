@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-06-17T20:41:37.510610",
+  "scan_time": "2026-06-18T00:02:58.419515",
   "total_scanned": 86,
   "signals": [
     {
@@ -39,69 +39,35 @@
     {
       "symbol": "SC",
       "trend_phase": "UNKNOWN",
-      "trend_strength_composite": 0.4,
-      "tsi": -26.58,
-      "er": 0.571,
-      "r_squared": 0.721,
+      "trend_strength_composite": 0.379,
+      "tsi": -29.24,
+      "er": 0.509,
+      "r_squared": 0.722,
       "direction": "SHORT",
       "signal_strength": "MEDIUM",
-      "trigger_reason": "TSI=-26.6 或 R²=0.72 [mode=or, 满足2/4项]",
-      "hurst": 0.618,
-      "rsi": 29.2,
-      "adx": 30.7,
+      "trigger_reason": "TSI=-29.2 或 R²=0.72 [mode=or, 满足2/4项]",
+      "hurst": 0.616,
+      "rsi": 31.6,
+      "adx": 29.5,
       "position_suggestion": {
         "method": "adaptive",
-        "position_size": 0.2001,
-        "position_pct": "20.0%",
+        "position_size": 0.1894,
+        "position_pct": "18.9%",
         "inputs": {
-          "trend_strength": 0.4002287873458194,
-          "volatility": 0.054185589902645194,
+          "trend_strength": 0.3788947241947216,
+          "volatility": 0.05117134453084924,
           "win_rate": 0.55,
           "win_loss_ratio": 1.5
         },
         "risk_metrics": {
-          "max_loss_pct": "2.2%",
+          "max_loss_pct": "1.9%",
           "kelly_optimal": "12.5%"
         }
       },
       "stop_loss": {
-        "stop_price": 579.31,
+        "stop_price": 584.04,
         "atr_multiplier": 2.5,
-        "risk_points": 69.11
-      }
-    },
-    {
-      "symbol": "BR",
-      "trend_phase": "UNKNOWN",
-      "trend_strength_composite": 0.351,
-      "tsi": -38.24,
-      "er": 0.508,
-      "r_squared": 0.725,
-      "direction": "SHORT",
-      "signal_strength": "MEDIUM",
-      "trigger_reason": "TSI=-38.2 或 R²=0.72 [mode=or, 满足2/4项]",
-      "hurst": 0.335,
-      "rsi": 35.1,
-      "adx": 51.2,
-      "position_suggestion": {
-        "method": "adaptive",
-        "position_size": 0.1753,
-        "position_pct": "17.5%",
-        "inputs": {
-          "trend_strength": 0.35053248106747115,
-          "volatility": 0.03495884069159394,
-          "win_rate": 0.55,
-          "win_loss_ratio": 1.5
-        },
-        "risk_metrics": {
-          "max_loss_pct": "1.2%",
-          "kelly_optimal": "12.5%"
-        }
-      },
-      "stop_loss": {
-        "stop_price": 14663.55,
-        "atr_multiplier": 2.5,
-        "risk_points": 1178.55
+        "risk_points": 66.24
       }
     }
   ],
@@ -175,6 +141,7 @@
     "AL",
     "AO",
     "AU",
+    "BR",
     "BU",
     "CU",
     "FU",
@@ -190,7 +157,7 @@
     "WR",
     "ZN"
   ],
-  "signal_count": 3,
+  "signal_count": 2,
   "macro_state": {
     "cycle": {
       "state": "recession",
@@ -214,13 +181,13 @@
       "defensive": 0.2
     },
     "recommendation": "经济衰退期，趋势跟踪为主，降低仓位",
-    "timestamp": "2026-06-17T20:35:32.067706"
+    "timestamp": "2026-06-18T00:02:22.611724"
   },
   "data_timeliness": {
     "is_latest": true,
-    "latest_date": "2026-06-16",
-    "current_date": "2026-06-17",
+    "latest_date": "2026-06-17",
+    "current_date": "2026-06-18",
     "days_behind": 1,
-    "message": "✅ 数据最新（2026-06-16）"
+    "message": "✅ 数据最新（2026-06-17）"
   }
 }
