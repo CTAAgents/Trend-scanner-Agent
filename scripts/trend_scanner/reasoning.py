@@ -1074,7 +1074,62 @@ class ReasoningEngine:
             except Exception as e:
                 logger.warning(f"注入 RL 信号失败: {e}")
 
-        # 8.5 蒙特卡洛模拟（Davey Step 5）
+        # 8.3 场景分析（v0.2.0 新增 - 借鉴 ai-investment-skills）
+        try:
+            from trend_scanner.scenario_analyzer import ScenarioAnalyzer
+
+            # 获取关键指标
+            er = getattr(context, "er", 0.5)
+            tsi = getattr(context, "tsi", 0)
+            rsi = getattr(context, "rsi", 50)
+            trend_strength = getattr(context, "trend_strength_composite", 0)
+            current_price = getattr(context, "current_price", 0)
+            symbol = getattr(context, "symbol", "")
+
+            if current_price > 0:
+                analyzer = ScenarioAnalyzer()
+                scenario_result = analyzer.analyze(
+                    symbol=symbol,
+                    current_price=current_price,
+                    indicators={
+                        "er": er,
+                        "tsi": tsi,
+                        "rsi": rsi,
+                        "trend_strength_composite": trend_strength,
+                        "r_squared": getattr(context, "r_squared", 0.5),
+                    },
+                    trend_phase=current_phase,
+                    volatility=0.02,  # 默认波动率
+                )
+
+                parts.append("")
+                parts.append("# 概率加权场景分析")
+                parts.append("基于当前市场状态构建的三个可能情景及其预期价值：")
+                parts.append("")
+
+                for s in scenario_result.scenarios:
+                    emoji = "📈" if s.name == "bull" else ("➡️" if s.name == "base" else "📉")
+                    parts.append(
+                        f"- {emoji} **{s.name.upper()}** ({s.probability:.0%}): "
+                        f"{s.target_price:.2f} ({s.expected_return:+.1f}%) "
+                        f"[{s.confidence}]"
+                    )
+                    parts.append(f"  触发条件: {s.catalyst}")
+
+                parts.append("")
+                parts.append(f"- **加权 EV**: {scenario_result.weighted_ev:+.1f}%")
+                parts.append(f"- **风险收益比**: {scenario_result.risk_reward_ratio:.1f}")
+                parts.append(f"- **整体置信度**: {scenario_result.overall_confidence}")
+                parts.append(f"- **推荐**: {scenario_result.recommendation}")
+                parts.append("")
+                parts.append(
+                    "**说明**: EV（预期价值）是概率加权的预期收益率。"
+                    "正 EV 表示长期来看该方向有利可图，但不保证单次交易盈利。"
+                )
+        except Exception as e:
+            logger.debug(f"场景分析失败: {e}")
+
+        # 8.4 蒙特卡洛模拟（Davey Step 5）
         if trade_history and len(trade_history) >= 3:
             try:
                 from trend_scanner.monte_carlo import MonteCarloSimulator
@@ -1101,7 +1156,7 @@ class ReasoningEngine:
             except Exception as e:
                 logger.debug(f"蒙特卡洛模拟失败: {e}")
 
-        # 8.6 熔断器状态（Davey Step 7）
+        # 8.5 熔断器状态（Davey Step 7）
         if circuit_breaker_status:
             try:
                 is_paused = circuit_breaker_status.get("is_paused", False)

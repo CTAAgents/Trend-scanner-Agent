@@ -143,7 +143,7 @@
             "t=0.26 < 1.0",
             "多空Sharpe=0.47 < 0.5"
           ],
-          "timestamp": "2026-06-17T22:02:38.374109"
+          "timestamp": "2026-06-17T23:06:33.941388"
         }
       ],
       "failure_patterns": [
@@ -157,7 +157,7 @@
         "需要更复杂的因子逻辑或更多数据支撑"
       ],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:38.374109"
+      "created_at": "2026-06-17T23:06:33.941388"
     },
     {
       "factor_id": "adaptive_momentum_r2",
@@ -174,14 +174,14 @@
             "ICIR=0.17 < 0.5",
             "多空Sharpe=1.31 >= 1.0"
           ],
-          "timestamp": "2026-06-17T22:02:39.345042"
+          "timestamp": "2026-06-17T23:06:34.695265"
         }
       ],
       "failure_patterns": [],
       "success_patterns": [],
       "lessons": [],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:39.345042"
+      "created_at": "2026-06-17T23:06:34.695265"
     },
     {
       "factor_id": "volume_breakout_r2",
@@ -198,7 +198,7 @@
             "ICIR=0.10 < 0.5",
             "IC>0比例=57.0% >= 55%"
           ],
-          "timestamp": "2026-06-17T22:02:39.346039"
+          "timestamp": "2026-06-17T23:06:34.696265"
         }
       ],
       "failure_patterns": [],
@@ -207,7 +207,7 @@
         "平均 ICIR=0.10，因子整体预测力不足"
       ],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:39.346039"
+      "created_at": "2026-06-17T23:06:34.696265"
     },
     {
       "factor_id": "VGRSI_A0_r2",
@@ -223,14 +223,14 @@
           "reasons": [
             "IC 样本不足 (19 < 30)"
           ],
-          "timestamp": "2026-06-17T22:02:39.347024"
+          "timestamp": "2026-06-17T23:06:34.698262"
         }
       ],
       "failure_patterns": [],
       "success_patterns": [],
       "lessons": [],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:39.347024"
+      "created_at": "2026-06-17T23:06:34.698262"
     },
     {
       "factor_id": "momentum_20d_r1",
@@ -240,21 +240,21 @@
           "factor_name": "momentum_20d",
           "logic": "",
           "params": {},
-          "icir": -0.21362490387764616,
-          "t_stat": -1.612832655526857,
+          "icir": -0.23634273128773559,
+          "t_stat": -1.7999326167075573,
           "decision": "eliminate",
           "reasons": [
-            "ICIR=0.21 < 0.5",
-            "IC>0比例=35.1% < 45%",
-            "多空Sharpe=1.92 >= 1.0"
+            "ICIR=0.24 < 0.5",
+            "IC>0比例=36.2% < 45%",
+            "多空Sharpe=2.03 >= 1.0"
           ],
-          "timestamp": "2026-06-17T22:02:40.994924"
+          "timestamp": "2026-06-17T23:06:37.759716"
         }
       ],
       "failure_patterns": [
-        "IC 方向不稳定: momentum_20d",
         "简单动量因子在期货市场预测力弱",
-        "ICIR 过低: momentum_20d 的 ICIR=-0.21"
+        "IC 方向不稳定: momentum_20d",
+        "ICIR 过低: momentum_20d 的 ICIR=-0.24"
       ],
       "success_patterns": [],
       "lessons": [
@@ -262,7 +262,7 @@
         "需要更复杂的因子逻辑或更多数据支撑"
       ],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:40.994924"
+      "created_at": "2026-06-17T23:06:37.759716"
     },
     {
       "factor_id": "momentum_60d_r1",
@@ -276,16 +276,16 @@
           "t_stat": 0.0,
           "decision": "observe",
           "reasons": [
-            "IC 样本不足 (17 < 30)"
+            "IC 样本不足 (18 < 30)"
           ],
-          "timestamp": "2026-06-17T22:02:40.995924"
+          "timestamp": "2026-06-17T23:06:37.761713"
         }
       ],
       "failure_patterns": [],
       "success_patterns": [],
       "lessons": [],
       "category": "unknown",
-      "created_at": "2026-06-17T22:02:40.995924"
+      "created_at": "2026-06-17T23:06:37.761713"
     }
   ],
   "summary": {
@@ -297,5 +297,5 @@
       "unknown": 10
     }
   },
-  "updated_at": "2026-06-17T22:02:40.995924"
+  "updated_at": "2026-06-17T23:06:37.762712"
 }
