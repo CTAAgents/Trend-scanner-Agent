@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-06-17T12:57:32.130868",
+  "scan_time": "2026-06-17T13:18:00.022618",
   "total_scanned": 86,
   "signals": [
     {
@@ -247,6 +247,13 @@
       "defensive": 0.2
     },
     "recommendation": "经济衰退期，趋势跟踪为主，降低仓位",
-    "timestamp": "2026-06-17T12:57:01.013970"
+    "timestamp": "2026-06-17T13:17:35.057622"
+  },
+  "data_timeliness": {
+    "is_latest": true,
+    "latest_date": "2026-06-16",
+    "current_date": "2026-06-17",
+    "days_behind": 1,
+    "message": "✅ 数据最新（2026-06-16）"
   }
 }
