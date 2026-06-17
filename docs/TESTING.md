@@ -1,21 +1,21 @@
 # 测试文档
 
-> 版本：v1.0 | 创建日期：2026-06-17
+> 版本：v1.1 | 创建日期：2026-06-17
 > 最后更新：2026-06-17
 
 ## 测试概览
 
 | 指标 | 数值 |
 |------|------|
-| **总测试数** | 260 |
-| **通过** | 260 |
+| **总测试数** | 301 |
+| **通过** | 301 |
 | **跳过** | 1 |
 | **失败** | 0 |
 | **覆盖率** | 100%（核心模块） |
 
 ## 测试文件清单
 
-### 单元测试（168 个）
+### 单元测试（209 个）
 
 | 测试文件 | 测试数 | 覆盖模块 |
 |----------|--------|----------|
@@ -31,6 +31,9 @@
 | `test_walk_forward_validator.py` | 17 | WalkForwardValidator |
 | `test_phase3_phase4.py` | 22 | FactorParamOptimizer, SeedFactorPool, MultiFactorModel |
 | `test_phase5_phase6.py` | 20 | MultiFactorModel, FactorExperienceDB |
+| `test_visibility_graph_operator.py` | 17 | VisibilityGraphOperator |
+| `test_multi_timeframe_vgrsi_factor.py` | 10 | MultiTimeframeVGRSIFactor |
+| `test_volatility_anchor.py` | 14 | VolatilityAnchor |
 
 ### 端到端测试（14 个）
 
