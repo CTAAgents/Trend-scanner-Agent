@@ -36,6 +36,7 @@ sys.path.insert(0, str(project_root / "scripts"))
 from trend_scanner.evolution_manager import EvolutionManager
 from trend_scanner.experience import ExperienceMemory
 from trend_scanner.models import UserFeedback
+from trend_scanner.rl_interface_designer import RLInterfaceDesigner
 
 
 class EvolverAgent:
@@ -134,7 +135,22 @@ class EvolverAgent:
                 'experience_saved': True,
                 'experience_id': experience.experience_id if experience else ''
             }
-            
+
+            # RL 接口诊断（v6.1 新增）
+            try:
+                rl_designer = RLInterfaceDesigner()
+                # 基于交易结果诊断是否需要 RL 接口重设计
+                rl_diagnosis = rl_designer.diagnose_interface(
+                    symbol=symbol,
+                    pnl_pct=feedback.get('pnl_pct', 0),
+                    holding_days=feedback.get('holding_days', 0),
+                    exit_reason=feedback.get('exit_reason', ''),
+                    market_context=feedback.get('market_context_at_entry')
+                )
+                result['rl_diagnosis'] = rl_diagnosis
+            except Exception as e:
+                logger.debug(f"RL 接口诊断失败: {e}")
+
             print(f"[Evolver] {symbol} 反馈记录完成", flush=True)
             return result
             

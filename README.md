@@ -1,12 +1,12 @@
 ---
 name: trend-scanner-agent
 description: >
-  推理重于规则的期货趋势跟踪决策辅助系统 v6.0。
-  Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
-  数据源：TqSdk（首选）+ 通达信 MCP（备选）+ 本地数据库缓存。
+  推理重于规则的期货趋势跟踪决策辅助系统 v6.1。
+  FinClaw整合Phase 1-5 + 统一数据路由 + 知识锚点 + 分级输出 + 套利分析 + Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
+  数据源：TqSdk（首选）+ Pytdx（备选）+ AkShare（基差/季节性/龙虎榜）+ 本地数据库缓存。
 ---
 
-# Trend Scanner Agent v6.0
+# Trend Scanner Agent v6.1
 
 > 推理重于规则的期货趋势跟踪决策辅助系统
 
@@ -48,6 +48,18 @@ python tools/scan_opportunities.py --evaluate-factors
 python tools/scan_opportunities.py --evolve --evolve-rounds 5
 ```
 
+## v6.1 新特性（FinClaw整合）
+
+- **统一数据路由层**: 9种数据类型智能路由，自动Fallback，配置驱动
+- **知识锚点体系**: 13个默认锚点覆盖6个维度，为LLM因子生成提供种子
+- **分级输出机制**: formal/standard/brief三级输出，适配不同场景
+- **套利分析模块**: 12个预定义价差对，Z-Score信号+协整检验
+- **补充分析维度**: 龙虎榜/保证金/宏观经济/交割数据
+- **PytdxSource通达信直连**: 作为TqSdk备选数据源
+- **AkShareSource辅助数据源**: 基差/季节性/龙虎榜/保证金/宏观数据
+- **数据时效性检查**: 自动判断数据是否过期，支持fresh/stale/critical三级
+- **远程数据自动回写**: 远程获取的数据自动写入本地DuckDB缓存
+
 ## v6.0 新特性
 
 - **Reasoner Agent 深度分析**: LLM 驱动的信号推理，输出置信度评估和操作建议
@@ -83,7 +95,7 @@ python tools/scan_opportunities.py --evolve --evolve-rounds 5
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    Trend Scanner Agent v5.0                          │
+│                    Trend Scanner Agent v6.1                          │
 │                                                                      │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │                    数据层（Data Layer）                        │   │
@@ -616,6 +628,8 @@ python -m pytest tests/test_factor_evaluator.py -v
 
 | 版本 | 日期 | 关键变更 |
 |------|------|---------|
+| v6.1.0 | 2026-06-17 | FinClaw整合Phase 1-5，统一数据路由，知识锚点，分级输出，套利分析，475个测试 |
+| v6.0.0 | 2026-06-16 | Reasoner Agent 深度分析，持仓健康度评估，五维度筛选评分 |
 | v5.0.0 | 2026-06-16 | 闭环迭代因子进化引擎，截面 IC/ICIR 评估，贝叶斯参数优化，多因子组合模型 |
 | v3.2.2 | 2026-06-14 | 分歧度和条件层级记录 |
 | v3.0.0 | 2026-06-14 | 推理优先架构重写 |

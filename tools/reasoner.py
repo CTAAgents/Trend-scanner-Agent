@@ -42,6 +42,7 @@ from trend_scanner.data_source import DataSourceFactory, CsvSource
 from trend_scanner.unified_data_router import UnifiedDataRouter, get_router, normalize_symbol
 from trend_scanner.indicators import IndicatorEngine
 from trend_scanner.models import MarketContext, TradingBrief
+from trend_scanner.tiered_output import TieredOutputFormatter
 
 
 class ReasonerAgent:
@@ -157,12 +158,13 @@ class ReasonerAgent:
             print(f"[警告] 经验检索失败: {e}", flush=True)
             return []
     
-    def analyze(self, signal: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, signal: Dict[str, Any], output_level: str = None) -> Dict[str, Any]:
         """
         分析信号，生成交易决策简报
         
         Args:
             signal: 信号字典，包含 symbol, direction 等信息
+            output_level: 输出级别 (formal/standard/brief)，None=标准输出
             
         Returns:
             交易决策简报（JSON 格式）
@@ -242,7 +244,41 @@ class ReasonerAgent:
         # 6. 添加元信息
         result['analysis_time'] = datetime.now().isoformat()
         result['signal'] = signal
-        
+
+        # 7. 分级输出格式化（v6.1 新增）
+        if output_level:
+            try:
+                formatter = TieredOutputFormatter()
+                # 构建格式化上下文
+                fmt_ctx = {
+                    'symbol': symbol,
+                    'direction': direction,
+                    'confidence': reasoning_result.get('confidence', 0),
+                    'trend_phase': getattr(context, 'trend_phase', type('', (), {'phase': 'UNKNOWN'})()).phase if context else 'UNKNOWN',
+                    'indicators': {},
+                    'operation_plans': [],
+                    'risks': reasoning_result.get('warnings', []),
+                }
+                # 提取指标
+                if context and hasattr(context, 'indicator_snapshot'):
+                    snap = context.indicator_snapshot
+                    for attr in ['er', 'tsi', 'r_squared', 'hurst', 'rsi', 'adx']:
+                        if hasattr(snap, attr):
+                            fmt_ctx['indicators'][attr] = getattr(snap, attr)
+                # 提取操作方案
+                for route in reasoning_result.get('routes', []):
+                    fmt_ctx['operation_plans'].append({
+                        'action': route.get('action', ''),
+                        'reason': route.get('reasoning', ''),
+                        'position': next((c.value for c in route.get('constraints', []) if '仓位' in c.name), ''),
+                        'stop_loss': next((c.value for c in route.get('constraints', []) if '止损' in c.name), ''),
+                    })
+                # 格式化输出
+                result['formatted_output'] = formatter.format(fmt_ctx, level=output_level)
+                result['output_level'] = output_level
+            except Exception as e:
+                logger.debug(f"分级输出格式化失败: {e}")
+
         return result
     
     def analyze_from_file(self, signal_file: str) -> List[Dict[str, Any]]:

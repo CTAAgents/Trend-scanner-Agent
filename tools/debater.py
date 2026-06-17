@@ -35,6 +35,8 @@ sys.path.insert(0, str(project_root / "scripts"))
 from trend_scanner.debate_engine import DebateReasoningEngine
 from trend_scanner.reasoning import WorkBuddyAgentProvider
 from trend_scanner.models import MarketContext
+from trend_scanner.conceptual_feedback import ConceptualFeedbackGenerator
+from trend_scanner.belief_propagation import BeliefPropagationManager
 
 
 class DebaterAgent:
@@ -169,7 +171,37 @@ class DebaterAgent:
                 'revised_brief': debate_result.get('revised_brief', brief),
                 'revision_summary': debate_result.get('revision_summary', '')
             }
-            
+
+            # 概念性反馈分析（v6.1 新增）
+            try:
+                feedback_gen = ConceptualFeedbackGenerator()
+                # 从辩论结果生成概念性反馈
+                hawk_args = debate_result.get('hawk_arguments', [])
+                dove_args = debate_result.get('dove_arguments', [])
+                if hawk_args or dove_args:
+                    feedback = feedback_gen.generate_feedback(
+                        symbol=symbol,
+                        hawk_perspective=hawk_args,
+                        dove_perspective=dove_args,
+                        market_context=context
+                    )
+                    result['conceptual_feedback'] = feedback
+            except Exception as e:
+                logger.debug(f"概念性反馈生成失败: {e}")
+
+            # 信念传播分析（v6.1 新增）
+            try:
+                bp_manager = BeliefPropagationManager()
+                # 从辩论结果更新信念
+                bp_result = bp_manager.propagate_beliefs(
+                    symbol=symbol,
+                    debate_result=debate_result,
+                    market_context=context
+                )
+                result['belief_propagation'] = bp_result
+            except Exception as e:
+                logger.debug(f"信念传播分析失败: {e}")
+
             return result
             
         except Exception as e:

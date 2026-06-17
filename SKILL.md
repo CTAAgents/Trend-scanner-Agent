@@ -1,13 +1,13 @@
 ---
 name: trend-scanner-agent
 description: >
-  推理重于规则的期货趋势跟踪决策辅助系统 v6.0。
-  Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
+  推理重于规则的期货趋势跟踪决策辅助系统 v6.1。
+  FinClaw整合Phase 1-5 + 统一数据路由 + 知识锚点 + 分级输出 + 套利分析 + Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
   每日自动扫描 86 个主力合约，筛选非僵尸品种（持仓量≥10000），
-  数据源：TqSdk（首选）+ 通达信 MCP（备选）+ 本地数据库缓存。
+  数据源：TqSdk（首选）+ Pytdx（备选）+ AkShare（基差/季节性/龙虎榜）+ 本地数据库缓存。
 ---
 
-# Trend Scanner Agent v6.0
+# Trend Scanner Agent v6.1
 
 > 完整文档请查看 [README.md](README.md)
 

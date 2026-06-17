@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="trend-scanner-agent",
-    version="5.0.0",
-    description="推理重于规则的期货趋势跟踪决策辅助系统（闭环迭代因子进化引擎）",
+    version="6.1.0",
+    description="推理重于规则的期货趋势跟踪决策辅助系统（FinClaw整合Phase 1-5 + 统一数据路由 + 知识锚点 + 分级输出 + 套利分析）",
     author="CTAAgents",
     python_requires=">=3.12",
     packages=find_packages(),

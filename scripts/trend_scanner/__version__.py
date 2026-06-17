@@ -17,9 +17,10 @@
 - v3.2.2: 分歧度和条件层级记录
 - v5.0.0: 闭环迭代因子进化引擎
 - v6.0.0: Reasoner Agent 深度分析 + 持仓健康度评估
+- v6.1.0: FinClaw整合Phase 1-5 + 统一数据路由 + 知识锚点 + 分级输出 + 套利分析
 """
 
-__version__ = "6.0.0"
+__version__ = "6.1.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # 版本元数据
@@ -33,6 +34,24 @@ VERSION_METADATA = {
 
 # 版本历史
 VERSION_HISTORY = [
+    {
+        "version": "6.1.0",
+        "date": "2026-06-17",
+        "changes": [
+            "FinClaw整合Phase 1-5全部完成",
+            "统一数据路由层（UnifiedDataRouter，9种数据类型路由）",
+            "知识锚点体系（KnowledgeAnchorManager，13个默认锚点，6个维度）",
+            "分级输出机制（TieredOutputFormatter，formal/standard/brief三级）",
+            "套利分析模块（ArbitrageAnalyzer，12个预定义价差对）",
+            "补充缺失分析维度：龙虎榜/保证金/宏观/交割",
+            "PytdxSource通达信直连 + AkShareSource辅助数据源",
+            "数据时效性检查机制",
+            "远程数据自动回写本地DuckDB缓存",
+            "孤立模块集成：知识锚点→推理引擎，分级输出→Reasoner，套利→Scanner，信念传播→Debater，RL接口→Evolver",
+            "配置驱动路由优先级（config.json data_routing段）",
+            "475个测试全部通过",
+        ],
+    },
     {
         "version": "6.0.0",
         "date": "2026-06-16",

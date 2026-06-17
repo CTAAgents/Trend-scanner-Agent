@@ -1,6 +1,6 @@
 # Trend-scanner-Agent 系统架构总览
 
-> 版本：v6.0 | 创建日期：2026-06-17
+> 版本：v6.1 | 创建日期：2026-06-17 | 更新：2026-06-17
 > 状态：已完成
 
 ## 一、系统概述
@@ -8,6 +8,8 @@
 Trend-scanner-Agent 是一个推理重于规则的期货趋势跟踪决策辅助系统。系统不自动下单，只输出决策简报供人参考。
 
 **核心理念**：以人为本，推理为魂，规则为果。
+
+**v6.1 核心升级**：FinClaw整合Phase 1-5，新增统一数据路由层、知识锚点体系、分级输出机制、套利分析模块。
 
 ---
 
@@ -59,7 +61,7 @@ Trend-scanner-Agent 是一个推理重于规则的期货趋势跟踪决策辅助
 ├─────────────────────────────────────────────────────────────────────┤
 │ Layer 1 - 感知层 (Perception)                                        │
 │   indicators.py, context.py, data_source.py, market_analysis.py,    │
-│   macro_state.py                                                    │
+│   macro_state.py, unified_data_router.py                            │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Layer 0 - 数据模型层 (Foundation)                                    │
 │   models.py, __version__.py                                         │

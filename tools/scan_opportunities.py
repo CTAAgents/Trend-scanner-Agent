@@ -519,7 +519,9 @@ def main():
                         help="启用Reasoner Agent深度分析（输出决策简报）")
     parser.add_argument("--use-multi-dimension", action="store_true",
                         help="启用五维度筛选评分（trend+momentum+volume+volatility+channel）")
-    
+    parser.add_argument("--arbitrage", action="store_true",
+                        help="启用套利分析（跨期/跨品种价差扫描）")
+
     args = parser.parse_args()
     
     # 解析品种列表
@@ -541,7 +543,34 @@ def main():
     print(f"[{datetime.now().strftime('%H:%M:%S')}] 开始扫描...")
     result = scan_all(symbols, use_dynamic_factors=args.use_dynamic_factors,
                       use_multi_dimension=args.use_multi_dimension)
-    
+
+    # 套利分析（如果启用）
+    if args.arbitrage:
+        print(f"\n{'=' * 60}")
+        print("套利分析")
+        print(f"{'=' * 60}")
+        try:
+            from trend_scanner.arbitrage_analyzer import ArbitrageAnalyzer
+            from trend_scanner.unified_data_router import get_router
+
+            analyzer = ArbitrageAnalyzer()
+            router = get_router()
+
+            def get_kline_for_arb(sym, days=120):
+                resp = router.get_kline(sym, days=days)
+                return resp.data if resp.ok else None
+
+            arb_results = analyzer.scan_all_pairs(get_kline_for_arb, symbols)
+            if arb_results:
+                print(analyzer.format_arbitrage_brief(arb_results))
+                result['arbitrage'] = [r.to_dict() for r in arb_results]
+            else:
+                print("暂无明显套利机会")
+                result['arbitrage'] = []
+        except Exception as e:
+            print(f"套利分析失败: {e}")
+            result['arbitrage'] = []
+
     # Reasoner深度分析（如果启用）
     if args.reasoner and result.get('signals'):
         print(f"\n{'=' * 60}")

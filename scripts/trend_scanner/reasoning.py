@@ -840,6 +840,44 @@ class ReasoningEngine:
         except Exception as e:
             logger.debug(f"基差/季节性数据注入失败: {e}")
 
+        # 7.5 知识锚点注入（v6.1 新增）
+        try:
+            from trend_scanner.knowledge_anchors import KnowledgeAnchorManager
+            import os
+            db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'meta.db')
+            if os.path.exists(db_path):
+                anchor_mgr = KnowledgeAnchorManager(db_path)
+                # 自动导入默认锚点（如果表为空）
+                stats = anchor_mgr.get_statistics()
+                if stats.get('total_anchors', 0) == 0:
+                    anchor_mgr.seed_default_anchors()
+
+                # 获取与当前趋势阶段相关的锚点
+                phase = current_phase if current_phase != 'UNKNOWN' else None
+                dimension_map = {
+                    'TREND_UP': 'trend', 'TREND_DOWN': 'trend',
+                    'RANGE': 'volatility',
+                }
+                target_dim = dimension_map.get(current_phase)
+
+                # 获取相关锚点种子
+                seeds = anchor_mgr.get_factor_seeds_for_llm(dimension=target_dim)
+                if seeds:
+                    parts.append("")
+                    parts.append("# 知识锚点参考（因子种子）")
+                    parts.append("以下是与当前市场状态相关的分析方法论和因子种子，供推理参考：")
+                    parts.append("")
+                    for s in seeds[:5]:  # 最多5个
+                        parts.append(f"### {s['title']}（{s['dimension']}）")
+                        parts.append(f"- **核心逻辑**: {s['core_logic']}")
+                        if s.get('factor_seeds'):
+                            parts.append(f"- **因子种子**: {', '.join(fs['name'] for fs in s['factor_seeds'][:3])}")
+                        parts.append(f"- **验证规则**: IC≥{s['validation_rules'].get('min_ic', 0)}, 胜率≥{s['validation_rules'].get('min_win_rate', 0):.0%}")
+                        parts.append("")
+                    parts.append("**说明**: 知识锚点是经过验证的分析方法论，可作为推理的参考框架。")
+        except Exception as e:
+            logger.debug(f"知识锚点注入失败: {e}")
+
         # 8. 多维度筛选评分（v5.1 新增）
         if multi_dimension_result:
             try:
