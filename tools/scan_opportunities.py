@@ -462,6 +462,16 @@ def main():
     if args.symbols:
         symbols = [s.strip().upper() for s in args.symbols.split(",")]
     
+    # 数据时效性检查（必须）
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] 检查数据时效性...")
+    timeliness = check_data_timeliness()
+    print(timeliness['message'])
+    
+    if not timeliness['is_latest']:
+        print(f"\n⚠️ 数据滞后 {timeliness['days_behind']} 天，分析结果可能不准确。")
+        print(f"建议先执行数据同步: python tools/sync_data.py sync --days 5")
+        print(f"继续分析将在结果中标注数据截止时间。\n")
+    
     # 执行扫描
     print(f"[{datetime.now().strftime('%H:%M:%S')}] 开始扫描...")
     result = scan_all(symbols, use_dynamic_factors=args.use_dynamic_factors)
