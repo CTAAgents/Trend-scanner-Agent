@@ -95,6 +95,8 @@ class FuturesTradingEnv(gym.Env):
         self.position = 0.0  # 当前仓位 [-1, 1]
         self.entry_price = 0.0
         self.total_reward = 0.0
+        self.peak_reward = 0.0  # 历史最高收益（用于计算回撤）
+        self.holding_steps = 0  # 当前持仓步数
         self.trades = []
         
         # 技术指标缓存（需要外部填充）
@@ -132,6 +134,8 @@ class FuturesTradingEnv(gym.Env):
         self.position = 0.0
         self.entry_price = 0.0
         self.total_reward = 0.0
+        self.peak_reward = 0.0
+        self.holding_steps = 0
         self.trades = []
         
         return self._get_observation(), self._get_info()
@@ -191,8 +195,31 @@ class FuturesTradingEnv(gym.Env):
             else:
                 position_return = 0.0
             
-            # 总收益 = 持仓收益 - 交易成本
-            reward = position_return - total_cost / current_price
+            # 基础收益 = 持仓收益 - 交易成本
+            base_reward = position_return - total_cost / current_price
+            
+            # 风险调整：最大回撤惩罚
+            self.total_reward += base_reward
+            peak_reward = max(self.peak_reward, self.total_reward)
+            current_drawdown = (peak_reward - self.total_reward) / (abs(peak_reward) + 1e-8)
+            self.peak_reward = peak_reward
+            
+            # 最大回撤惩罚（回撤超过 5% 开始惩罚）
+            drawdown_penalty = 0.0
+            if current_drawdown > 0.05:
+                drawdown_penalty = -0.01 * (current_drawdown - 0.05)  # 每 1% 回撤惩罚 0.01
+            
+            # 持仓时间惩罚（鼓励及时平仓）
+            holding_penalty = 0.0
+            if self.position != 0:
+                self.holding_steps += 1
+                if self.holding_steps > 10:  # 持仓超过 10 步开始惩罚
+                    holding_penalty = -0.001 * (self.holding_steps - 10)
+            else:
+                self.holding_steps = 0
+            
+            # 总收益 = 基础收益 + 回撤惩罚 + 持仓惩罚
+            reward = base_reward + drawdown_penalty + holding_penalty
         else:
             # 最后一步，强制平仓
             reward = -total_cost / current_price if self.position != 0 else 0.0
