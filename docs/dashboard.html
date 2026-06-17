@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trend-scanner-Agent 系统架构</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #333; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { font-size: 24px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+  .header p { font-size: 14px; color: #666; }
+  .card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0; margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .status-item { background: #f8f9fa; border-radius: 8px; padding: 12px; text-align: center; }
+  .status-item .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+  .status-item .value { font-size: 20px; font-weight: 600; }
+  .status-item .value.green { color: #10b981; }
+  .status-item .value.blue { color: #3b82f6; }
+  .status-item .value.amber { color: #f59e0b; }
+  .architecture { display: flex; flex-direction: column; gap: 12px; }
+  .layer { display: flex; align-items: center; gap: 12px; }
+  .layer-label { width: 80px; font-size: 12px; font-weight: 500; color: #666; text-align: right; }
+  .layer-content { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+  .module { background: #f0f4ff; border: 1px solid #d0d9ff; border-radius: 6px; padding: 8px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .module:hover { background: #e0e9ff; border-color: #b0b9ff; }
+  .module.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .flow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+  .flow-step { background: #10b981; color: white; border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 500; }
+  .flow-arrow { color: #999; font-size: 16px; }
+  .result-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; gap: 12px; }
+  .result-item:last-child { border-bottom: none; }
+  .result-symbol { font-weight: 600; font-size: 14px; width: 50px; }
+  .result-direction { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .result-direction.long { background: #dcfce7; color: #166534; }
+  .result-direction.short { background: #fee2e2; color: #991b1b; }
+  .result-strength { font-size: 12px; color: #666; }
+  .result-indicators { font-size: 11px; color: #888; }
+  .info-text { font-size: 13px; line-height: 1.8; }
+  .info-text strong { color: #333; }
+  .info-text p { margin-bottom: 8px; }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 11px; color: #666; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Trend-scanner-Agent 系统架构</h1>
+    <p>推理重于规则的期货趋势跟踪决策辅助系统 | v0.1.0</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#ecfdf5;color:#10b981;">!</span>
+      系统状态概览
+    </div>
+    <div class="status-grid">
+      <div class="status-item">
+        <div class="label">数据源状态</div>
+        <div class="value green">正常</div>
+      </div>
+      <div class="status-item">
+        <div class="label">本地数据库</div>
+        <div class="value blue">DuckDB</div>
+      </div>
+      <div class="status-item">
+        <div class="label">扫描品种数</div>
+        <div class="value">86</div>
+      </div>
+      <div class="status-item">
+        <div class="label">测试通过率</div>
+        <div class="value green">100%</div>
+      </div>
+      <div class="status-item">
+        <div class="label">模块数量</div>
+        <div class="value">83</div>
+      </div>
+      <div class="status-item">
+        <div class="label">数据时效性</div>
+        <div class="value amber">检查中</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#eff6ff;color:#3b82f6;">~</span>
+      系统架构
+    </div>
+    <div class="architecture">
+      <div class="layer">
+        <div class="layer-label">数据层</div>
+        <div class="layer-content">
+          <div class="module" title="DuckDB - K线/指标/因子库">DuckDB</div>
+          <div class="module" title="TqSdk - 实时行情数据">TqSdk</div>
+          <div class="module" title="Pytdx - 通达信直连">Pytdx</div>
+          <div class="module" title="AkShare - 基差/季节性/龙虎榜">AkShare</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">感知层</div>
+        <div class="layer-content">
+          <div class="module" title="35+ 技术指标计算">IndicatorEngine</div>
+          <div class="module" title="统一数据路由 - 9种数据类型">UnifiedDataRouter</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">因子进化</div>
+        <div class="layer-content">
+          <div class="module" title="LLM 引导的因子生成">FactorGenerator</div>
+          <div class="module" title="截面 IC/ICIR 评估">FactorEvaluator</div>
+          <div class="module" title="三元门控决策">FactorGate</div>
+          <div class="module" title="贝叶斯参数优化">FactorOptimizer</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">推理层</div>
+        <div class="layer-content">
+          <div class="module" title="LLM 推理引擎 - 决策简报">ReasoningEngine</div>
+          <div class="module" title="多角色辩论引擎">DebateEngine</div>
+          <div class="module" title="反叙事约束 - 提高分析准确性">AntiNarrative</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">高级分析</div>
+        <div class="layer-content">
+          <div class="module" title="概率加权场景分析 - EV计算">ScenarioAnalyzer</div>
+          <div class="module" title="蒙特卡洛模拟 - 风险评估">MonteCarloSimulator</div>
+          <div class="module" title="套利分析 - 跨期/跨品种价差">ArbitrageAnalyzer</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">执行层</div>
+        <div class="layer-content">
+          <div class="module" title="仓位管理 - 凯利/自适应">PositionSizer</div>
+          <div class="module" title="动态止损 - ATR/移动/时间">StopLossCalculator</div>
+          <div class="module" title="持仓健康度评估">PositionHealthChecker</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">记忆层</div>
+        <div class="layer-content">
+          <div class="module" title="SQLite - 经验/规则/日志">SQLite</div>
+          <div class="module" title="DuckDB - K线/指标/因子库">DuckDB</div>
+          <div class="module" title="知识锚点 - 专家知识编码">KnowledgeAnchors</div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> 点击模块查看详情</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#fef3c7;color:#f59e0b;">~</span>
+      数据流
+    </div>
+    <div class="flow">
+      <div class="flow-step">TqSdk/Pytdx</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">UnifiedDataRouter</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">DuckDB缓存</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">IndicatorEngine</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">Scanner</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">Reasoner</div>
+      <div class="flow-arrow">-></div>
+      <div class="flow-step">决策简报</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#fdf2f8;color:#ec4899;">~</span>
+      最近扫描结果
+    </div>
+    <div id="scanResults">
+      <div class="result-item">
+        <div class="result-symbol">SC</div>
+        <div class="result-direction short">SHORT</div>
+        <div class="result-strength">MEDIUM</div>
+        <div class="result-indicators">ER=0.54 TSI=-23.5 R²=0.72</div>
+      </div>
+      <div class="result-item">
+        <div class="result-symbol">JD</div>
+        <div class="result-direction long">LONG</div>
+        <div class="result-strength">MEDIUM</div>
+        <div class="result-indicators">ER=0.53 TSI=43.8 R²=0.78</div>
+      </div>
+      <div class="result-item">
+        <div class="result-symbol">BR</div>
+        <div class="result-direction short">SHORT</div>
+        <div class="result-strength">MEDIUM</div>
+        <div class="result-indicators">ER=0.51 TSI=-38.2 R²=0.73</div>
+      </div>
+      <div class="result-item">
+        <div class="result-symbol">BZ</div>
+        <div class="result-direction short">SHORT</div>
+        <div class="result-strength">MEDIUM</div>
+        <div class="result-indicators">ER=0.55 TSI=-29.0 R²=0.58</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#f0fdf4;color:#22c55e;">~</span>
+      核心模块功能
+    </div>
+    <div class="info-text">
+      <p><strong>Scanner 扫描器</strong> - 每日自动扫描86个主力合约，筛选非僵尸品种，计算35+技术指标，生成交易信号。</p>
+      <p><strong>Reasoner 推理引擎</strong> - LLM驱动的信号推理，输出置信度评估和操作建议。包含反叙事约束和概率加权场景分析。</p>
+      <p><strong>Evolver 因子进化</strong> - 闭环迭代因子发现引擎（Generate -> Execute -> Evaluate -> Gate -> Memory）。</p>
+      <p><strong>RL 训练系统</strong> - 基于PPO算法的强化学习训练，支持Walk-Forward验证确保泛化能力。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="icon" style="background:#faf5ff;color:#a855f7;">~</span>
+      数据源优先级
+    </div>
+    <div class="info-text">
+      <p><strong>主数据源</strong>：DuckDB（本地缓存，高性能查询）</p>
+      <p><strong>实时数据</strong>：TqSdk（首选，实时行情）</p>
+      <p><strong>备选数据</strong>：Pytdx（通达信直连）</p>
+      <p><strong>辅助数据</strong>：AkShare（基差/季节性/龙虎榜/保证金/宏观）</p>
+      <p style="margin-top: 12px; color: #666;"><strong>Fallback机制</strong>：当主数据源不可用时，自动切换到备选数据源</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Trend-scanner-Agent v0.1.0 | 文档位置：docs/</p>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.module').forEach(el => {
+  el.addEventListener('click', function() {
+    this.classList.toggle('active');
+  });
+});
+</script>
+</body>
+</html>

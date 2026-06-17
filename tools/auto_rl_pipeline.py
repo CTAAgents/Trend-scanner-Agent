@@ -385,7 +385,7 @@ def main():
                         help='品种代码')
     parser.add_argument('--days', type=int, default=200,
                         help='数据天数')
-    parser.add_argument('--train-steps', type=int, default=10000,
+    parser.add_argument('--train-steps', type=int, default=20000,
                         help='训练步数')
     parser.add_argument('--full', action='store_true',
                         help='运行完整流程')

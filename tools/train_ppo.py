@@ -474,7 +474,7 @@ def main():
                         help='品种代码，多个用逗号分隔（如 I,J,JM）')
     parser.add_argument('--days', type=int, default=200,
                         help='数据天数')
-    parser.add_argument('--train-steps', type=int, default=10000,
+    parser.add_argument('--train-steps', type=int, default=20000,
                         help='训练步数')
     parser.add_argument('--multi-asset', action='store_true',
                         help='多品种并行训练')

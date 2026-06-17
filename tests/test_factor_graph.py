@@ -260,8 +260,9 @@ class TestFactorProvenanceGraph:
         self.graph.add_node(a1)
         self.graph.add_node(a2)
 
-        self.graph.add_edge(GraphEdge("c1", "a1", EdgeType.COMPOSED_WITH))
-        self.graph.add_edge(GraphEdge("c1", "a2", EdgeType.COMPOSED_WITH))
+        # COMPOSED_WITH 边方向：组件(source) → 组合因子(target)
+        self.graph.add_edge(GraphEdge("a1", "c1", EdgeType.COMPOSED_WITH))
+        self.graph.add_edge(GraphEdge("a2", "c1", EdgeType.COMPOSED_WITH))
 
         tree = self.graph.get_composition_tree("c1")
         assert tree["factor"]["name"] == "组合因子"
