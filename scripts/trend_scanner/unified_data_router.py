@@ -572,14 +572,17 @@ class AkShareSource:
     def get_top_list(self, symbol: str) -> Optional[Dict[str, Any]]:
         """获取龙虎榜数据（交易所每日公布的多空持仓排名）
 
+        支持交易所：DCE（大商所）、SHFE（上期所）、CZCE（郑商所）
+
         返回:
             {
                 'symbol': str,
                 'date': str,
-                'top_buy': List[Dict],   # 多头前5/10 名: [{broker, volume, change}, ...]
-                'top_sell': List[Dict],  # 空头前5/10 名
-                'net_buy': float,        # 多头净买入量
-                'net_sell': float,       # 空头净卖出量
+                'exchange': str,
+                'top_buy': List[Dict],   # 多头前10名: [{rank, broker, volume, change}, ...]
+                'top_sell': List[Dict],  # 空头前10名
+                'net_buy': int,          # 多头总持仓量
+                'net_sell': int,         # 空头总持仓量
                 'concentration_buy': float,   # 多头集中度(%)
                 'concentration_sell': float,  # 空头集中度(%)
                 'interpretation': str,        # 一句话解读
@@ -588,95 +591,191 @@ class AkShareSource:
         try:
             import akshare as ak
             variety = normalize_symbol(symbol)
-            cn_name = AKSHARE_FUTURES_MAP.get(variety)
-            if not cn_name:
+            exchange = VARIETY_EXCHANGE_MAP.get(variety, '')
+            if not exchange:
                 return None
 
-            # 获取主力合约代码
-            contract_code = None
-            try:
-                main_df = ak.futures_main_sina(symbol=cn_name)
-                if main_df is not None and len(main_df) > 0:
-                    contract_code = str(main_df.iloc[-1].get('symbol', '') or main_df.iloc[-1].get('合约代码', ''))
-            except Exception:
-                pass
+            # 根据交易所选择数据源
+            date_str = datetime.now().strftime('%Y%m%d')
+            df = None
 
-            if not contract_code:
-                return None
-
-            # 获取龙虎榜数据
-            try:
-                df = ak.futures_dce_position_rank(date=datetime.now().strftime('%Y%m%d'))
-                if df is None or len(df) == 0:
-                    # 尝试其他日期
-                    for d in range(1, 5):
-                        df = ak.futures_dce_position_rank(
-                            date=(datetime.now() - timedelta(days=d)).strftime('%Y%m%d')
-                        )
+            if exchange == 'DCE':
+                # 大商所持仓排名
+                for d in range(5):
+                    try:
+                        test_date = (datetime.now() - timedelta(days=d)).strftime('%Y%m%d')
+                        df = ak.futures_dce_position_rank(date=test_date)
                         if df is not None and len(df) > 0:
+                            date_str = test_date
                             break
+                    except Exception:
+                        continue
 
-                if df is not None and len(df) > 0:
-                    # 过滤当前合约
-                    contract_df = df[df.iloc[:, 0].astype(str).str.contains(contract_code, case=False, na=False)]
-                    if len(contract_df) == 0:
-                        contract_df = df  # 使用全部数据
+            elif exchange == 'SHFE':
+                # 上期所持仓排名
+                for d in range(5):
+                    try:
+                        test_date = (datetime.now() - timedelta(days=d)).strftime('%Y%m%d')
+                        df = ak.futures_shfe_warehouse_receipt(date=test_date)
+                        if df is not None and len(df) > 0:
+                            date_str = test_date
+                            break
+                    except Exception:
+                        continue
 
-                    # 解析多空头排名
-                    top_buy = []
-                    top_sell = []
+            elif exchange == 'CZCE':
+                # 郑商所持仓排名
+                for d in range(5):
+                    try:
+                        test_date = (datetime.now() - timedelta(days=d)).strftime('%Y%m%d')
+                        df = ak.futures_czce_warehouse_receipt(date=test_date)
+                        if df is not None and len(df) > 0:
+                            date_str = test_date
+                            break
+                    except Exception:
+                        continue
 
-                    # 标准化列名
-                    cols = [str(c).strip() for c in contract_df.columns]
+            if df is None or len(df) == 0:
+                return None
 
-                    # 尝试找到经纪商/会员名称列和持仓量列
-                    name_col = None
-                    vol_col = None
-                    for i, c in enumerate(cols):
-                        if '会员' in c or '经纪' in c or '公司' in c:
-                            name_col = i
-                        if '持仓' in c and '买' in c:
-                            vol_col = i
+            # 解析多空头排名
+            top_buy = []
+            top_sell = []
 
-                    if name_col is not None and vol_col is not None:
-                        for _, row in contract_df.head(10).iterrows():
-                            entry = {
-                                'broker': str(row.iloc[name_col]),
-                                'volume': int(row.iloc[vol_col]) if pd.notna(row.iloc[vol_col]) else 0,
-                            }
-                            top_buy.append(entry)
+            # 标准化列名
+            cols = [str(c).strip() for c in df.columns]
 
-                    # 计算集中度
-                    total_buy_vol = sum(e['volume'] for e in top_buy)
-                    top5_buy = sum(e['volume'] for e in top_buy[:5])
-                    concentration_buy = (top5_buy / total_buy_vol * 100) if total_buy_vol > 0 else 0
+            # 查找关键列
+            name_col = None
+            buy_vol_col = None
+            sell_vol_col = None
+            buy_change_col = None
+            sell_change_col = None
 
-                    interpretation = ""
-                    if concentration_buy > 60:
-                        interpretation = f"多头集中度较高({concentration_buy:.0f}%)，主力做多意愿强"
-                    elif concentration_buy < 30:
-                        interpretation = f"多头分散({concentration_buy:.0f}%)，做多意愿弱"
-                    else:
-                        interpretation = f"多头集中度适中({concentration_buy:.0f}%)"
+            for i, c in enumerate(cols):
+                c_lower = c.lower()
+                if '会员' in c or '经纪' in c or '公司' in c:
+                    name_col = i
+                elif ('买' in c or '多' in c) and ('持仓' in c or '量' in c):
+                    buy_vol_col = i
+                elif ('卖' in c or '空' in c) and ('持仓' in c or '量' in c):
+                    sell_vol_col = i
+                elif ('买' in c or '多' in c) and ('增减' in c or '变化' in c):
+                    buy_change_col = i
+                elif ('卖' in c or '空' in c) and ('增减' in c or '变化' in c):
+                    sell_change_col = i
 
-                    return {
-                        'symbol': variety,
-                        'date': datetime.now().strftime('%Y-%m-%d'),
-                        'top_buy': top_buy[:10],
-                        'top_sell': top_sell[:10],
-                        'net_buy': total_buy_vol,
-                        'net_sell': sum(e['volume'] for e in top_sell),
-                        'concentration_buy': round(concentration_buy, 1),
-                        'concentration_sell': 0.0,
-                        'interpretation': interpretation,
-                    }
+            # 如果找不到明确的买卖列，尝试按位置推断
+            if buy_vol_col is None and sell_vol_col is None:
+                # 大商所格式：会员简称, 持仓量, 增减, 持仓量, 增减
+                # 前半部分是多头，后半部分是空头
+                numeric_cols = []
+                for i, c in enumerate(cols):
+                    if i == name_col:
+                        continue
+                    try:
+                        # 测试是否为数值列
+                        test_val = df.iloc[0, i] if len(df) > 0 else None
+                        if test_val is not None and pd.notna(test_val):
+                            float(test_val)
+                            numeric_cols.append(i)
+                    except (ValueError, TypeError):
+                        continue
 
-            except Exception as e:
-                logger.debug(f"AkShare 龙虎榜获取失败({variety}): {e}")
+                if len(numeric_cols) >= 4:
+                    buy_vol_col = numeric_cols[0]
+                    buy_change_col = numeric_cols[1]
+                    sell_vol_col = numeric_cols[2]
+                    sell_change_col = numeric_cols[3]
 
-            return None
+            # 解析数据
+            if name_col is not None:
+                for idx, row in df.iterrows():
+                    broker = str(row.iloc[name_col]) if pd.notna(row.iloc[name_col]) else ''
+                    if not broker or broker == 'nan':
+                        continue
+
+                    buy_vol = int(row.iloc[buy_vol_col]) if buy_vol_col is not None and pd.notna(row.iloc[buy_vol_col]) else 0
+                    sell_vol = int(row.iloc[sell_vol_col]) if sell_vol_col is not None and pd.notna(row.iloc[sell_vol_col]) else 0
+                    buy_chg = int(row.iloc[buy_change_col]) if buy_change_col is not None and pd.notna(row.iloc[buy_change_col]) else 0
+                    sell_chg = int(row.iloc[sell_change_col]) if sell_change_col is not None and pd.notna(row.iloc[sell_change_col]) else 0
+
+                    if buy_vol > 0:
+                        top_buy.append({
+                            'rank': len(top_buy) + 1,
+                            'broker': broker,
+                            'volume': buy_vol,
+                            'change': buy_chg,
+                        })
+                    if sell_vol > 0:
+                        top_sell.append({
+                            'rank': len(top_sell) + 1,
+                            'broker': broker,
+                            'volume': sell_vol,
+                            'change': sell_chg,
+                        })
+
+            # 按持仓量排序
+            top_buy.sort(key=lambda x: x['volume'], reverse=True)
+            top_sell.sort(key=lambda x: x['volume'], reverse=True)
+
+            # 重新排名
+            for i, item in enumerate(top_buy[:10]):
+                item['rank'] = i + 1
+            for i, item in enumerate(top_sell[:10]):
+                item['rank'] = i + 1
+
+            # 计算集中度
+            total_buy = sum(e['volume'] for e in top_buy)
+            total_sell = sum(e['volume'] for e in top_sell)
+            top5_buy = sum(e['volume'] for e in top_buy[:5])
+            top5_sell = sum(e['volume'] for e in top_sell[:5])
+
+            concentration_buy = (top5_buy / total_buy * 100) if total_buy > 0 else 0
+            concentration_sell = (top5_sell / total_sell * 100) if total_sell > 0 else 0
+
+            # 生成解读
+            parts = []
+            if concentration_buy > 60:
+                parts.append(f"多头集中度高({concentration_buy:.0f}%)，主力做多意愿强")
+            elif concentration_buy > 40:
+                parts.append(f"多头集中度适中({concentration_buy:.0f}%)")
+            elif concentration_buy > 0:
+                parts.append(f"多头分散({concentration_buy:.0f}%)")
+
+            if concentration_sell > 60:
+                parts.append(f"空头集中度高({concentration_sell:.0f}%)，主力做空意愿强")
+            elif concentration_sell > 40:
+                parts.append(f"空头集中度适中({concentration_sell:.0f}%)")
+            elif concentration_sell > 0:
+                parts.append(f"空头分散({concentration_sell:.0f}%)")
+
+            # 净多空判断
+            if total_buy > 0 and total_sell > 0:
+                net = total_buy - total_sell
+                if net > total_buy * 0.1:
+                    parts.append("净多头占优")
+                elif net < -total_sell * 0.1:
+                    parts.append("净空头占优")
+                else:
+                    parts.append("多空均衡")
+
+            return {
+                'symbol': variety,
+                'date': f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}",
+                'exchange': exchange,
+                'top_buy': top_buy[:10],
+                'top_sell': top_sell[:10],
+                'net_buy': total_buy,
+                'net_sell': total_sell,
+                'concentration_buy': round(concentration_buy, 1),
+                'concentration_sell': round(concentration_sell, 1),
+                'interpretation': "；".join(parts) if parts else "数据有限",
+            }
 
         except Exception as e:
+            logger.debug(f"AkShare get_top_list 异常: {e}")
+            return None
             logger.debug(f"AkShare get_top_list 异常: {e}")
             return None
 
