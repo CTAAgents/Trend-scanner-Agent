@@ -107,6 +107,38 @@ python tools/scan_opportunities.py --overfitting-check
 python tools/scan_opportunities.py --evolve --load-report report.txt
 ```
 
+### VGRSI 因子（v6.0 新增）
+
+基于可见图的技术指标，捕捉价格序列的拓扑结构特征。
+
+```bash
+# 添加 VGRSI 因子到种子因子池
+python tools/add_vgrsi_factor.py
+```
+
+**VGRSI 与传统 RSI 的区别**：
+- 传统 RSI：基于价格变化的统计（涨跌幅）
+- VGRSI：基于价格点之间的几何可见关系（拓扑结构）
+
+**两种模式**：
+- A0（均值聚合）：捕捉趋势持续性
+- A1（比率聚合）：捕捉突破脉冲
+
+### Walk-Forward 验证（v6.0 新增）
+
+滚动前向优化验证，防止参数过拟合。
+
+```bash
+# 在因子进化中启用 Walk-Forward 验证
+python tools/scan_opportunities.py --evolve --walk-forward
+```
+
+**验证标准**：
+- 最小交易次数：5 次
+- 最小夏普比率：0.5
+- 最大回撤：20%
+- IS/OOS 一致性：OOS Sharpe >= IS Sharpe * 50%
+
 ### 数据同步
 
 ```bash
