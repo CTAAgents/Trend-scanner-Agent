@@ -557,6 +557,9 @@ def main():
             import traceback
             traceback.print_exc()
     
+    # 添加数据时效性信息到结果
+    result['data_timeliness'] = timeliness
+    
     # 输出结果
     if args.output == "json":
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -565,6 +568,8 @@ def main():
         print(f"发现信号: {result['signal_count']} 个")
         if result.get('reasoner_analyzed'):
             print(f"深度分析: 已完成")
+        if not timeliness['is_latest']:
+            print(f"⚠️ 数据截止: {timeliness['latest_date']}（滞后 {timeliness['days_behind']} 天）")
         print("-" * 60)
         
         if result['signals']:
