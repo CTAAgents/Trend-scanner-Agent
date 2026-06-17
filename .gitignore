@@ -29,5 +29,18 @@ data/market.db
 data/meta.db
 data/indicator_cache/
 data/*.parquet
-data/*.json
-!config/*.json
+
+# Include important JSON files
+!data/latest_scan.json
+!data/latest_brief.json
+!data/latest_reasoning.json
+!data/latest_debate.json
+!data/latest_monitor.json
+!data/latest_heartbeat.json
+!data/factor_knowledge.json
+!data/factor_experience.json
+!data/factor_evaluation.json
+!data/factor_evolution.json
+!data/seed_factors.json
+!data/evolution_state.json
+!data/param_opt_*.json
