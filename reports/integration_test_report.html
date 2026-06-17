@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集成测试报告 - Trend Scanner Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 18px; color: #333; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-item { background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: center; }
+        .stat-item .value { font-size: 32px; font-weight: bold; color: #667eea; }
+        .stat-item .label { font-size: 14px; color: #666; margin-top: 5px; }
+        .status-success { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-error { color: #ef4444; }
+        .test-list { max-height: 400px; overflow-y: auto; }
+        .test-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .test-item:last-child { border-bottom: none; }
+        .test-name { font-weight: 500; }
+        .test-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .test-passed { background: #dcfce7; color: #166534; }
+        .test-failed { background: #fee2e2; color: #991b1b; }
+        .test-skipped { background: #fef3c7; color: #92400e; }
+        .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.3s; }
+        .summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .summary-item { background: #f8f9fa; border-radius: 8px; padding: 15px; }
+        .summary-item h3 { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .summary-item p { font-size: 16px; font-weight: 500; }
+        .timestamp { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>集成测试报告</h1>
+            <p>Trend Scanner Agent v0.1.0 - 自动运行升级测试</p>
+            <p>生成时间: 2026-06-18 03:57</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="value status-success">872</div>
+                <div class="label">通过测试</div>
+            </div>
+            <div class="stat-item">
+                <div class="value status-warning">1</div>
+                <div class="label">跳过测试</div>
+            </div>
+            <div class="stat-item">
+                <div class="value status-error">0</div>
+                <div class="label">失败测试</div>
+            </div>
+            <div class="stat-item">
+                <div class="value">100%</div>
+                <div class="label">通过率</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>测试进度</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%"></div>
+            </div>
+            <p style="margin-top: 10px; text-align: center; color: #666;">872/873 测试通过 (99.89%)</p>
+        </div>
+
+        <div class="card">
+            <h2>测试模块统计</h2>
+            <div class="test-list">
+                <div class="test-item">
+                    <span class="test-name">test_carry_analyzer.py</span>
+                    <span class="test-status test-passed">19 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_scenario_analyzer.py</span>
+                    <span class="test-status test-passed">11 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_rl_base.py</span>
+                    <span class="test-status test-passed">19 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_ppo.py</span>
+                    <span class="test-status test-passed">30 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_walk_forward_rl.py</span>
+                    <span class="test-status test-passed">11 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_scanner_integration.py</span>
+                    <span class="test-status test-passed">11 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_trend_scanner_config.py</span>
+                    <span class="test-status test-passed">31 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_unified_data_router.py</span>
+                    <span class="test-status test-passed">68 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_monte_carlo.py</span>
+                    <span class="test-status test-passed">24 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_strategy_incubator.py</span>
+                    <span class="test-status test-passed">18 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_circuit_breaker.py</span>
+                    <span class="test-status test-passed">16 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_strategy_portfolio.py</span>
+                    <span class="test-status test-passed">20 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">test_fundamental.py</span>
+                    <span class="test-status test-passed">23 通过</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-name">其他测试模块</span>
+                    <span class="test-status test-passed">530+ 通过</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>升级内容测试</h2>
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>事件驱动引擎</h3>
+                    <p class="status-success">✓ 测试通过</p>
+                </div>
+                <div class="summary-item">
+                    <h3>智能调度器</h3>
+                    <p class="status-success">✓ 测试通过</p>
+                </div>
+                <div class="summary-item">
+                    <h3>内存管理器</h3>
+                    <p class="status-success">✓ 测试通过</p>
+                </div>
+                <div class="summary-item">
+                    <h3>工作进程</h3>
+                    <p class="status-success">✓ 测试通过</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Carry 策略分析</h3>
+                    <p class="status-success">✓ 19 个测试通过</p>
+                </div>
+                <div class="summary-item">
+                    <h3>概率加权场景分析</h3>
+                    <p class="status-success">✓ 11 个测试通过</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>系统状态</h2>
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>Python 模块</h3>
+                    <p>118 个</p>
+                </div>
+                <div class="summary-item">
+                    <h3>测试文件</h3>
+                    <p>44 个</p>
+                </div>
+                <div class="summary-item">
+                    <h3>监控品种</h3>
+                    <p>86 个</p>
+                </div>
+                <div class="summary-item">
+                    <h3>技术指标</h3>
+                    <p>80+ 个</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="timestamp">
+            报告生成时间: 2026-06-18 03:57:00 | Trend Scanner Agent v0.1.0
+        </div>
+    </div>
+</body>
+</html>

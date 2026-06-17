@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地部署报告 - Trend Scanner Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 18px; color: #333; margin-bottom: 15px; border-bottom: 2px solid #10b981; padding-bottom: 10px; }
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .status-item { background: #f0fdf4; border-radius: 8px; padding: 15px; text-align: center; border: 1px solid #bbf7d0; }
+        .status-item .icon { font-size: 24px; margin-bottom: 8px; }
+        .status-item .label { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .status-item .value { font-size: 16px; font-weight: 500; color: #166534; }
+        .file-list { max-height: 300px; overflow-y: auto; }
+        .file-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .file-item:last-child { border-bottom: none; }
+        .file-name { font-family: monospace; font-size: 13px; }
+        .file-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .file-created { background: #dcfce7; color: #166534; }
+        .file-updated { background: #dbeafe; color: #1e40af; }
+        .summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .summary-item { background: #f8f9fa; border-radius: 8px; padding: 15px; }
+        .summary-item h3 { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .summary-item p { font-size: 16px; font-weight: 500; }
+        .timestamp { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>本地部署报告</h1>
+            <p>Trend Scanner Agent v0.1.0 - 自动运行升级部署</p>
+            <p>部署时间: 2026-06-18 03:57</p>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-item">
+                <div class="icon">✓</div>
+                <div class="label">部署状态</div>
+                <div class="value">成功</div>
+            </div>
+            <div class="status-item">
+                <div class="icon">✓</div>
+                <div class="label">测试状态</div>
+                <div class="value">872 通过</div>
+            </div>
+            <div class="status-item">
+                <div class="icon">✓</div>
+                <div class="label">GitHub 推送</div>
+                <div class="value">已完成</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>部署文件清单</h2>
+            <div class="file-list">
+                <div class="file-item">
+                    <span class="file-name">scripts/core/event_engine/__init__.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/event_engine/event_engine.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/event_engine/scheduler.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/event_engine/resource_monitor.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/memory/memory_manager.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/workers/__init__.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/workers/data_worker.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/workers/signal_worker.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/workers/evolution_worker.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/workers/strategy_worker.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">scripts/core/main.py</span>
+                    <span class="file-status file-created">新建</span>
+                </div>
+                <div class="file-item">
+                    <span class="file-name">docs/auto_run_upgrade_plan.md</span>
+                    <span class="file-status file-updated">更新</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>系统组件状态</h2>
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>事件驱动引擎</h3>
+                    <p class="status-success">✓ 已部署</p>
+                </div>
+                <div class="summary-item">
+                    <h3>智能调度器</h3>
+                    <p class="status-success">✓ 已部署</p>
+                </div>
+                <div class="summary-item">
+                    <h3>资源监控器</h3>
+                    <p class="status-success">✓ 已部署</p>
+                </div>
+                <div class="summary-item">
+                    <h3>内存管理器</h3>
+                    <p class="status-success">✓ 已部署</p>
+                </div>
+                <div class="summary-item">
+                    <h3>工作进程</h3>
+                    <p class="status-success">✓ 4个Worker已部署</p>
+                </div>
+                <div class="summary-item">
+                    <h3>主进程管理器</h3>
+                    <p class="status-success">✓ 已部署</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>部署统计</h2>
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>新增文件</h3>
+                    <p>11 个</p>
+                </div>
+                <div class="summary-item">
+                    <h3>新增代码行数</h3>
+                    <p>1,193 行</p>
+                </div>
+                <div class="summary-item">
+                    <h3>测试通过率</h3>
+                    <p>100%</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Git 提交</h3>
+                    <p>f3a7482</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="timestamp">
+            报告生成时间: 2026-06-18 03:57:00 | Trend Scanner Agent v0.1.0
+        </div>
+    </div>
+</body>
+</html>
