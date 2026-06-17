@@ -28,7 +28,7 @@ from typing import Optional, List, Dict, Any
 # 添加模块路径
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
 
-from trend_scanner.data_source import DataSourceFactory
+from trend_scanner.data_source import DataSourceFactory, TqSdkSource
 from trend_scanner.indicators import IndicatorEngine
 
 # 导入数据格式工具
