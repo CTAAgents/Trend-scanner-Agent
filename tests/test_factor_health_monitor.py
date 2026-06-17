@@ -243,7 +243,7 @@ class TestFullHealthFlow:
             name="监控测试因子",
             code="",
             lifecycle_state=LifecycleState.RELEASED,
-            evaluation={"sharpe": 1.5, "max_drawdown": 0.1, "ic": 0.05},
+            evaluation={"sharpe": 1.5, "max_drawdown": 0.1, "ic": 0.05, "win_rate": 0.55},
         )
         manager.register_factor(factor)
 

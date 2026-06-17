@@ -186,7 +186,7 @@ def factor(df):
             content="动量因子研究",
         )
         self.pipeline.ingest(source)
-        assert len(self.lifecycle_manager.factors) >= 1
+        assert len(self.pipeline.lifecycle_manager.factors) >= 1
 
     def test_get_statistics(self):
         """测试获取统计"""

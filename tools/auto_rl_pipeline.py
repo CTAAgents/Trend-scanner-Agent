@@ -411,7 +411,7 @@ def main():
     
     parser.add_argument('--symbol', type=str, default='RB',
                         help='品种代码')
-    parser.add_argument('--days', type=int, default=200,
+    parser.add_argument('--days', type=int, default=500,
                         help='数据天数')
     parser.add_argument('--train-steps', type=int, default=20000,
                         help='训练步数')
