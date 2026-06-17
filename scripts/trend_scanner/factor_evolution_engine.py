@@ -351,6 +351,16 @@ class FactorEvolutionEngine:
         # 分类结果
         for d in decisions:
             if d.decision == 'promote':
+                # Walk-Forward 验证检查（如果启用）
+                if self.use_walk_forward:
+                    eval_data = evaluations.get(d.factor_name, {})
+                    if not eval_data.get('walk_forward_passed', True):
+                        # Walk-Forward 验证失败，降级为观察
+                        logger.info(f"因子 {d.factor_name} Walk-Forward 验证失败，降级为观察")
+                        d.decision = 'observe'
+                        d.reasons.append('Walk-Forward 验证未通过')
+                        continue
+                
                 round_result.promoted.append(d.factor_name)
                 # 保存到晋升列表
                 factor_info = next(
