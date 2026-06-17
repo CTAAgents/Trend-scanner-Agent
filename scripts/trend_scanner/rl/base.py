@@ -132,9 +132,9 @@ class AgentBase(ABC):
         pass
     
     @abstractmethod
-    def act(self, env: Any, action: RLAction) -> Tuple[np.ndarray, float, bool, Dict]:
+    def execute_action(self, env: Any, action: RLAction) -> Tuple[np.ndarray, float, bool, Dict]:
         """
-        行动：在环境中执行动作
+        执行动作：在环境中执行动作
         
         Args:
             env: Gym 环境
@@ -180,8 +180,8 @@ class AgentBase(ABC):
             # 推理
             action = self.reason(processed_state)
             
-            # 行动
-            next_state, reward, terminated, truncated, info = self.act(env, action)
+            # 执行动作
+            next_state, reward, terminated, truncated, info = self.execute_action(env, action)
             done = terminated or truncated
             
             # 记录经验
