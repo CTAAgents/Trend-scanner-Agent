@@ -28,7 +28,7 @@ from typing import Optional, List, Dict, Any
 # 添加模块路径
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
 
-from trend_scanner.data_source import DataSourceFactory, TqSdkSource
+from trend_scanner.data_source import DataSourceFactory
 from trend_scanner.indicators import IndicatorEngine
 
 # 导入数据格式工具
@@ -89,69 +89,6 @@ def get_all_main_contracts() -> List[str]:
     except Exception as e:
         print(f"[警告] 获取所有品种列表失败: {e}", file=sys.stderr)
         return []
-
-
-def filter_active_symbols(symbols: List[str], min_oi: int = 10000, min_volume: int = 1000) -> List[str]:
-    """
-    筛选活跃品种（非僵尸品种）
-    
-    参数:
-        symbols: 品种列表（配置格式，如 ['SHFE.rb', 'DCE.jm']）
-        min_oi: 最小持仓量
-        min_volume: 最小成交量
-    
-    返回:
-        活跃品种列表
-    """
-    try:
-        # 获取数据源
-        try:
-            data_source = DataSourceFactory.create(source="tqsdk")
-        except RuntimeError as e:
-            print(f"[警告] TqSdk 不可用: {e}，跳过品种筛选", file=sys.stderr)
-            return symbols
-        
-        # 检查数据源是否支持批量获取
-        if not hasattr(data_source, 'get_quotes_batch'):
-            print("[警告] 数据源不支持批量获取行情，跳过品种筛选", file=sys.stderr)
-            return symbols
-        
-        # 将配置格式转换为 TqSdk 格式
-        tq_symbols = []
-        symbol_map = {}  # TqSdk 格式 -> 配置格式
-        
-        for symbol in symbols:
-            # SHFE.rb -> KQ.m@SHFE.rb
-            tq_symbol = f"KQ.m@{symbol}"
-            tq_symbols.append(tq_symbol)
-            symbol_map[tq_symbol] = symbol
-        
-        # 批量获取行情
-        print(f"    批量获取 {len(tq_symbols)} 个品种行情...", flush=True)
-        quotes = data_source.get_quotes_batch(tq_symbols)
-        
-        # 筛选活跃品种
-        active_symbols = []
-        
-        for tq_symbol, quote in quotes.items():
-            try:
-                if not quote:
-                    continue
-                
-                oi = quote.get('open_interest', 0)
-                volume = quote.get('volume', 0)
-                
-                if oi >= min_oi and volume >= min_volume:
-                    if tq_symbol in symbol_map:
-                        active_symbols.append(symbol_map[tq_symbol])
-            except Exception as e:
-                print(f"[警告] 检查 {tq_symbol} 活跃度失败: {e}", file=sys.stderr)
-                continue
-        
-        return active_symbols
-    except Exception as e:
-        print(f"[警告] 筛选活跃品种失败: {e}", file=sys.stderr)
-        return symbols
 
 
 def get_realtime_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
