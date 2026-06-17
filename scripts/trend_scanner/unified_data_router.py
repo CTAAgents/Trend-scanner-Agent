@@ -425,54 +425,27 @@ class AkShareSource:
         try:
             import akshare as ak
             variety = normalize_symbol(symbol)
-            cn_name = AKSHARE_FUTURES_MAP.get(variety)
-            if not cn_name:
-                return None
 
-            # 尝试获取基差数据
-            # AkShare 基差接口: ak.futures_basis_spread()
-            try:
-                df = ak.futures_basis_spread(symbol=cn_name)
-                if df is not None and len(df) > 0:
-                    latest = df.iloc[-1]
-                    spot = float(latest.get('现货价格', 0) or latest.get('现货', 0) or 0)
-                    futures = float(latest.get('期货价格', 0) or latest.get('期货', 0) or 0)
-                    basis = spot - futures
-                    basis_rate = basis / spot * 100 if spot > 0 else 0
+            # 使用 futures_spot_price() 获取基差数据
+            df = ak.futures_spot_price()
+            if df is not None and len(df) > 0:
+                # 过滤当前品种
+                variety_row = df[df['symbol'] == variety]
+                if len(variety_row) > 0:
+                    latest = variety_row.iloc[0]
+                    spot = float(latest.get('spot_price', 0) or 0)
+                    futures = float(latest.get('dominant_contract_price', 0) or 0)
+                    basis = float(latest.get('dom_basis', 0) or 0)
+                    basis_rate = float(latest.get('dom_basis_rate', 0) or 0) * 100
+
                     return {
                         'symbol': variety,
                         'spot_price': spot,
                         'futures_price': futures,
                         'basis': basis,
                         'basis_rate': round(basis_rate, 2),
-                        'date': str(latest.name) if hasattr(latest, 'name') else datetime.now().strftime('%Y-%m-%d'),
+                        'date': str(latest.get('date', datetime.now().strftime('%Y%m%d'))),
                     }
-            except Exception:
-                pass
-
-            # 备选: 手动获取现货和期货价格计算基差
-            try:
-                # 获取期货主力合约价格
-                spot_df = ak.futures_spot_price(symbol=cn_name)
-                futures_df = ak.futures_main_sina(symbol=cn_name)
-
-                if spot_df is not None and futures_df is not None:
-                    spot_price = float(spot_df.iloc[-1].get('价格', 0) or spot_df.iloc[-1].iloc[-1] or 0)
-                    futures_price = float(futures_df.iloc[-1].get('收盘价', 0) or futures_df.iloc[-1].iloc[-1] or 0)
-
-                    if spot_price > 0 and futures_price > 0:
-                        basis = spot_price - futures_price
-                        basis_rate = basis / spot_price * 100
-                        return {
-                            'symbol': variety,
-                            'spot_price': spot_price,
-                            'futures_price': futures_price,
-                            'basis': round(basis, 2),
-                            'basis_rate': round(basis_rate, 2),
-                            'date': datetime.now().strftime('%Y-%m-%d'),
-                        }
-            except Exception as e:
-                logger.debug(f"AkShare 基差获取失败({variety}): {e}")
 
             return None
 
@@ -716,57 +689,44 @@ class AkShareSource:
                 'exchange_margin_ratio': float,  # 交易所保证金比例(%)
                 'broker_margin_ratio': float,    # 经纪商保证金比例(%)
                 'margin_per_lot': float,          # 每手保证金(元)
+                'contract_multiplier': int,       # 合约乘数
                 'date': str,
             }
         """
         try:
             import akshare as ak
             variety = normalize_symbol(symbol)
-            exchange = VARIETY_EXCHANGE_MAP.get(variety, '')
-            if not exchange:
-                return None
 
-            # 获取交易所保证金数据
-            try:
-                df = ak.futures_margin_em()
-                if df is not None and len(df) > 0:
-                    # 过滤当前品种
-                    variety_row = df[df.iloc[:, 0].astype(str).str.contains(variety, case=False, na=False)]
-                    if len(variety_row) > 0:
-                        row = variety_row.iloc[0]
-                        # 标准化列名
-                        cols = [str(c).strip() for c in row.index]
-                        margin_ratio = 0
-                        for i, c in enumerate(cols):
-                            if '保证金' in c and '比例' in c:
-                                margin_ratio = float(row.iloc[i]) if pd.notna(row.iloc[i]) else 0
-                                break
+            # 使用 futures_fees_info() 获取保证金和手续费数据
+            df = ak.futures_fees_info()
+            if df is not None and len(df) > 0:
+                # 过滤当前品种（按品种代码或品种名称）
+                variety_row = df[
+                    (df['品种代码'] == variety) |
+                    (df['品种名称'].str.contains(AKSHARE_FUTURES_MAP.get(variety, variety), case=False, na=False))
+                ]
+                if len(variety_row) > 0:
+                    row = variety_row.iloc[0]
+                    # 提取保证金比例
+                    exchange_margin = float(row.get('做多保证金率', 0) or 0) * 100
+                    broker_margin = exchange_margin * 1.05  # 经纪商通常加收5%
+                    margin_per_lot = float(row.get('做多1手保证金', 0) or 0)
+                    contract_multiplier = int(row.get('合约乘数', 0) or 0)
 
-                        if margin_ratio == 0:
-                            # 尝试找到所有数字列
-                            for i, val in enumerate(row):
-                                if pd.notna(val):
-                                    try:
-                                        v = float(val)
-                                        if 1 <= v <= 30:  # 保证金比例通常在1%-30%
-                                            margin_ratio = v
-                                            break
-                                    except (ValueError, TypeError):
-                                        continue
-
-                        return {
-                            'symbol': variety,
-                            'exchange_margin_ratio': margin_ratio,
-                            'broker_margin_ratio': margin_ratio * 1.05 if margin_ratio > 0 else 0,
-                            'margin_per_lot': 0,
-                            'date': datetime.now().strftime('%Y-%m-%d'),
-                        }
-            except Exception as e:
-                logger.debug(f"AkShare 保证金获取失败({variety}): {e}")
+                    return {
+                        'symbol': variety,
+                        'exchange_margin_ratio': round(exchange_margin, 2),
+                        'broker_margin_ratio': round(broker_margin, 2),
+                        'margin_per_lot': round(margin_per_lot, 2),
+                        'contract_multiplier': contract_multiplier,
+                        'date': datetime.now().strftime('%Y-%m-%d'),
+                    }
 
             return None
 
         except Exception as e:
+            logger.debug(f"AkShare get_margin 异常: {e}")
+            return None
             logger.debug(f"AkShare get_margin 异常: {e}")
             return None
 
@@ -783,6 +743,7 @@ class AkShareSource:
                 'interest_rate': float,        # 基准利率(%)
                 'date': str,
                 'interpretation': str,
+                'commodity_specific': Dict,    # 品种特定宏观关联
             }
         """
         try:
@@ -790,11 +751,45 @@ class AkShareSource:
             variety = normalize_symbol(symbol)
             indicators = {}
 
+            # 品种-宏观指标关联映射
+            COMMODITY_MACRO_MAP = {
+                # 黑色系 - 关联房地产/基建
+                'RB': {'sector': 'black', 'macro_focus': ['PMI', '房地产投资', '基建投资'], 'interpretation_prefix': '黑色系'},
+                'HC': {'sector': 'black', 'macro_focus': ['PMI', '房地产投资'], 'interpretation_prefix': '黑色系'},
+                'I': {'sector': 'black', 'macro_focus': ['PMI', '粗钢产量'], 'interpretation_prefix': '黑色系'},
+                'J': {'sector': 'black', 'macro_focus': ['PMI', '焦化开工率'], 'interpretation_prefix': '黑色系'},
+                'JM': {'sector': 'black', 'macro_focus': ['PMI', '焦化开工率'], 'interpretation_prefix': '黑色系'},
+                # 有色金属 - 关联全球制造业
+                'CU': {'sector': 'nonferrous', 'macro_focus': ['PMI', '全球制造业'], 'interpretation_prefix': '有色金属'},
+                'AL': {'sector': 'nonferrous', 'macro_focus': ['PMI', '电力成本'], 'interpretation_prefix': '有色金属'},
+                'ZN': {'sector': 'nonferrous', 'macro_focus': ['PMI', '镀锌需求'], 'interpretation_prefix': '有色金属'},
+                'NI': {'sector': 'nonferrous', 'macro_focus': ['PMI', '不锈钢需求'], 'interpretation_prefix': '有色金属'},
+                # 能源化工 - 关联原油/通胀
+                'SC': {'sector': 'energy', 'macro_focus': ['原油价格', '通胀'], 'interpretation_prefix': '能源'},
+                'FU': {'sector': 'energy', 'macro_focus': ['原油价格', '航运需求'], 'interpretation_prefix': '能源'},
+                'BU': {'sector': 'energy', 'macro_focus': ['原油价格', '基建需求'], 'interpretation_prefix': '能源'},
+                'RU': {'sector': 'energy', 'macro_focus': ['汽车产销', '轮胎需求'], 'interpretation_prefix': '化工'},
+                'TA': {'sector': 'chemical', 'macro_focus': ['纺织需求', 'PTA开工率'], 'interpretation_prefix': '化工'},
+                'MA': {'sector': 'chemical', 'macro_focus': ['煤化工', '甲醇开工率'], 'interpretation_prefix': '化工'},
+                # 农产品 - 关联通胀/天气
+                'M': {'sector': 'agriculture', 'macro_focus': ['CPI', '大豆压榨'], 'interpretation_prefix': '农产品'},
+                'Y': {'sector': 'agriculture', 'macro_focus': ['CPI', '油脂需求'], 'interpretation_prefix': '农产品'},
+                'P': {'sector': 'agriculture', 'macro_focus': ['CPI', '棕榈油产量'], 'interpretation_prefix': '农产品'},
+                'C': {'sector': 'agriculture', 'macro_focus': ['CPI', '饲料需求'], 'interpretation_prefix': '农产品'},
+                'CF': {'sector': 'agriculture', 'macro_focus': ['纺织需求', '棉花库存'], 'interpretation_prefix': '农产品'},
+                'SR': {'sector': 'agriculture', 'macro_focus': ['CPI', '白糖产量'], 'interpretation_prefix': '农产品'},
+                # 贵金属 - 关联避险/通胀
+                'AU': {'sector': 'precious', 'macro_focus': ['避险需求', '实际利率'], 'interpretation_prefix': '贵金属'},
+                'AG': {'sector': 'precious', 'macro_focus': ['避险需求', '工业需求'], 'interpretation_prefix': '贵金属'},
+            }
+
+            commodity_info = COMMODITY_MACRO_MAP.get(variety, {'sector': 'other', 'macro_focus': [], 'interpretation_prefix': '品种'})
+
             # GDP
             try:
                 gdp_df = ak.macro_china_gdp()
                 if gdp_df is not None and len(gdp_df) > 0:
-                    latest = gdp_df.iloc[-1]
+                    latest = gdp_df.iloc[0]  # 最新数据在第一行
                     for col in gdp_df.columns:
                         if '同比' in str(col) or '增速' in str(col):
                             indicators['gdp_growth'] = float(latest[col]) if pd.notna(latest[col]) else None
@@ -807,10 +802,7 @@ class AkShareSource:
                 cpi_df = ak.macro_china_cpi_yearly()
                 if cpi_df is not None and len(cpi_df) > 0:
                     latest = cpi_df.iloc[-1]
-                    for col in cpi_df.columns:
-                        if '同比' in str(col):
-                            indicators['cpi_yoy'] = float(latest[col]) if pd.notna(latest[col]) else None
-                            break
+                    indicators['cpi_yoy'] = float(latest.get('今值', None)) if pd.notna(latest.get('今值', None)) else None
             except Exception:
                 pass
 
@@ -818,21 +810,21 @@ class AkShareSource:
             try:
                 pmi_df = ak.macro_china_pmi()
                 if pmi_df is not None and len(pmi_df) > 0:
-                    latest = pmi_df.iloc[-1]
-                    for col in pmi_df.columns:
-                        if '制造业' in str(col) and 'PMI' in str(col).upper():
-                            indicators['pmi'] = float(latest[col]) if pd.notna(latest[col]) else None
-                            break
+                    latest = pmi_df.iloc[0]  # 最新数据在第一行
+                    indicators['pmi'] = float(latest.get('制造业-指数', None)) if pd.notna(latest.get('制造业-指数', None)) else None
             except Exception:
                 pass
 
             if not indicators:
                 return None
 
-            # 解读
+            # 品种特定解读
             pmi = indicators.get('pmi')
             gdp = indicators.get('gdp_growth')
+            cpi = indicators.get('cpi_yoy')
             parts = []
+
+            # 通用解读
             if pmi is not None:
                 if pmi > 50:
                     parts.append(f"PMI={pmi:.1f}，制造业扩张")
@@ -846,6 +838,23 @@ class AkShareSource:
                 else:
                     parts.append(f"GDP增速{gdp:.1f}%，经济衰退风险")
 
+            # 品种特定解读
+            prefix = commodity_info['interpretation_prefix']
+            if commodity_info['sector'] == 'black':
+                if pmi is not None and pmi > 50:
+                    parts.append(f"{prefix}板块：PMI扩张利好需求")
+                elif pmi is not None and pmi < 49:
+                    parts.append(f"{prefix}板块：PMI收缩利空需求")
+            elif commodity_info['sector'] == 'energy':
+                parts.append(f"{prefix}板块：关注原油价格和通胀走势")
+            elif commodity_info['sector'] == 'agriculture':
+                if cpi is not None and cpi > 2:
+                    parts.append(f"{prefix}板块：CPI偏高，通胀支撑价格")
+                elif cpi is not None and cpi < 0:
+                    parts.append(f"{prefix}板块：CPI为负，通缩压力")
+            elif commodity_info['sector'] == 'precious':
+                parts.append(f"{prefix}板块：关注实际利率和避险情绪")
+
             return {
                 'symbol': variety,
                 'indicators': indicators,
@@ -855,6 +864,7 @@ class AkShareSource:
                 'interest_rate': indicators.get('interest_rate'),
                 'date': datetime.now().strftime('%Y-%m-%d'),
                 'interpretation': "；".join(parts) if parts else "数据有限",
+                'commodity_specific': commodity_info,
             }
 
         except Exception as e:
