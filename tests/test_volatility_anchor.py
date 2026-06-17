@@ -43,12 +43,13 @@ class TestVolatilityAnchor:
     
     def test_calculate_basic(self):
         """测试基本的锚点计算"""
-        # 创建测试数据
+        # 创建测试数据（确保 high > low）
         np.random.seed(42)
         n = 100
+        base = np.cumsum(np.random.randn(n) * 0.5) + 100
         df = pd.DataFrame({
-            'high': np.cumsum(np.random.randn(n) * 0.5) + 100,
-            'low': np.cumsum(np.random.randn(n) * 0.5) + 98
+            'high': base + 1,
+            'low': base - 1
         })
         
         anchor = VolatilityAnchor(window=20, multiplier=2.0)
