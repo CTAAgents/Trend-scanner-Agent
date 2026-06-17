@@ -1,0 +1,220 @@
+{
+  "symbol": "RB",
+  "days": 300,
+  "total_configs": 10,
+  "evaluated_configs": 10,
+  "best_config": null,
+  "best_score": -Infinity,
+  "all_results": [
+    {
+      "config": {
+        "net_dims": [
+          64,
+          64
+        ],
+        "gamma": 0.95,
+        "lambda_gae": 0.95,
+        "learning_rate": 0.0002,
+        "batch_size": 64,
+        "ratio_clip": 0.2
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          128,
+          128
+        ],
+        "gamma": 0.95,
+        "lambda_gae": 0.9,
+        "learning_rate": 0.0001,
+        "batch_size": 64,
+        "ratio_clip": 0.1
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          128,
+          128
+        ],
+        "gamma": 0.99,
+        "lambda_gae": 0.9,
+        "learning_rate": 0.0005,
+        "batch_size": 64,
+        "ratio_clip": 0.1
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          128,
+          64
+        ],
+        "gamma": 0.95,
+        "lambda_gae": 0.95,
+        "learning_rate": 0.0005,
+        "batch_size": 32,
+        "ratio_clip": 0.1
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          64,
+          64
+        ],
+        "gamma": 0.99,
+        "lambda_gae": 0.95,
+        "learning_rate": 0.0005,
+        "batch_size": 32,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          64,
+          64
+        ],
+        "gamma": 0.99,
+        "lambda_gae": 0.9,
+        "learning_rate": 0.0001,
+        "batch_size": 64,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          128,
+          64
+        ],
+        "gamma": 0.99,
+        "lambda_gae": 0.95,
+        "learning_rate": 0.0002,
+        "batch_size": 128,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          256,
+          128
+        ],
+        "gamma": 0.95,
+        "lambda_gae": 0.95,
+        "learning_rate": 0.0005,
+        "batch_size": 128,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          256,
+          128
+        ],
+        "gamma": 0.95,
+        "lambda_gae": 0.9,
+        "learning_rate": 0.0005,
+        "batch_size": 32,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    },
+    {
+      "config": {
+        "net_dims": [
+          128,
+          64
+        ],
+        "gamma": 0.99,
+        "lambda_gae": 0.9,
+        "learning_rate": 0.0002,
+        "batch_size": 64,
+        "ratio_clip": 0.3
+      },
+      "pass_rate": 0.0,
+      "avg_oos_reward": NaN,
+      "avg_reward_ratio": NaN,
+      "max_oos_drawdown": NaN,
+      "recommendations": [
+        "通过率过低 (0.00% < 50.00%): 建议重新设计状态空间或奖励函数",
+        "OOS 平均 Sharpe 过低 (0.00 < 0.5): 建议优化奖励函数、增加趋势约束或使用更稳定的策略"
+      ]
+    }
+  ]
+}
