@@ -1,10 +1,10 @@
 ---
 name: reasoner
 description: "期货趋势跟踪推理 Agent —— 接收市场信号，生成交易决策简报"
-version: "1.1.0"
+version: "2.0.0"
 author: "Trend-scanner-Agent"
 created: "2026-06-15"
-updated: "2026-06-15"
+updated: "2026-06-17"
 tags: ["trading", "futures", "reasoning", "agent"]
 ---
 
@@ -92,6 +92,22 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
     "factors": ["RSI 超买", "波动率扩张"]
   },
   "warnings": [],
+  "delivery_checklist": {
+    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
+    "change_type": "new_entry",
+    "change_description": "在回调至支撑位时入场做多，仓位30%",
+    "validation_standard": "walk_forward",
+    "falsification_condition": "如果价格跌破EMA20且ADX降至20以下，建议失效",
+    "remaining_risks": ["夜盘跳空风险", "主力合约换月临近", "RSI超买可能触发回调"]
+  },
+  "dimension_scores": {
+    "trend": 0.42,
+    "momentum": 0.35,
+    "volume": 0.28,
+    "volatility": -0.10,
+    "channel": 0.22
+  },
   "reasoning_model": "WorkBuddy Agent (default)",
   "experience_count": 3,
   "generation_time_ms": 1200
@@ -100,11 +116,46 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 
 ## 工作流程
 
+### 五步推理框架
+
+Reasoner 采用 [策略设计方法论](../shared/STRATEGY_DESIGN_METHODOLOGY.md) 定义的五步结构化推理流程：
+
 ```
-接收信号
+Step 1. Frame The Edge（框定优势）
+  ├── 品种特征（黑色/能化/有色）
+  ├── 当前市场阶段（趋势/震荡/转折）
+  └── 持仓背景（已有仓位则加权）
+
+Step 2. Translate Into Parts（翻译为决策模块）
+  ├── 信号层：多维度筛选得分（趋势/动量/成交量/波动率/通道）
+  ├── 经验层：历史相似度检索
+  ├── 风控层：波动率锚点止损参考
+  └── 约束层：中国市场检查点（主力换月/夜盘/保证金/交割月）
+
+Step 3. Choose Smallest Safe Change（选择最小安全改动）
+  ├── 已有仓位 → 调整 vs 维持 vs 退出
+  ├── 无仓位 → 是否入场
+  └── 改动原则：参数调优优先于策略逻辑变更
+
+Step 4. Decide The Proof Up Front（预先定义验证标准）
+  ├── 引用 validation_matrix 匹配改动类型的最低验证
+  └── 标注 falsification_condition（什么条件下该建议失效）
+
+Step 5. Summarize Like A Research Engineer（研究员式交付）
+  ├── 输出 TradingBrief + delivery_checklist
+  └── 每个方案附带可验证的假说和风险标注
+```
+
+### 详细流程
+
+```
+接收信号（含多维度筛选得分）
   │
   ▼
-解析信号摘要
+Step 1: 框定优势 — 品种+市场阶段+持仓
+  │
+  ▼
+Step 2: 翻译为模块 — 信号+经验+风控+约束
   │
   ▼
 读取完整 MarketContext（从 latest_scan.json）
@@ -113,7 +164,13 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 检索相似经验（从经验记忆池）
   │
   ▼
-构建推理提示词
+注入多维度筛选结果（从 IndicatorHub + MultiDimensionScreener）
+  │
+  ▼
+Step 3: 选择最小安全改动
+  │
+  ▼
+构建推理提示词（含五步框架上下文）
   │
   ▼
 调用 LLM 推理
@@ -122,10 +179,13 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
 解析 LLM 输出
   │
   ▼
-生成交易决策简报
+Step 4: 标注验证标准 + falsification_condition
   │
   ▼
-输出简报（JSON 格式）
+Step 5: 生成 TradingBrief + delivery_checklist
+  │
+  ▼
+输出简报（JSON 格式，含交付清单）
 ```
 
 ## 触发条件
@@ -189,6 +249,10 @@ python tools/reasoner.py --symbol DCE.jm2609 --save
 - `scripts/trend_scanner/experience.py` - 经验记忆池
 - `scripts/trend_scanner/context.py` - 上下文组装
 - `scripts/trend_scanner/models.py` - 数据模型
+- `scripts/trend_scanner/indicator_hub.py` - 统一指标加载（Phase 2 新增）
+- `scripts/trend_scanner/multi_dimension_screener.py` - 多维度筛选（Phase 2 新增）
+- `scripts/trend_scanner/validation_matrix.py` - 验证矩阵路由（Phase 3 新增）
+- `agents/shared/STRATEGY_DESIGN_METHODOLOGY.md` - 策略设计方法论
 
 ## 错误处理
 

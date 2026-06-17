@@ -80,6 +80,22 @@
     "level": "MEDIUM",
     "factors": ["RSI 超买", "波动率扩张"]
   },
+  "delivery_checklist": {
+    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
+    "change_type": "new_entry",
+    "change_description": "在回调至支撑位时入场做多，仓位30%",
+    "validation_standard": "walk_forward",
+    "falsification_condition": "如果价格跌破EMA20且ADX降至20以下，建议失效",
+    "remaining_risks": ["夜盘跳空风险", "主力合约换月临近"]
+  },
+  "dimension_scores": {
+    "trend": {"composite": 0.42, "direction": "BULLISH", "confidence": 0.72},
+    "momentum": {"composite": 0.35, "direction": "BULLISH", "confidence": 0.65},
+    "volume": {"composite": 0.28, "direction": "BULLISH", "confidence": 0.55},
+    "volatility": {"composite": -0.10, "direction": "NEUTRAL", "confidence": 0.40},
+    "channel": {"composite": 0.22, "direction": "BULLISH", "confidence": 0.60}
+  },
   "warnings": [],
   "reasoning_model": "WorkBuddy Agent (default)",
   "experience_count": 3,
@@ -244,6 +260,104 @@
   "experience_id": "EXP_20260615_001"
 }
 ```
+
+### 1.7 多维度筛选结果（MultiDimensionResult）
+
+**来源**：MultiDimensionScreener（Phase 2 新增）
+**消费者**：Scanner → Reasoner Agent
+
+```json
+{
+  "symbol": "DCE.jm",
+  "timestamp": "2026-06-17T16:00:00",
+  "overall_score": 0.234,
+  "confidence": 0.58,
+  "signal": "LONG",
+  "dimensions": [
+    {
+      "name": "trend",
+      "weight": 0.30,
+      "composite": 0.42,
+      "direction": "BULLISH",
+      "confidence": 0.72,
+      "top_indicators": {
+        "adx": 0.75,
+        "ma20_slope": 0.68,
+        "spread_ma20_ma60": 0.55
+      }
+    },
+    {
+      "name": "momentum",
+      "weight": 0.25,
+      "composite": 0.35,
+      "direction": "BULLISH",
+      "confidence": 0.65,
+      "top_indicators": {
+        "macd": 0.62,
+        "roc": 0.48,
+        "rsi": 0.35
+      }
+    },
+    {
+      "name": "volume",
+      "weight": 0.20,
+      "composite": 0.28,
+      "direction": "BULLISH",
+      "confidence": 0.55,
+      "top_indicators": {
+        "obv": 0.70,
+        "mfi": 0.35,
+        "vr": 0.22
+      }
+    },
+    {
+      "name": "volatility",
+      "weight": 0.15,
+      "composite": -0.10,
+      "direction": "NEUTRAL",
+      "confidence": 0.40,
+      "top_indicators": {
+        "atr_ratio": -0.23,
+        "bb_width": 0.10
+      }
+    },
+    {
+      "name": "channel",
+      "weight": 0.10,
+      "composite": 0.22,
+      "direction": "BULLISH",
+      "confidence": 0.60,
+      "top_indicators": {
+        "dc_upper": 0.45,
+        "hcl_upper": 0.32
+      }
+    }
+  ]
+}
+```
+
+### 1.8 交付清单（delivery_checklist）
+
+**来源**：Reasoner Agent（嵌入 TradingBrief 内）
+**定义**：参见 [策略设计方法论 - 交付清单模板](STRATEGY_DESIGN_METHODOLOGY.md#五交付清单模板)
+
+```json
+{
+  "delivery_checklist": {
+    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
+    "change_type": "new_entry",
+    "change_description": "在回调至支撑位时入场做多，仓位30%",
+    "validation_standard": "walk_forward",
+    "falsification_condition": "如果价格跌破EMA20且ADX降至20以下，建议失效",
+    "remaining_risks": ["夜盘跳空风险", "主力合约换月临近"]
+  }
+}
+```
+
+**change_type 枚举**：见 [验证矩阵 - 改动类型](STRATEGY_DESIGN_METHODOLOGY.md#41-改动类型--最低验证标准)
+
+**validation_standard 枚举**：`walk_forward` | `factor_evaluation` | `overfitting_audit`
 
 ## 二、持仓数据格式
 
