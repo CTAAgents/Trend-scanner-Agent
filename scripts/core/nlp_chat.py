@@ -20,6 +20,12 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root / "scripts"))
 
 from core.nlp import NLPEngine
+from core.nlp.intent_recognizer import IntentType
+
+
+def show_thinking(step: str, detail: str = ""):
+    """显示思考过程"""
+    print(f"  [{step}] {detail}")
 
 
 def main():
@@ -48,10 +54,34 @@ def main():
             if not user_input:
                 continue
 
-            # 处理自然语言
+            print()  # 空行
+
+            # 1. 显示正在思考
+            show_thinking("思考", "正在理解您的意图...")
+
+            # 2. 识别意图
+            intent = engine.intent_recognizer.recognize(user_input)
+            show_thinking("识别", f"意图类型: {intent.intent_type.value}, 动作: {intent.action}")
+
+            if intent.parameters:
+                show_thinking("参数", f"提取到的参数: {intent.parameters}")
+
+            # 3. 解析命令
+            command = engine.command_parser.parse(intent)
+            if command:
+                show_thinking("解析", f"执行命令: {command.command}")
+                show_thinking("命令", f"参数: {' '.join(command.args)}")
+            else:
+                show_thinking("解析", "未找到匹配的命令，将使用默认处理")
+
+            print()  # 空行
+
+            # 4. 处理自然语言
+            show_thinking("执行", "正在执行...")
             response = engine.process(user_input)
 
-            # 显示响应
+            # 5. 显示响应
+            print()
             print(f"系统: {response}")
             print()
 
