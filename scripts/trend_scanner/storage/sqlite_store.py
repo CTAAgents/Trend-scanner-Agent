@@ -333,7 +333,7 @@ class SQLiteStore:
             cursor.execute("""
                 SELECT * FROM symbols 
                 WHERE is_active = 1 
-                AND open_interest >= ?
+                AND COALESCE(open_interest, 0) >= ?
                 ORDER BY open_interest DESC
             """, (min_oi,))
             rows = cursor.fetchall()
