@@ -391,6 +391,10 @@ class DataSyncManager:
         # 从 SQLite 获取（COALESCE 处理 NULL OI）
         symbols = self.sqlite.get_active_symbols(min_oi)
         
+        # 如果 SQLite 返回空（可能因为 OI 全为 NULL），尝试获取所有活跃品种
+        if not symbols and min_oi > 0:
+            symbols = self.sqlite.get_all_symbols(active_only=True)
+        
         # 如果 SQLite 的 OI 全为 NULL，尝试从 DuckDB quotes 表补充
         if symbols and all(s.get('open_interest') is None for s in symbols):
             print("[提示] symbols 表 OI 为空，从 DuckDB quotes 表补充...")
