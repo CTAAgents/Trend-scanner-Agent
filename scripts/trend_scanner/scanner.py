@@ -11,12 +11,50 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+import os
+
 from .indicators import IndicatorEngine
 from .market_analysis import MultiIndicatorConsensus, TrendPhaseDetector, MarketStateClassifier
 from .strategy import StrategyPool
 from .risk_management import RiskManager
 from .models import TradeSignal, ScoringFeedback
 from .data_store import DataStore, ConfigManager
+
+# 延迟导入多维度模块（避免循环依赖 + 数据库路径问题）
+_indicator_hub = None
+_multi_dimension_screener = None
+_md_import_tried = False
+
+
+def _ensure_md_modules():
+    """确保多维度模块已导入（惰性初始化）"""
+    global _indicator_hub, _multi_dimension_screener, _md_import_tried
+    if _md_import_tried:
+        return _indicator_hub is not None
+
+    _md_import_tried = True
+    try:
+        from .indicator_hub import IndicatorHub
+        from .multi_dimension_screener import MultiDimensionScreener
+
+        # 数据库路径推导
+        db_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "data", "market.db"
+        )
+        if not os.path.exists(db_path):
+            # 回退到相对路径
+            db_path = os.path.join("data", "market.db")
+
+        _indicator_hub = IndicatorHub(db_path=db_path)
+        _multi_dimension_screener = MultiDimensionScreener()
+        return True
+    except ImportError as e:
+        print(f"[Scanner] 多维度模块导入失败（DuckDB 不可用？）: {e}", flush=True)
+        return False
+    except Exception as e:
+        print(f"[Scanner] 多维度模块初始化失败: {e}", flush=True)
+        return False
 
 
 class TrendScanner:
@@ -62,7 +100,8 @@ class TrendScanner:
                     pass
         return df.reset_index(drop=True)
 
-    def analyze(self, df: pd.DataFrame, symbol: str = "UNKNOWN") -> Dict:
+    def analyze(self, df: pd.DataFrame, symbol: str = "UNKNOWN",
+                use_multi_dimension: bool = False) -> Dict:
         """
         分析市场状态并生成交易信号
 
@@ -70,6 +109,13 @@ class TrendScanner:
         1. 底层：指标标准化
         2. 中层：MAD异常过滤
         3. 顶层：加权打分 + 投票验证
+
+        Args:
+            df: OHLCV DataFrame
+            symbol: 品种代码（如 'DCE.jm'）
+            use_multi_dimension: 是否启用多维度筛选评分（五维度）
+                当启用时，额外计算 trend/momentum/volume/volatility/channel
+                五维度评分，作为信号的附加置信度证据。
 
         返回:
             包含信号、仓位、风险参数、三层融合结果的完整字典
@@ -227,6 +273,83 @@ class TrendScanner:
             },
         }
 
+        # 10. 多维度筛选评分（可选，v5.1 新增）
+        multi_dimension = None
+        if use_multi_dimension and _ensure_md_modules():
+            try:
+                # 加载指标
+                wide_df = _indicator_hub.load(symbol)
+                if wide_df is not None and len(wide_df) > 0:
+                    # 执行多维度评分
+                    md_result = _multi_dimension_screener.score(symbol, wide_df)
+                    multi_dimension = md_result.to_dict()
+
+                    # 多维度评分作为附加证据注入
+                    md_signal = md_result.signal
+                    md_score = md_result.overall_score
+                    md_confidence = md_result.confidence
+
+                    # 注入维度明细到证据列表
+                    dim_details = [
+                        f"{d.name}: {d.composite:+.3f} ({d.direction})"
+                        for d in md_result.dimensions
+                    ]
+                    all_evidence.append(
+                        f"[多维度] {symbol} 综合={md_score:+.3f} "
+                        f"信号={md_signal} 置信度={md_confidence:.0%} "
+                        f"| {' | '.join(dim_details)}"
+                    )
+
+                    # 多维度指示成交量结构
+                    vol_score = None
+                    for d in md_result.dimensions:
+                        if d.name == 'volume':
+                            vol_score = d.composite
+                            break
+                    if vol_score is not None:
+                        if vol_score > 0.3:
+                            all_evidence.append(f"[量能] 成交量结构偏多 (score={vol_score:+.3f})")
+                        elif vol_score < -0.3:
+                            all_evidence.append(f"[量能] 成交量结构偏空 (score={vol_score:+.3f})")
+                        else:
+                            all_evidence.append(f"[量能] 成交量结构中性 (score={vol_score:+.3f})")
+
+                    # 如果多维度与信号一致，提升置信度
+                    if md_signal == "LONG" and signal_str == "BUY":
+                        confidence = min(100, confidence + 5)
+                        all_evidence.append(
+                            f"[多维度确认] 五维度评分偏多({md_score:+.3f})，与多头信号一致"
+                        )
+                    elif md_signal == "SHORT" and signal_str == "SELL":
+                        confidence = min(100, confidence + 5)
+                        all_evidence.append(
+                            f"[多维度确认] 五维度评分偏空({md_score:+.3f})，与空头信号一致"
+                        )
+                    elif md_signal in ("LONG", "SHORT") and signal_str == "HOLD":
+                        all_evidence.append(
+                            f"[多维度提示] 五维度评分{md_signal}({md_score:+.3f})，"
+                            f"但传统信号为HOLD，建议关注"
+                        )
+                    elif md_signal == "NEUTRAL" and signal_str in ("BUY", "SELL"):
+                        all_evidence.append(
+                            f"[多维度警告] 五维度评分中性，{signal_str}信号可能不可靠，"
+                            f"建议降低仓位或观望"
+                        )
+                        # 降低置信度
+                        if signal_str in ("BUY", "SELL") and strength == "STRONG":
+                            strength = "MEDIUM"
+                            confidence = max(30, confidence - 15)
+                        elif signal_str in ("BUY", "SELL") and strength == "MEDIUM":
+                            strength = "WEAK"
+                            confidence = max(20, confidence - 10)
+
+            except ValueError as e:
+                all_evidence.append(f"[多维度] 指标加载失败: {e}")
+            except Exception as e:
+                all_evidence.append(f"[多维度] 评分计算异常: {e}")
+                import traceback
+                traceback.print_exc()
+
         result = {
             'symbol': symbol,
             'timestamp': datetime.now().isoformat(),
@@ -243,6 +366,7 @@ class TrendScanner:
             'vote_direction': vote_direction,
             'conflict_level': conflict_level,
             'fusion_report': fusion_report,
+            'multi_dimension': multi_dimension,
             'evidence': all_evidence,
             'alerts': alerts,
             'position': {

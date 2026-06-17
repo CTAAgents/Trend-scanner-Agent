@@ -122,7 +122,8 @@ def check_data_timeliness() -> Dict[str, Any]:
 
 def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any],
                 use_dynamic_factors: bool = False,
-                allow_tqsdk_fallback: bool = True) -> Optional[Dict[str, Any]]:
+                allow_tqsdk_fallback: bool = True,
+                use_multi_dimension: bool = False) -> Optional[Dict[str, Any]]:
     """
     扫描单个品种，返回信号（如果有）
 
@@ -318,7 +319,68 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any],
             signal['position_suggestion'] = position_info
         if stop_loss_info:
             signal['stop_loss'] = stop_loss_info
-        
+
+        # 多维度筛选评分（可选）
+        if use_multi_dimension:
+            try:
+                from trend_scanner.indicator_hub import IndicatorHub
+                from trend_scanner.multi_dimension_screener import MultiDimensionScreener
+
+                # 推导数据库路径
+                db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+                db_path = os.path.join(db_dir, 'market.db')
+                if not os.path.exists(db_path):
+                    db_path = os.path.join(db_dir, 'market.db')
+
+                hub = IndicatorHub(db_path=db_path)
+                screener = MultiDimensionScreener()
+
+                # 加载指标宽表
+                wide_df = hub.load(data_symbol)
+                if wide_df is not None and len(wide_df) > 0:
+                    # 执行多维度评分
+                    md_result = screener.score(data_symbol, wide_df)
+                    md_dict = md_result.to_dict()
+
+                    # 注入信号
+                    signal['multi_dimension'] = md_dict
+
+                    # 多维度确认增强/警告
+                    md_signal = md_dict['signal']
+                    md_score = md_dict['overall_score']
+                    md_conf = md_dict['confidence']
+
+                    if md_signal == direction:
+                        # 多维度与传统信号一致 → 增强置信度
+                        signal['signal_strength'] = "STRONG" if met_count >= 3 else "MEDIUM"
+                        trigger_reason += f" [多维度确认: {md_signal} score={md_score:+.3f}]"
+                        signal['trigger_reason'] = trigger_reason
+                    elif md_signal == "NEUTRAL" and met_count <= 1:
+                        # 多维度中性且弱信号 → 警告
+                        signal['signal_strength'] = "WEAK"
+                        trigger_reason += f" [多维度警告: 中性 score={md_score:+.3f}]"
+                        signal['trigger_reason'] = trigger_reason
+                    elif md_signal != "NEUTRAL" and md_signal != direction:
+                        # 多维度与传统信号矛盾 → 降级
+                        signal['signal_strength'] = "WEAK"
+                        trigger_reason += f" [多维度矛盾: {md_signal} vs {direction} score={md_score:+.3f}]"
+                        signal['trigger_reason'] = trigger_reason
+
+                    # 附加维度明细
+                    signal['dimension_scores'] = {
+                        d['name']: {
+                            'composite': d['composite'],
+                            'direction': d['direction'],
+                            'confidence': d['confidence'],
+                        }
+                        for d in md_dict['dimensions']
+                    }
+
+            except ImportError as e:
+                logger.debug(f"多维度模块导入失败（跳过）: {e}")
+            except Exception as e:
+                logger.warning(f"多维度评分计算失败: {e}")
+
         return signal
     
     except Exception as e:
@@ -326,7 +388,7 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any],
         return None
 
 
-def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_memory: bool = True) -> Dict[str, Any]:
+def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_memory: bool = True, use_multi_dimension: bool = False) -> Dict[str, Any]:
     """
     扫描所有品种
     
@@ -394,7 +456,8 @@ def scan_all(symbols: List[str] = None, use_dynamic_factors: bool = False, use_m
 
     for symbol in symbols:
         result = scan_symbol(symbol, data_source, signal_filter, use_dynamic_factors,
-                            allow_tqsdk_fallback=tqsdk_healthy)
+                             allow_tqsdk_fallback=tqsdk_healthy,
+                             use_multi_dimension=use_multi_dimension)
         if result:
             signals.append(result)
         else:
@@ -454,6 +517,8 @@ def main():
                         help="运行执行引擎风控检查")
     parser.add_argument("--reasoner", action="store_true",
                         help="启用Reasoner Agent深度分析（输出决策简报）")
+    parser.add_argument("--use-multi-dimension", action="store_true",
+                        help="启用五维度筛选评分（trend+momentum+volume+volatility+channel）")
     
     args = parser.parse_args()
     
@@ -474,7 +539,8 @@ def main():
     
     # 执行扫描
     print(f"[{datetime.now().strftime('%H:%M:%S')}] 开始扫描...")
-    result = scan_all(symbols, use_dynamic_factors=args.use_dynamic_factors)
+    result = scan_all(symbols, use_dynamic_factors=args.use_dynamic_factors,
+                      use_multi_dimension=args.use_multi_dimension)
     
     # Reasoner深度分析（如果启用）
     if args.reasoner and result.get('signals'):

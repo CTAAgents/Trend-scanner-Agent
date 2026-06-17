@@ -27,6 +27,14 @@
       "trend_strength_min": 0.5,
       "r2_min": 0.4
     },
+    "multi_dimension": {
+      "enabled": true,
+      "comment": "五维度筛选评分: trend(30%) + momentum(25%) + volume(20%) + volatility(15%) + channel(10%). 需先运行 sync_indicators.py 填充 DuckDB indicators 表.",
+      "signal_thresholds": {
+        "long": 0.3,
+        "short": -0.3
+      }
+    },
     "output_path": "data/latest_scan.json"
   },
 
@@ -87,6 +95,25 @@
     "daily_limit": 850000,
     "warn_at_pct": 80,
     "stop_at_pct": 100
+  },
+
+  "data_routing": {
+    "description": "统一数据路由层配置 — 按数据类型设置数据源优先级",
+    "db_dir": "data",
+    "priorities": {
+      "kline":       ["duckdb", "tqsdk", "pytdx", "csv"],
+      "quote":       ["duckdb", "tqsdk", "pytdx"],
+      "basis":       ["akshare", "pytdx"],
+      "seasonality": ["akshare", "csv"],
+      "inventory":   ["akshare"]
+    },
+    "staleness_threshold": {
+      "kline": 4,
+      "quote": 0.5,
+      "basis": 24,
+      "seasonality": 168,
+      "inventory": 24
+    }
   },
 
   "data_retention": {

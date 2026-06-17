@@ -792,11 +792,54 @@ class ReasoningEngine:
                 parts.append("你可以根据当前市场状态、趋势强度和反身性分析，动态调整止损位置。")
         except Exception as e:
             logger.warning(f"计算波动幅度锚点失败: {e}")
-        
-        # 7. 请求推理
+
+        # 7. 基差与季节性分析（统一路由层新增）
+        try:
+            symbol_variety = getattr(context, 'symbol', '') or ''
+            # 提取品种代码
+            variety = ''.join([c for c in symbol_variety.split('.')[-1] if not c.isdigit()]).upper() if symbol_variety else ''
+
+            if variety:
+                from trend_scanner.unified_data_router import get_router
+                router = get_router()
+
+                # 基差数据
+                basis_resp = router.get_basis(variety)
+                if basis_resp.ok and basis_resp.data:
+                    bd = basis_resp.data
+                    parts.append("")
+                    parts.append("# 基差分析")
+                    parts.append(f"- **现货价格**: {bd.get('spot_price', 'N/A')}")
+                    parts.append(f"- **期货价格**: {bd.get('futures_price', 'N/A')}")
+                    parts.append(f"- **基差**: {bd.get('basis', 'N/A')}（基差率 {bd.get('basis_rate', 'N/A')}%）")
+                    if bd.get('basis', 0) > 0:
+                        parts.append("**解读**：正基差（现货升水），反映现货偏紧或市场看涨预期。")
+                    elif bd.get('basis', 0) < 0:
+                        parts.append("**解读**：负基差（期货升水），反映库存充足或市场看跌预期。")
+
+                # 季节性数据
+                season_resp = router.get_seasonality(variety)
+                if season_resp.ok and season_resp.data:
+                    sd = season_resp.data
+                    parts.append("")
+                    parts.append("# 季节性规律")
+                    current_month = datetime.now().month
+                    current_signal = sd.get('current_month_signal', 0)
+                    current_pos_rate = sd.get('current_month_pos_rate', 0)
+                    parts.append(f"- **当前月份({current_month}月)**: 历史平均变化 {current_signal:+.2f}%, 上涨概率 {current_pos_rate:.0f}%")
+                    if sd.get('strong_months'):
+                        parts.append(f"- **强势月份**: {sd['strong_months']}月（历史上涨概率>60%）")
+                    if sd.get('weak_months'):
+                        parts.append(f"- **弱势月份**: {sd['weak_months']}月（历史下跌概率>60%）")
+                    parts.append(f"- **数据覆盖**: 近{sd.get('years_covered', 5)}年")
+                    parts.append("**说明**：季节性规律是统计参考，不构成确定性预测。需结合当前供需格局判断。")
+        except Exception as e:
+            logger.debug(f"基差/季节性数据注入失败: {e}")
+
+        # 8. 请求推理
         parts.append("")
         parts.append("# 请求")
-        parts.append("基于以上市场状态、历史经验、反身性分析和波动幅度锚点，请给出2-3条操作方案。")
+        parts.append("基于以上市场状态、历史经验、反身性分析、波动幅度锚点、基差和季节性数据，请给出2-3条操作方案。")
         parts.append("每条方案都要有具体的约束建议（仓位、止损、入场条件），并附带推理依据。")
         parts.append("如果有明确推荐，请说明理由。")
         parts.append("")
@@ -804,6 +847,7 @@ class ReasoningEngine:
         parts.append("1. 请考虑机制权重，优先参考同机制的历史经验。")
         parts.append("2. 请结合反身性分析，评估当前趋势的自我强化程度和反转风险。")
         parts.append("3. 波动幅度止损锚点是参考值，你可以根据市场状态动态调整止损位置。")
+        parts.append("4. 基差和季节性是补充维度，可辅助判断供需格局和时机选择。")
 
         return "\n".join(parts)
 

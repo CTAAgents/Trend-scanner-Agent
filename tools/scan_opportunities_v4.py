@@ -27,6 +27,7 @@ from typing import Optional, List, Dict, Any
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
 
 from trend_scanner.data_source import DataSourceFactory
+from trend_scanner.unified_data_router import UnifiedDataRouter, get_router
 from trend_scanner.indicators import IndicatorEngine
 from trend_scanner.market_analysis import MultiIndicatorConsensus, TrendPhaseDetector
 from trend_scanner.models import MarketContext
@@ -82,9 +83,13 @@ def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any],
         # 标准化品种代码
         data_symbol = normalize_symbol(symbol)
         
-        # 获取 K 线数据
-        df = data_source.get_kline(data_symbol, days=120)
+        # 获取 K 线数据（通过统一路由层，兼容接口返回 DataFrame 或 None）
+        kline_resp = data_source.get_kline(data_symbol, days=120)
+        df = kline_resp.data if hasattr(kline_resp, 'data') else kline_resp
         if df is None or len(df) < 60:
+            # 记录数据源信息便于调试
+            if hasattr(kline_resp, 'source'):
+                print(f"  [{data_symbol}] K线获取失败(来源: {kline_resp.source}, 错误: {kline_resp.error})", flush=True)
             return None
         
         # 计算技术指标
@@ -261,8 +266,17 @@ def scan_all(symbols: List[str] = None, use_factors: bool = False) -> Dict[str, 
         print("错误: 未配置扫描品种列表", file=sys.stderr)
         return create_scan_result(0, [])
     
-    # 获取数据源
-    data_source = DataSourceFactory.create()
+    # 获取数据源（通过统一路由层，配置驱动）
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'config.json')
+    data_router = get_router(config_path=config_path, db_dir="data")
+    data_source = data_router  # UnifiedDataRouter 兼容 DataSource 接口
+
+    # 数据时效性检查
+    for sym in symbols[:3]:  # 抽检前3个品种
+        timeliness = data_router.check_data_timeliness(sym)
+        if timeliness['overall_status'] == 'critical':
+            print(f"[警告] 数据严重滞后({sym}): {timeliness}")
+            print("  建议: python tools/sync_data.py sync --days 5")
     
     # 初始化因子生成器（如果启用）
     factor_generator = None

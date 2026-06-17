@@ -39,6 +39,7 @@ from trend_scanner.brief import BriefGenerator
 from trend_scanner.experience import ExperienceMemory
 from trend_scanner.context import ContextAssembler
 from trend_scanner.data_source import DataSourceFactory, CsvSource
+from trend_scanner.unified_data_router import UnifiedDataRouter, get_router, normalize_symbol
 from trend_scanner.indicators import IndicatorEngine
 from trend_scanner.models import MarketContext, TradingBrief
 
@@ -76,10 +77,11 @@ class ReasonerAgent:
         self.data_source = None
     
     def _init_data_source(self):
-        """初始化数据源（TqSDK > 通达信MCP > CSV）"""
+        """初始化数据源（统一路由层：DuckDB > TqSDK > Pytdx > AkShare > CSV）"""
         if self.data_source is None:
-            self.data_source = DataSourceFactory.create()
-        
+            config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'config.json')
+            self.data_source = get_router(config_path=config_path, db_dir="data")
+
         return self.data_source
     
     def _get_market_context(self, symbol: str, direction: str = None) -> Optional[MarketContext]:
@@ -107,10 +109,11 @@ class ReasonerAgent:
             else:
                 variety = symbol
             
-            # 获取K线数据
-            df = ds.get_kline(variety, days=120)
+            # 获取K线数据（通过统一路由层）
+            kline_resp = ds.get_kline(variety, days=120)
+            df = kline_resp.data if hasattr(kline_resp, 'data') else kline_resp
             if df is None or len(df) < 60:
-                print(f"[警告] {symbol} 数据不足", flush=True)
+                print(f"[警告] {symbol} 数据不足(来源: {getattr(kline_resp, 'source', 'unknown')})", flush=True)
                 return None
             
             # 动态创建 ContextAssembler
