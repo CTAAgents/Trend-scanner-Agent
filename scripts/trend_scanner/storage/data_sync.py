@@ -399,9 +399,14 @@ class DataSyncManager:
         if symbols and all(s.get('open_interest') is None for s in symbols):
             print("[提示] symbols 表 OI 为空，从 DuckDB quotes 表补充...")
             for s in symbols:
-                quote = self.duckdb.get_latest_quote(s['symbol'])
-                if quote and quote.get('open_interest'):
-                    s['open_interest'] = quote['open_interest']
+                # 符号转换：RB -> SHFE.rb
+                exchange = s.get('exchange', '')
+                variety = s.get('variety', '')
+                if exchange and variety:
+                    duckdb_symbol = f"{exchange}.{variety}"
+                    quote = self.duckdb.get_latest_quote(duckdb_symbol)
+                    if quote and quote.get('open_interest'):
+                        s['open_interest'] = quote['open_interest']
             
             # 重新筛选
             symbols = [s for s in symbols if (s.get('open_interest') or 0) >= min_oi]
