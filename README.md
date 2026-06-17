@@ -223,7 +223,7 @@ python tools/scan_opportunities.py --symbols RB,I,JM --reasoner --output text
 # 使用 RL 信号扫描（需要先训练模型）
 python tools/scan_opportunities.py --use-rl
 
-# 因子进化
+# 因子进化（手动触发）
 python tools/scan_opportunities.py --evolve --evolve-rounds 5
 
 # 套利分析
@@ -232,6 +232,19 @@ python tools/scan_opportunities.py --arbitrage --output text
 # 持仓健康度
 python tools/scan_opportunities.py --position-health
 ```
+
+### 自动进化机制
+
+系统支持全自动因子进化和策略生成，用户指令触发为辅：
+
+| 自动任务 | 频率 | 说明 |
+|----------|------|------|
+| **自动因子进化** | 每周日 22:00 | 自动运行因子进化，发现新因子 |
+| **自动策略生成** | 每月1日 22:00 | 自动评估新策略，更新策略池 |
+| **日常扫描** | 每日 8:40/15:30/20:30 | 自动扫描市场信号 |
+| **数据同步** | 每日 15:30/20:30 | 自动同步行情数据 |
+
+**用户手动触发**：可通过 CLI 命令手动执行因子进化或策略生成，作为自动机制的补充。
 
 ### RL 策略训练
 
