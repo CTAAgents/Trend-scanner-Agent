@@ -38,6 +38,122 @@ from data_formats import (
 )
 
 
+def get_all_main_contracts() -> List[str]:
+    """
+    获取所有主力合约品种列表
+    
+    返回:
+        品种列表（配置格式，如 ['SHFE.rb', 'DCE.jm']）
+    """
+    try:
+        # 从 data_source.py 中获取 MAIN_CONTRACT_MAP
+        with open(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'trend_scanner', 'data_source.py'), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 提取 MAIN_CONTRACT_MAP
+        start = content.find('MAIN_CONTRACT_MAP = {')
+        if start == -1:
+            return []
+        
+        # 找到对应的结束大括号
+        brace_count = 0
+        end = start
+        for i in range(start, len(content)):
+            if content[i] == '{':
+                brace_count += 1
+            elif content[i] == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    end = i + 1
+                    break
+        
+        map_str = content[start:end]
+        
+        # 执行并获取所有品种
+        exec_globals = {}
+        exec(map_str, exec_globals)
+        MAIN_CONTRACT_MAP = exec_globals.get('MAIN_CONTRACT_MAP', {})
+        
+        symbols = list(MAIN_CONTRACT_MAP.values())
+        
+        # 转换为配置格式
+        config_symbols = []
+        for s in symbols:
+            # KQ.m@SHFE.rb -> SHFE.rb
+            parts = s.split('@')
+            if len(parts) == 2:
+                config_symbols.append(parts[1])
+        
+        return config_symbols
+    except Exception as e:
+        print(f"[警告] 获取所有品种列表失败: {e}", file=sys.stderr)
+        return []
+
+
+def filter_active_symbols(symbols: List[str], min_oi: int = 10000, min_volume: int = 1000) -> List[str]:
+    """
+    筛选活跃品种（非僵尸品种）
+    
+    参数:
+        symbols: 品种列表
+        min_oi: 最小持仓量
+        min_volume: 最小成交量
+    
+    返回:
+        活跃品种列表
+    """
+    try:
+        # 获取实时行情
+        tq_user = os.environ.get('TQ_USER', '')
+        tq_password = os.environ.get('TQ_PASSWORD', '')
+        
+        if not tq_user or not tq_password:
+            print("[警告] TqSdk 认证信息缺失，跳过品种筛选", file=sys.stderr)
+            return symbols
+        
+        from tqsdk import TqApi, TqAuth
+        
+        # 将配置格式转换为 TqSdk 格式
+        tq_symbols = []
+        symbol_map = {}  # TqSdk 格式 -> 配置格式
+        
+        for symbol in symbols:
+            # SHFE.rb -> KQ.m@SHFE.rb
+            tq_symbol = f"KQ.m@{symbol}"
+            tq_symbols.append(tq_symbol)
+            symbol_map[tq_symbol] = symbol
+        
+        # 批量获取行情
+        active_symbols = []
+        
+        with TqApi(auth=TqAuth(tq_user, tq_password)) as api:
+            quotes = {}
+            for tq_symbol in tq_symbols:
+                try:
+                    quote = api.get_quote(tq_symbol)
+                    quotes[tq_symbol] = quote
+                except Exception as e:
+                    print(f"[警告] 获取 {tq_symbol} 行情失败: {e}", file=sys.stderr)
+                    continue
+            
+            # 筛选活跃品种
+            for tq_symbol, quote in quotes.items():
+                try:
+                    oi = quote.open_interest if hasattr(quote, 'open_interest') else 0
+                    volume = quote.volume if hasattr(quote, 'volume') else 0
+                    
+                    if oi >= min_oi and volume >= min_volume:
+                        active_symbols.append(symbol_map[tq_symbol])
+                except Exception as e:
+                    print(f"[警告] 检查 {tq_symbol} 活跃度失败: {e}", file=sys.stderr)
+                    continue
+        
+        return active_symbols
+    except Exception as e:
+        print(f"[警告] 筛选活跃品种失败: {e}", file=sys.stderr)
+        return symbols
+
+
 def get_realtime_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
     """
     获取实时行情（快速，不下载K线）
