@@ -21,3 +21,13 @@ Thumbs.db
 
 # WorkBuddy internal
 .workbuddy/
+
+# Data (local databases, too large for git)
+data/*.db
+data/*.duckdb
+data/market.db
+data/meta.db
+data/indicator_cache/
+data/*.parquet
+data/*.json
+!config/*.json
