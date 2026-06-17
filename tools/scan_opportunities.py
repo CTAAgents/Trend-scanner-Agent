@@ -58,6 +58,68 @@ def normalize_symbol(symbol: str) -> str:
     return symbol.upper()
 
 
+def check_data_timeliness() -> Dict[str, Any]:
+    """
+    检查数据时效性
+    
+    Returns:
+        Dict: {
+            'is_latest': bool,  # 数据是否最新
+            'latest_date': str, # 数据最新日期
+            'current_date': str, # 当前日期
+            'days_behind': int, # 滞后天数
+            'message': str,     # 提示信息
+        }
+    """
+    import duckdb
+    from datetime import datetime, timedelta
+    
+    result = {
+        'is_latest': True,
+        'latest_date': '',
+        'current_date': datetime.now().strftime('%Y-%m-%d'),
+        'days_behind': 0,
+        'message': ''
+    }
+    
+    try:
+        # 连接数据库获取最新数据时间
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'market.db')
+        conn = duckdb.connect(db_path, read_only=True)
+        
+        query = "SELECT MAX(timestamp) FROM klines"
+        latest = conn.execute(query).fetchone()[0]
+        conn.close()
+        
+        if latest:
+            latest_date = str(latest)[:10]
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            
+            # 计算滞后天数
+            latest_dt = datetime.strptime(latest_date, '%Y-%m-%d')
+            current_dt = datetime.strptime(current_date, '%Y-%m-%d')
+            days_behind = (current_dt - latest_dt).days
+            
+            result['latest_date'] = latest_date
+            result['current_date'] = current_date
+            result['days_behind'] = days_behind
+            
+            if days_behind > 1:
+                result['is_latest'] = False
+                result['message'] = f"⚠️ 数据滞后 {days_behind} 天（最新: {latest_date}，当前: {current_date}）"
+            else:
+                result['message'] = f"✅ 数据最新（{latest_date}）"
+        else:
+            result['is_latest'] = False
+            result['message'] = "⚠️ 数据库为空，请先执行数据同步"
+            
+    except Exception as e:
+        result['is_latest'] = False
+        result['message'] = f"⚠️ 检查数据时效性失败: {e}"
+    
+    return result
+
+
 def scan_symbol(symbol: str, data_source, signal_filter: Dict[str, Any],
                 use_dynamic_factors: bool = False,
                 allow_tqsdk_fallback: bool = True) -> Optional[Dict[str, Any]]:
