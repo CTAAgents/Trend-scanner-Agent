@@ -293,8 +293,50 @@ python tools/sync_data.py stats
 |------|------|
 | `config/config.json` | 主配置（品种/筛选条件/数据路由） |
 | `config/positions.json` | 持仓配置 |
+| `config/web.json` | Web UI 配置 |
+| `config/api.json` | API 配置 |
 | `data/market.db` | DuckDB：K线/指标/因子库 |
 | `data/meta.db` | SQLite：品种元数据/经验/日志 |
+
+---
+
+## 用户交互模式
+
+系统支持三种交互模式：
+
+### CLI 模式（命令行）
+
+```bash
+# 启动独立运行模式
+python scripts/core/main.py
+
+# 查看系统状态
+python scripts/core/main.py --status
+
+# 手动触发扫描
+python tools/scan_opportunities.py --output text --save
+```
+
+### Web UI 模式（可视化）
+
+```bash
+# 启动 Web UI 服务
+python scripts/core/main.py --web --port 8080
+
+# 访问 http://localhost:8080
+```
+
+### API 模式（系统集成）
+
+```bash
+# 启动 API 服务
+python scripts/core/main.py --api --port 8081
+
+# 调用示例
+curl http://localhost:8081/api/status
+```
+
+**详细说明请查看 [用户交互指南](docs/user_interaction_guide.md)**
 
 ---
 
@@ -322,6 +364,7 @@ python -m pytest tests/ -v
 | 文档 | 说明 |
 |------|------|
 | [用户手册](docs/USER_GUIDE.md) | 安装、配置、使用指南 |
+| [用户交互指南](docs/user_interaction_guide.md) | CLI/Web UI/API 交互模式 |
 | [系统架构](docs/system_architecture_overview.md) | 详细架构设计 |
 | [版本管理规范](docs/VERSION_MANAGEMENT.md) | 版本号管理原则 |
 | [版本历史](docs/CHANGELOG.md) | 完整变更记录 |
