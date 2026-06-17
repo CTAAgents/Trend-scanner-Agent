@@ -28,20 +28,20 @@ import numpy as np
 import pandas as pd
 
 # 添加项目路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
-from scripts.trend_scanner.storage.duckdb_store import DuckDBStore
-from scripts.trend_scanner.rl import (
+from trend_scanner.storage.duckdb_store import DuckDBStore
+from trend_scanner.rl import (
     AgentPPO,
     FuturesTradingEnv,
     walk_forward_validate_rl,
 )
-from scripts.trend_scanner.rl.walk_forward_rl import RLWalkForwardValidator
-from scripts.trend_scanner.trend_scanner_config import (
+from trend_scanner.rl.walk_forward_rl import RLWalkForwardValidator
+from trend_scanner.trend_scanner_config import (
     TrendScannerConfig,
     RLConfig,
-    WalkForwardConfig,
 )
+from trend_scanner.walk_forward_validator import WalkForwardConfig
 
 # 配置日志
 logging.basicConfig(

@@ -107,6 +107,46 @@ class FactorProvenanceGraph:
         self.edges: list[GraphEdge] = []
         self._adjacency: dict[str, list[GraphEdge]] = {}  # 邻接表
 
+    def create_node(self, node_type: NodeType, node_id: str, name: str, attributes: dict[str, Any] = None) -> GraphNode:
+        """
+        创建节点
+
+        Args:
+            node_type: 节点类型
+            node_id: 节点ID
+            name: 节点名称
+            attributes: 节点属性
+
+        Returns:
+            创建的节点
+        """
+        return GraphNode(
+            id=node_id,
+            node_type=node_type,
+            name=name,
+            attributes=attributes or {},
+        )
+
+    def create_edge(self, source_id: str, target_id: str, edge_type: EdgeType, attributes: dict[str, Any] = None) -> GraphEdge:
+        """
+        创建边
+
+        Args:
+            source_id: 源节点ID
+            target_id: 目标节点ID
+            edge_type: 边类型
+            attributes: 边属性
+
+        Returns:
+            创建的边
+        """
+        return GraphEdge(
+            source_id=source_id,
+            target_id=target_id,
+            edge_type=edge_type,
+            attributes=attributes or {},
+        )
+
     def add_node(self, node: GraphNode) -> None:
         """添加节点"""
         self.nodes[node.id] = node

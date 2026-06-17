@@ -198,23 +198,37 @@ class FuturesTradingEnv(gym.Env):
             # 基础收益 = 持仓收益 - 交易成本
             base_reward = position_return - total_cost / current_price
             
+            # 确保 base_reward 是有效数值
+            if np.isnan(base_reward) or np.isinf(base_reward):
+                base_reward = 0.0
+            
             # 风险调整：最大回撤惩罚
             self.total_reward += base_reward
             peak_reward = max(self.peak_reward, self.total_reward)
-            current_drawdown = (peak_reward - self.total_reward) / (abs(peak_reward) + 1e-8)
+            
+            # 计算回撤（避免除零）
+            if abs(peak_reward) > 1e-8:
+                current_drawdown = (peak_reward - self.total_reward) / abs(peak_reward)
+            else:
+                current_drawdown = 0.0
+            
+            # 确保 current_drawdown 是有效数值
+            if np.isnan(current_drawdown) or np.isinf(current_drawdown):
+                current_drawdown = 0.0
+            
             self.peak_reward = peak_reward
             
-            # 最大回撤惩罚（回撤超过 5% 开始惩罚）
+            # 最大回撤惩罚（回撤超过 10% 开始惩罚，更宽松）
             drawdown_penalty = 0.0
-            if current_drawdown > 0.05:
-                drawdown_penalty = -0.01 * (current_drawdown - 0.05)  # 每 1% 回撤惩罚 0.01
+            if current_drawdown > 0.10:
+                drawdown_penalty = -0.005 * (current_drawdown - 0.10)  # 降低惩罚力度
             
             # 持仓时间惩罚（鼓励及时平仓）
             holding_penalty = 0.0
             if self.position != 0:
                 self.holding_steps += 1
-                if self.holding_steps > 10:  # 持仓超过 10 步开始惩罚
-                    holding_penalty = -0.001 * (self.holding_steps - 10)
+                if self.holding_steps > 20:  # 持仓超过 20 步开始惩罚（更宽松）
+                    holding_penalty = -0.0005 * (self.holding_steps - 20)  # 降低惩罚力度
             else:
                 self.holding_steps = 0
             

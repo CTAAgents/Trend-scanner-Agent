@@ -9,6 +9,8 @@ Evolver Agent 脚本
 2. 轨迹分析与故障归因
 3. 模式检测与规则优化
 4. 过拟合审计
+5. 因子生命周期管理（S0-S7）
+6. 因子健康度监控
 
 用法：
     # 处理单个交易反馈
@@ -19,6 +21,12 @@ Evolver Agent 脚本
 
     # 执行定期进化
     python tools/evolver.py --periodic
+
+    # 检查因子健康度
+    python tools/evolver.py --health-check
+
+    # 查看因子生命周期统计
+    python tools/evolver.py --lifecycle-stats
 """
 
 import argparse
@@ -34,6 +42,9 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "scripts"))
 
 from trend_scanner.evolution_manager import EvolutionManager
+from trend_scanner.factor_lifecycle import FactorAsset, FactorLifecycleManager, LifecycleState
+from trend_scanner.factor_health_monitor import FactorHealthMonitor, HealthStatus
+from trend_scanner.factor_graph import FactorProvenanceGraph
 from trend_scanner.models import UserFeedback
 from trend_scanner.rl_interface_designer import RLInterfaceDesigner
 
@@ -43,6 +54,7 @@ class EvolverAgent:
     Evolver Agent
 
     从交易结果中学习，优化策略。
+    集成因子生命周期管理、健康度监控和溯源图。
     """
 
     def __init__(self, config: dict[str, Any] = None):
@@ -58,6 +70,11 @@ class EvolverAgent:
         # 初始化进化管理器
         db_path = self.config.get("experience_db_path", "evolution.db")
         self.evolution_manager = EvolutionManager(db_path=db_path)
+
+        # 初始化因子生命周期管理器
+        self.lifecycle_manager = FactorLifecycleManager()
+        self.health_monitor = FactorHealthMonitor(self.lifecycle_manager)
+        self.provenance_graph = FactorProvenanceGraph()
 
         # 触发条件
         self.auto_trigger = self.evolver_config.get(
@@ -227,12 +244,86 @@ class EvolverAgent:
             print(f"[错误] 获取进化历史失败: {e}", flush=True)
             return {"timestamp": datetime.now().isoformat(), "error": str(e)}
 
+    def check_factor_health(self) -> dict[str, Any]:
+        """
+        检查所有因子健康度
+
+        Returns:
+            健康度检查报告
+        """
+        print("[Evolver] 检查因子健康度...", flush=True)
+
+        try:
+            reports = self.health_monitor.check_all_factors()
+
+            # 自动降级不健康的因子
+            degraded_count = 0
+            for report in reports:
+                if report.status in (HealthStatus.DEGRADED, HealthStatus.CRITICAL):
+                    factor = self.lifecycle_manager.get_factor(report.factor_id)
+                    if factor:
+                        self.health_monitor.auto_degrade_factor(factor, report)
+                        degraded_count += 1
+
+            # 生成维护提案
+            proposals = self.health_monitor.generate_maintenance_proposals()
+
+            result = {
+                "timestamp": datetime.now().isoformat(),
+                "total_checked": len(reports),
+                "healthy": sum(1 for r in reports if r.status == HealthStatus.HEALTHY),
+                "warning": sum(1 for r in reports if r.status == HealthStatus.WARNING),
+                "degraded": sum(1 for r in reports if r.status == HealthStatus.DEGRADED),
+                "critical": sum(1 for r in reports if r.status == HealthStatus.CRITICAL),
+                "auto_degraded": degraded_count,
+                "proposals_generated": len(proposals),
+                "reports": [
+                    {
+                        "factor_id": r.factor_id,
+                        "factor_name": r.factor_name,
+                        "status": r.status.value,
+                        "issues": r.issues,
+                    }
+                    for r in reports
+                ],
+            }
+
+            print(f"[Evolver] 健康度检查完成: {result['healthy']}健康, {result['warning']}警告, {result['degraded']}退化", flush=True)
+            return result
+
+        except Exception as e:
+            print(f"[错误] 健康度检查失败: {e}", flush=True)
+            return {"timestamp": datetime.now().isoformat(), "error": str(e)}
+
+    def get_lifecycle_stats(self) -> dict[str, Any]:
+        """
+        获取因子生命周期统计
+
+        Returns:
+            生命周期统计
+        """
+        try:
+            stats = self.lifecycle_manager.get_statistics()
+            graph_stats = self.provenance_graph.get_statistics()
+
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "lifecycle": stats,
+                "provenance_graph": graph_stats,
+            }
+
+        except Exception as e:
+            print(f"[错误] 获取生命周期统计失败: {e}", flush=True)
+            return {"timestamp": datetime.now().isoformat(), "error": str(e)}
+
 
 def main():
     parser = argparse.ArgumentParser(description="Evolver Agent 脚本")
     parser.add_argument("--feedback", type=str, help="交易反馈文件路径")
     parser.add_argument("--history", action="store_true", help="查看进化历史")
     parser.add_argument("--periodic", action="store_true", help="执行定期进化")
+    parser.add_argument("--health-check", action="store_true", help="检查因子健康度")
+    parser.add_argument("--lifecycle-stats", action="store_true", help="查看因子生命周期统计")
     parser.add_argument("--output", choices=["json", "text"], default="text", help="输出格式")
     parser.add_argument("--save", action="store_true", help="保存结果到 data/latest_evolution.json")
 
@@ -259,8 +350,14 @@ def main():
     elif args.periodic:
         # 执行定期进化
         result = agent.evolve_periodic()
+    elif args.health_check:
+        # 检查因子健康度
+        result = agent.check_factor_health()
+    elif args.lifecycle_stats:
+        # 查看因子生命周期统计
+        result = agent.get_lifecycle_stats()
     else:
-        print("[错误] 请指定 --feedback, --history 或 --periodic", flush=True)
+        print("[错误] 请指定 --feedback, --history, --periodic, --health-check 或 --lifecycle-stats", flush=True)
         sys.exit(1)
 
     # 输出结果

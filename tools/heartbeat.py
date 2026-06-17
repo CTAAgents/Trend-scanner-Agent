@@ -9,12 +9,14 @@
 - 持仓品种趋势反转信号
 - 全品种趋势强度突变
 - 新品种出现强信号
+- 因子健康度退化（新增）
 
 使用方式：
     python tools/heartbeat.py                    # 单次心跳检查（全部品种）
     python tools/heartbeat.py --loop             # 持续循环（每 5 分钟）
     python tools/heartbeat.py --positions-only   # 只监控持仓
     python tools/heartbeat.py --config-only      # 仅扫描配置文件中的品种
+    python tools/heartbeat.py --factor-health    # 检查因子健康度
 """
 
 import argparse
@@ -38,6 +40,8 @@ from data_formats import (
 
 from trend_scanner.data_source import DataSourceFactory
 from trend_scanner.indicators import IndicatorEngine
+from trend_scanner.factor_health_monitor import FactorHealthMonitor, HealthStatus
+from trend_scanner.factor_lifecycle import FactorLifecycleManager, LifecycleState
 
 
 def get_all_main_contracts() -> list[str]:
@@ -188,6 +192,71 @@ def normalize_symbol(symbol: str) -> str:
         if len(parts) == 2:
             return parts[1].upper()
     return symbol.upper()
+
+
+def check_factor_health() -> dict[str, Any]:
+    """
+    检查因子健康度
+
+    在心跳检查中集成因子健康度监控，自动检测退化并生成维护提案。
+
+    Returns:
+        因子健康度检查报告
+    """
+    try:
+        # 初始化因子生命周期管理器和健康监控器
+        lifecycle_manager = FactorLifecycleManager()
+        health_monitor = FactorHealthMonitor(lifecycle_manager)
+
+        # 检查所有已发布因子的健康度
+        reports = health_monitor.check_all_factors()
+
+        # 自动降级不健康的因子
+        degraded_factors = []
+        for report in reports:
+            if report.status in (HealthStatus.DEGRADED, HealthStatus.CRITICAL):
+                factor = lifecycle_manager.get_factor(report.factor_id)
+                if factor:
+                    health_monitor.auto_degrade_factor(factor, report)
+                    degraded_factors.append({
+                        "factor_id": report.factor_id,
+                        "factor_name": report.factor_name,
+                        "status": report.status.value,
+                        "issues": report.issues,
+                    })
+
+        # 生成维护提案
+        proposals = []
+        for report in reports:
+            if report.status in (HealthStatus.DEGRADED, HealthStatus.CRITICAL):
+                factor = lifecycle_manager.get_factor(report.factor_id)
+                if factor:
+                    proposal = health_monitor.generate_proposal(factor, report)
+                    proposals.append(proposal)
+
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "total_checked": len(reports),
+            "healthy": sum(1 for r in reports if r.status == HealthStatus.HEALTHY),
+            "warning": sum(1 for r in reports if r.status == HealthStatus.WARNING),
+            "degraded": sum(1 for r in reports if r.status == HealthStatus.DEGRADED),
+            "critical": sum(1 for r in reports if r.status == HealthStatus.CRITICAL),
+            "degraded_factors": degraded_factors,
+            "proposals": [
+                {
+                    "factor_id": p.factor_id,
+                    "action": p.action.value,
+                    "reason": p.reason,
+                }
+                for p in proposals
+            ],
+        }
+
+    except Exception as e:
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+        }
 
 
 def check_position_alerts(
@@ -419,13 +488,14 @@ def check_symbol_changes(
     return new_signals
 
 
-def heartbeat(positions_only: bool = False, all_symbols: bool = False) -> dict[str, Any]:
+def heartbeat(positions_only: bool = False, all_symbols: bool = False, check_factors: bool = False) -> dict[str, Any]:
     """
     执行一次心跳检查（混合模式）
 
     参数:
         positions_only: 是否只监控持仓
         all_symbols: 是否扫描全部品种（非僵尸品种）
+        check_factors: 是否检查因子健康度
 
     返回:
         心跳结果
@@ -474,6 +544,12 @@ def heartbeat(positions_only: bool = False, all_symbols: bool = False) -> dict[s
         if symbols_to_scan:
             new_signals = check_symbol_changes(symbols_to_scan, data_source, signal_filter, prev_state)
 
+    # 检查因子健康度（新增）
+    factor_health = None
+    if check_factors:
+        print("  检查因子健康度...", flush=True)
+        factor_health = check_factor_health()
+
     # 保存状态
     save_state(prev_state)
 
@@ -488,6 +564,12 @@ def heartbeat(positions_only: bool = False, all_symbols: bool = False) -> dict[s
         "realtime_quotes": realtime_quotes,
     }
 
+    # 添加因子健康度结果
+    if factor_health:
+        result["factor_health"] = factor_health
+        if factor_health.get("degraded", 0) > 0 or factor_health.get("critical", 0) > 0:
+            result["has_events"] = True
+
     return result
 
 
@@ -497,6 +579,7 @@ def main():
     parser.add_argument("--interval", type=int, default=300, help="心跳间隔（秒，默认 300）")
     parser.add_argument("--positions-only", action="store_true", help="只监控持仓")
     parser.add_argument("--config-only", action="store_true", help="仅扫描配置文件中的品种（默认扫描全部86个主力合约）")
+    parser.add_argument("--factor-health", action="store_true", help="检查因子健康度")
     parser.add_argument("--output", choices=["json", "text"], default="text", help="输出格式")
     parser.add_argument("--save", action="store_true", help="保存结果到 data/latest_heartbeat.json")
 
@@ -509,7 +592,11 @@ def main():
 
         while True:
             try:
-                result = heartbeat(positions_only=args.positions_only, all_symbols=not args.config_only)
+                result = heartbeat(
+                    positions_only=args.positions_only,
+                    all_symbols=not args.config_only,
+                    check_factors=args.factor_health,
+                )
 
                 if result["has_events"]:
                     print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 检测到事件:")
@@ -519,6 +606,12 @@ def main():
 
                     for signal in result["new_signals"]:
                         print(f"  📊 [{signal['direction']}] {signal['symbol']}: {signal['trigger_reason']}")
+
+                    # 因子健康度事件
+                    factor_health = result.get("factor_health", {})
+                    if factor_health.get("degraded", 0) > 0:
+                        for f in factor_health.get("degraded_factors", []):
+                            print(f"  🔴 [FACTOR_DEGRADED] {f['factor_name']}: {'; '.join(f['issues'][:2])}")
 
                     # 保存事件
                     if args.save:
@@ -539,7 +632,11 @@ def main():
 
     else:
         # 单次心跳
-        result = heartbeat(positions_only=args.positions_only, all_symbols=not args.config_only)
+        result = heartbeat(
+            positions_only=args.positions_only,
+            all_symbols=not args.config_only,
+            check_factors=args.factor_health,
+        )
 
         if args.output == "json":
             print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -547,6 +644,13 @@ def main():
             print(f"心跳检查完成: {datetime.now().strftime('%H:%M:%S')}")
             print(f"  持仓品种: {result['positions_checked']} 个")
             print(f"  扫描品种: {result['symbols_checked']} 个")
+
+            # 显示因子健康度
+            factor_health = result.get("factor_health")
+            if factor_health:
+                print(f"  因子健康: {factor_health.get('healthy', 0)} 个")
+                print(f"  因子警告: {factor_health.get('warning', 0)} 个")
+                print(f"  因子退化: {factor_health.get('degraded', 0)} 个")
             print(f"  预警: {len(result['alerts'])} 个")
             print(f"  新信号: {len(result['new_signals'])} 个")
 
