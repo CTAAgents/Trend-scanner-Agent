@@ -101,19 +101,31 @@
       "evaluation": {},
       "created_at": "2026-06-17T10:29:41.089106",
       "updated_at": "2026-06-17T10:29:41.089106"
+    },
+    {
+      "name": "MultiTimeframeVGRSI",
+      "code": "\nimport numpy as np\nimport pandas as pd\n\ndef factor(df, window_m1=50, window_m5=100, window_m30=150, \n           threshold_upper=70, threshold_lower=30):\n    \"\"\"\n    多周期 VGRSI 一致性因子\n    \n    基于可见图的多时间框架 RSI 变体，使用 M1、M5、M30 三个时间周期同时确认信号，\n    只有三个周期同向才产生最终信号。\n    \n    Args:\n        df: DataFrame with 'close' column\n        window_m1: M1 时间框架窗口大小\n        window_m5: M5 时间框架窗口大小\n        window_m30: M30 时间框架窗口大小\n        threshold_upper: 买入信号阈值\n        threshold_lower: 卖出信号阈值\n    \n    Returns:\n        pd.Series: 共识因子值 (1=多, -1=空, 0=无共识)\n    \"\"\"\n    from scripts.trend_scanner.visibility_graph import MultiTimeframeVGRSIFactor\n    \n    # 构建多时间框架数据\n    # 注意：这里使用单时间框架数据模拟多时间框架\n    # 实际使用时需要提供真正的多时间框架数据\n    prices_dict = {\n        'M1': df['close'],\n        'M5': df['close'].resample('5D').last().dropna(),\n        'M30': df['close'].resample('30D').last().dropna()\n    }\n    \n    # 配置各时间框架\n    timeframe_configs = {\n        'M1': {'window_size': window_m1, 'aggregation_mode': 'A0'},\n        'M5': {'window_size': window_m5, 'aggregation_mode': 'A0'},\n        'M30': {'window_size': window_m30, 'aggregation_mode': 'A0'}\n    }\n    \n    # 计算共识因子\n    factor = MultiTimeframeVGRSIFactor(\n        timeframe_configs=timeframe_configs,\n        threshold_upper=threshold_upper,\n        threshold_lower=threshold_lower\n    )\n    \n    consensus_values = factor.calculate(prices_dict)\n    \n    # 对齐到原始数据的索引\n    result = pd.Series(0, index=df.index)\n    for idx in consensus_values.index:\n        if idx in result.index:\n            result[idx] = consensus_values[idx]\n    \n    return result\n",
+      "logic": "基于可见图的多时间框架 RSI 变体，使用 M1、M5、M30 三个时间周期同时确认信号，只有三个周期同向才产生最终信号。",
+      "economic_rationale": "多时间框架一致性可以有效过滤噪声信号，提高信号的可靠性。只有当所有时间框架都确认趋势时，才产生交易信号。",
+      "source": "arXiv:2605.01300 - Visibility Graphs Can Make Money in Financial Markets",
+      "category": "composite",
+      "status": "pending",
+      "evaluation": {},
+      "created_at": "2026-06-17T11:41:16.579179",
+      "updated_at": "2026-06-17T11:41:16.579179"
     }
   ],
   "summary": {
-    "total": 7,
+    "total": 8,
     "categories": {
       "momentum": 5,
       "volume": 1,
-      "composite": 1
+      "composite": 2
     },
     "statuses": {
-      "pending": 4,
+      "pending": 5,
       "discarded": 3
     }
   },
-  "updated_at": "2026-06-17T11:23:48.535828"
+  "updated_at": "2026-06-17T11:41:16.579179"
 }
