@@ -340,7 +340,7 @@ class TestEdgeCases:
         # 这是正确的行为 - 可见图捕捉的是价格结构，不是方向
         valid_values = vgrsi_values[50:]
         valid_values = valid_values[~np.isnan(valid_values)]
-        # 即使有有效值，也应该在 0-100 范围内
+        # 即使有有效值，也应该在 0-100 范围内（包含边界）
         if len(valid_values) > 0:
             assert np.all(valid_values >= 0)
             assert np.all(valid_values <= 100)
