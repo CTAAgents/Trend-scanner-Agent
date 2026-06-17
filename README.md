@@ -638,7 +638,19 @@ python -m pytest tests/test_factor_evaluator.py -v
 
 ---
 
-## 九、论文基础
+## 九、版本管理
+
+本系统遵循 [版本号管理规范](docs/VERSION_MANAGEMENT.md)，采用语义化版本号（Semantic Versioning 2.0.0）：
+
+- **MAJOR**: 不兼容的 API 变更
+- **MINOR**: 向后兼容的功能新增
+- **PATCH**: 向后兼容的问题修复
+
+当前版本：**v6.1.0**
+
+---
+
+## 十、论文基础
 
 本系统的设计基于以下学术论文：
 
