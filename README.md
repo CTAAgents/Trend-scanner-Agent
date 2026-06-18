@@ -336,7 +336,7 @@ python scripts/core/main.py --api --port 8081
 python -m pytest tests/ -v
 ```
 
-**测试状态**: 614+ 个测试全部通过
+**测试状态**: 630+ 个测试全部通过
 
 **详细测试文档**: [TESTING.md](docs/TESTING.md)
 

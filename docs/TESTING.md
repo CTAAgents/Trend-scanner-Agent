@@ -57,6 +57,7 @@
 | **test_triad_debate.py** | 7 | 三方辩论引擎（论据可靠性评估） |
 | **test_module_registry.py** | 12 | 模块注册中心（模块发现、分类、加载） |
 | **test_market_abstraction.py** | 9 | 市场抽象层（MarketProvider/BaseRiskManager） |
+| **test_futures_subsystem.py** | 16 | 期货子系统（Provider/MarketContext/FactorLibrary/RiskManager/Strategy） |
 
 ### 端到端测试（20 个）
 
