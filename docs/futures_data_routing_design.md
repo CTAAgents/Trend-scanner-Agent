@@ -122,7 +122,58 @@ CREATE TABLE futures_warehouse_receipt (
     PRIMARY KEY (symbol, date, warehouse)
 );
 
--- 4. 基差数据表
+-- 4. 技术指标表（TqSdk + 本地实现）
+CREATE TABLE futures_indicators (
+    symbol VARCHAR NOT NULL,        -- 品种代码
+    date DATE NOT NULL,             -- 交易日期
+    
+    -- 趋势指标
+    ema5 DOUBLE,                    -- 5日EMA
+    ema10 DOUBLE,                   -- 10日EMA
+    ema20 DOUBLE,                   -- 20日EMA
+    ema60 DOUBLE,                   -- 60日EMA
+    ma5 DOUBLE,                     -- 5日均线
+    ma10 DOUBLE,                    -- 10日均线
+    ma20 DOUBLE,                    -- 20日均线
+    ma60 DOUBLE,                    -- 60日均线
+    
+    -- 动量指标
+    rsi14 DOUBLE,                   -- 14日RSI
+    rsi6 DOUBLE,                    -- 6日RSI
+    macd DOUBLE,                    -- MACD
+    macd_signal DOUBLE,             -- MACD信号线
+    macd_hist DOUBLE,               -- MACD柱状图
+    kdj_k DOUBLE,                   -- KDJ-K值
+    kdj_d DOUBLE,                   -- KDJ-D值
+    kdj_j DOUBLE,                   -- KDJ-J值
+    
+    -- 波动率指标
+    atr14 DOUBLE,                   -- 14日ATR
+    boll_upper DOUBLE,              -- 布林带上轨
+    boll_middle DOUBLE,             -- 布林带中轨
+    boll_lower DOUBLE,              -- 布林带下轨
+    std20 DOUBLE,                   -- 20日标准差
+    
+    -- 成交量指标
+    obv DOUBLE,                     -- OBV能量潮
+    vwap DOUBLE,                    -- 成交量加权均价
+    
+    -- 趋势强度
+    adx14 DOUBLE,                   -- 14日ADX
+    plus_di DOUBLE,                 -- +DI
+    minus_di DOUBLE,                -- -DI
+    
+    -- 自研指标
+    trend_strength DOUBLE,          -- 7维趋势强度
+    momentum_score DOUBLE,          -- 动量评分
+    volatility_regime DOUBLE,       -- 波动率状态
+    
+    data_source VARCHAR,            -- 数据来源 (tqsdk/local)
+    update_time TIMESTAMP,
+    PRIMARY KEY (symbol, date)
+);
+
+-- 5. 基差数据表
 CREATE TABLE futures_basis (
     symbol VARCHAR NOT NULL,        -- 品种代码
     date DATE NOT NULL,             -- 交易日期
@@ -135,7 +186,7 @@ CREATE TABLE futures_basis (
     PRIMARY KEY (symbol, date)
 );
 
--- 5. 期限结构表
+-- 6. 期限结构表
 CREATE TABLE futures_term_structure (
     symbol VARCHAR NOT NULL,        -- 品种代码
     date DATE NOT NULL,             -- 交易日期
@@ -150,7 +201,7 @@ CREATE TABLE futures_term_structure (
     PRIMARY KEY (symbol, date)
 );
 
--- 6. 持仓排名表
+-- 7. 持仓排名表
 CREATE TABLE futures_position_rank (
     symbol VARCHAR NOT NULL,        -- 品种代码
     date DATE NOT NULL,             -- 交易日期
@@ -164,7 +215,7 @@ CREATE TABLE futures_position_rank (
     PRIMARY KEY (symbol, date, rank_type, rank_number)
 );
 
--- 7. 宏观数据表
+-- 8. 宏观数据表
 CREATE TABLE macro_data (
     subject VARCHAR NOT NULL,       -- 主体 (中国/美国)
     indicator VARCHAR NOT NULL,     -- 指标 (GDP/CPI/PPI)
@@ -176,7 +227,7 @@ CREATE TABLE macro_data (
     PRIMARY KEY (subject, indicator, date)
 );
 
--- 8. 研报数据表
+-- 9. 研报数据表
 CREATE TABLE research_report (
     symbol VARCHAR,                 -- 品种代码 (可为空)
     title VARCHAR,                  -- 研报标题
@@ -190,7 +241,7 @@ CREATE TABLE research_report (
     PRIMARY KEY (title, publish_date)
 );
 
--- 9. 数据更新日志表
+-- 10. 数据更新日志表
 CREATE TABLE data_update_log (
     update_id SERIAL PRIMARY KEY,
     table_name VARCHAR NOT NULL,    -- 表名
@@ -204,7 +255,7 @@ CREATE TABLE data_update_log (
     data_source VARCHAR             -- 数据来源
 );
 
--- 10. 交易日历表
+-- 11. 交易日历表
 CREATE TABLE trading_calendar (
     date DATE PRIMARY KEY,          -- 日期
     is_trading_day BOOLEAN,         -- 是否交易日

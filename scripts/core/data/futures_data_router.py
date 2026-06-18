@@ -92,6 +92,52 @@ class FuturesDataRouter:
             )
         """)
         
+        # 技术指标表
+        self.db.execute("""
+            CREATE TABLE IF NOT EXISTS futures_indicators (
+                symbol VARCHAR NOT NULL,
+                date DATE NOT NULL,
+                -- 趋势指标
+                ema5 DOUBLE,
+                ema10 DOUBLE,
+                ema20 DOUBLE,
+                ema60 DOUBLE,
+                ma5 DOUBLE,
+                ma10 DOUBLE,
+                ma20 DOUBLE,
+                ma60 DOUBLE,
+                -- 动量指标
+                rsi14 DOUBLE,
+                rsi6 DOUBLE,
+                macd DOUBLE,
+                macd_signal DOUBLE,
+                macd_hist DOUBLE,
+                kdj_k DOUBLE,
+                kdj_d DOUBLE,
+                kdj_j DOUBLE,
+                -- 波动率指标
+                atr14 DOUBLE,
+                boll_upper DOUBLE,
+                boll_middle DOUBLE,
+                boll_lower DOUBLE,
+                std20 DOUBLE,
+                -- 成交量指标
+                obv DOUBLE,
+                vwap DOUBLE,
+                -- 趋势强度
+                adx14 DOUBLE,
+                plus_di DOUBLE,
+                minus_di DOUBLE,
+                -- 自研指标
+                trend_strength DOUBLE,
+                momentum_score DOUBLE,
+                volatility_regime DOUBLE,
+                data_source VARCHAR,
+                update_time TIMESTAMP,
+                PRIMARY KEY (symbol, date)
+            )
+        """)
+        
         # 基差数据表
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS futures_basis (
@@ -247,6 +293,129 @@ class FuturesDataRouter:
                 """)
             except Exception as e:
                 logger.error(f"保存{symbol}K线数据失败: {e}")
+    
+    def get_indicators(self, symbol: str, days: int = 30) -> pd.DataFrame:
+        """
+        获取技术指标数据
+        
+        Args:
+            symbol: 品种代码
+            days: 获取天数
+            
+        Returns:
+            DataFrame: 技术指标数据
+        """
+        return self.db.execute(f"""
+            SELECT * FROM futures_indicators 
+            WHERE symbol = '{symbol}' 
+            ORDER BY date DESC 
+            LIMIT {days}
+        """).fetchdf()
+    
+    def save_indicators(self, symbol: str, df: pd.DataFrame, source: str = "local"):
+        """
+        保存技术指标数据
+        
+        Args:
+            symbol: 品种代码
+            df: 技术指标DataFrame
+            source: 数据来源 (tqsdk/local)
+        """
+        for index, row in df.iterrows():
+            try:
+                # 构建INSERT语句
+                columns = ['symbol', 'date', 'data_source', 'update_time']
+                values = [f"'{symbol}'", f"'{index.date()}'", f"'{source}'", "CURRENT_TIMESTAMP"]
+                
+                # 添加指标值
+                indicator_cols = [
+                    'ema5', 'ema10', 'ema20', 'ema60',
+                    'ma5', 'ma10', 'ma20', 'ma60',
+                    'rsi14', 'rsi6',
+                    'macd', 'macd_signal', 'macd_hist',
+                    'kdj_k', 'kdj_d', 'kdj_j',
+                    'atr14', 'boll_upper', 'boll_middle', 'boll_lower', 'std20',
+                    'obv', 'vwap',
+                    'adx14', 'plus_di', 'minus_di',
+                    'trend_strength', 'momentum_score', 'volatility_regime'
+                ]
+                
+                for col in indicator_cols:
+                    if col in row.index:
+                        columns.append(col)
+                        val = row[col]
+                        if pd.isna(val):
+                            values.append("NULL")
+                        else:
+                            values.append(str(val))
+                
+                sql = f"""
+                    INSERT OR REPLACE INTO futures_indicators 
+                    ({', '.join(columns)})
+                    VALUES ({', '.join(values)})
+                """
+                self.db.execute(sql)
+            except Exception as e:
+                logger.error(f"保存{symbol}技术指标失败: {e}")
+    
+    def calculate_and_save_indicators(self, symbol: str, kline_df: pd.DataFrame):
+        """
+        计算并保存技术指标
+        
+        Args:
+            symbol: 品种代码
+            kline_df: K线数据
+        """
+        import numpy as np
+        
+        if kline_df.empty or len(kline_df) < 20:
+            return
+        
+        # 计算技术指标
+        df = kline_df.copy()
+        
+        # EMA
+        df['ema5'] = df['close'].ewm(span=5, adjust=False).mean()
+        df['ema10'] = df['close'].ewm(span=10, adjust=False).mean()
+        df['ema20'] = df['close'].ewm(span=20, adjust=False).mean()
+        df['ema60'] = df['close'].ewm(span=60, adjust=False).mean()
+        
+        # MA
+        df['ma5'] = df['close'].rolling(5).mean()
+        df['ma10'] = df['close'].rolling(10).mean()
+        df['ma20'] = df['close'].rolling(20).mean()
+        df['ma60'] = df['close'].rolling(60).mean()
+        
+        # RSI
+        delta = df['close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        rs = gain / loss
+        df['rsi14'] = 100 - (100 / (1 + rs))
+        
+        # MACD
+        exp1 = df['close'].ewm(span=12, adjust=False).mean()
+        exp2 = df['close'].ewm(span=26, adjust=False).mean()
+        df['macd'] = exp1 - exp2
+        df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
+        df['macd_hist'] = df['macd'] - df['macd_signal']
+        
+        # ATR
+        high_low = df['high'] - df['low']
+        high_close = np.abs(df['high'] - df['close'].shift())
+        low_close = np.abs(df['low'] - df['close'].shift())
+        true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        df['atr14'] = true_range.rolling(14).mean()
+        
+        # Bollinger Bands
+        df['boll_middle'] = df['close'].rolling(20).mean()
+        std = df['close'].rolling(20).std()
+        df['boll_upper'] = df['boll_middle'] + 2 * std
+        df['boll_lower'] = df['boll_middle'] - 2 * std
+        df['std20'] = std
+        
+        # 保存指标
+        self.save_indicators(symbol, df, source="local")
     
     def get_inventory(self, symbol: str) -> pd.DataFrame:
         """获取库存数据"""
