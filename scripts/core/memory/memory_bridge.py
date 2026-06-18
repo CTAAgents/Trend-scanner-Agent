@@ -28,7 +28,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from .memory import UnifiedMemoryManager
+from .manager import UnifiedMemoryManager
 
 
 logger = logging.getLogger(__name__)

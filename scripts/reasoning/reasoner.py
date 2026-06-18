@@ -35,13 +35,13 @@ from typing import Any
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "scripts"))
 
-from trend_scanner.brief import BriefGenerator
-from trend_scanner.context import ContextAssembler
-from trend_scanner.experience import ExperienceMemory
-from trend_scanner.models import MarketContext
-from trend_scanner.reasoning import ReasoningEngine, WorkBuddyAgentProvider
-from trend_scanner.tiered_output import TieredOutputFormatter
-from trend_scanner.unified_data_router import get_router
+from reasoning.brief import BriefGenerator
+from core.context import ContextAssembler
+from core.memory.memory_bridge import MemoryBridge
+from core.models import MarketContext
+from reasoning.reasoning_engine import ReasoningEngine, WorkBuddyAgentProvider
+from reasoning.narrative_generator import NarrativeGenerator
+from core.data.unified_data_router import get_router
 
 
 class ReasonerAgent:

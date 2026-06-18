@@ -12,7 +12,7 @@
 - 可审计性 = 可上线
 """
 
-from .models import MarketContext
+from core.models import MarketContext
 
 
 # ──────────────────────────────────────────────

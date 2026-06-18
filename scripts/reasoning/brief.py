@@ -4,7 +4,7 @@
 将推理引擎的输出转换为用户可读的交易决策简报。
 """
 
-from .models import (
+from core.models import (
     Constraint,
     ExperienceMatch,
     MarketAssessment,
