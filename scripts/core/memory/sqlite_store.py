@@ -49,6 +49,25 @@ class SQLiteStore:
         """初始化表结构"""
         cursor = self.conn.cursor()
 
+        # 0. 符号表
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS symbols (
+            symbol TEXT PRIMARY KEY,
+            name TEXT,
+            exchange TEXT,
+            product_type TEXT,
+            volume_multiple REAL,
+            price_tick REAL,
+            margin_ratio REAL,
+            trading_unit TEXT,
+            delivery_month TEXT,
+            listed_date TEXT,
+            delisted_date TEXT,
+            is_active INTEGER DEFAULT 1,
+            updated_at TEXT DEFAULT (datetime('now'))
+        )
+        """)
+
         # 1. 经验表
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS experiences (
