@@ -1,13 +1,14 @@
 """
-TrendScanner 统一配置模块
+QuantNova 统一配置模块
 
 借鉴 ElegantRL 的 Config 设计模式，提供统一的配置管理：
-1. 所有配置集中在一个 TrendScannerConfig 对象中
+1. 所有配置集中在一个 QuantNovaConfig 对象中
 2. 支持 JSON 文件加载和环境变量覆盖
 3. 提供配置验证和默认值
 
-版本：v1.0
+版本：v2.0
 创建日期：2026-06-17
+更新日期：2026-06-18（重命名为 QuantNova）
 """
 
 import json
