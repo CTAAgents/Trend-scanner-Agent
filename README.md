@@ -340,6 +340,7 @@ python -m pytest tests/ -v
 
 | 文档 | 说明 |
 |------|------|
+| [本地部署指南](DEPLOY.md) | 安装、配置、开机自启动（必读） |
 | [系统架构](docs/system_architecture_overview.md) | 11层架构+模块清单+工作流（最详细） |
 | [用户手册](docs/USER_GUIDE.md) | 安装、配置、使用指南 |
 | [用户交互指南](docs/user_interaction_guide.md) | CLI/NLP/Web UI/API 交互模式 |
@@ -347,4 +348,4 @@ python -m pytest tests/ -v
 | [版本历史](docs/CHANGELOG.md) | 完整变更记录 |
 | [开发规范](docs/CONTRIBUTING.md) | 代码风格与开发指南 |
 | [测试文档](docs/TESTING.md) | 测试覆盖与运行 |
-| [自动运行升级计划](docs/auto_run_upgrade_plan.md) | 从cron升级为事件驱动架构 |
+| [论文实现指南](docs/paper_implementation_guide.md) | 论文思想→代码实现映射 |
