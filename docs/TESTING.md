@@ -58,6 +58,7 @@
 | **test_module_registry.py** | 12 | 模块注册中心（模块发现、分类、加载） |
 | **test_market_abstraction.py** | 9 | 市场抽象层（MarketProvider/BaseRiskManager） |
 | **test_futures_subsystem.py** | 16 | 期货子系统（Provider/MarketContext/FactorLibrary/RiskManager/Strategy） |
+| **test_securities_subsystem.py** | 17 | 证券子系统（Provider/MarketContext/FactorLibrary/RiskManager/Strategy） |
 
 ### 端到端测试（20 个）
 
