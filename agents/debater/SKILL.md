@@ -2,7 +2,7 @@
 name: debater
 description: "期货趋势跟踪辩论 Agent —— 通过鹰派/鸽派辩论修正决策偏差"
 version: "1.1.0"
-author: "Trend-scanner-Agent"
+author: "QuantNova"
 created: "2026-06-15"
 updated: "2026-06-15"
 tags: ["trading", "futures", "debate", "agent"]
@@ -12,7 +12,7 @@ tags: ["trading", "futures", "debate", "agent"]
 
 ## 概述
 
-Debater Agent 是 Trend-scanner-Agent 系统的偏差修正组件。它通过鹰派/鸽派双视角辩论，修正 Reasoner Agent 的初始方案，提升决策质量。
+Debater Agent 是 QuantNova 系统的偏差修正组件。它通过鹰派/鸽派双视角辩论，修正 Reasoner Agent 的初始方案，提升决策质量。
 
 ## 核心理念
 

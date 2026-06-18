@@ -48,7 +48,7 @@
 
 ### 2.1 当前架构回顾
 
-Trend-scanner-Agent v3.0 采用脚本+Agent混合架构：
+QuantNova v3.0 采用脚本+Agent混合架构：
 
 ```
 Orchestrator Agent（主协调）
@@ -422,7 +422,7 @@ class CommunicationEnhancer:
 
 ## 八、总结
 
-三篇论文为Trend-scanner-Agent项目提供了宝贵的改进思路：
+三篇论文为QuantNova项目提供了宝贵的改进思路：
 
 1. **FactorEngine**的因子即代码思想，可以大幅提升Scanner的适应能力和因子发现效率
 2. **FinCon**的多角色协作和概念性语言强化学习，可以增强Debater的决策质量和Agent间协作
@@ -432,4 +432,4 @@ class CommunicationEnhancer:
 
 ---
 
-*本分析基于arXiv论文2603.16365、2407.06567、2606.08450的核心思想，结合Trend-scanner-Agent项目的实际需求提出。*
+*本分析基于arXiv论文2603.16365、2407.06567、2606.08450的核心思想，结合QuantNova项目的实际需求提出。*

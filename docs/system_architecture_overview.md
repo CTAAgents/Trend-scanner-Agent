@@ -1,17 +1,19 @@
-# Trend-scanner-Agent 系统架构总览
+# QuantNova 系统架构总览
 
-> 版本：v0.1.0 | 创建日期：2026-06-17 | 更新：2026-06-18
-> 状态：开发中
+> 版本：v1.0.0 | 创建日期：2026-06-17 | 更新：2026-06-18
+> 状态：已完成基本面分析模块集成
 
 ## 一、系统概述
 
-Trend-scanner-Agent 是一个推理重于规则的期货趋势跟踪决策辅助系统。系统不自动下单，只输出决策简报供人参考。
+QuantNova 是一个推理重于规则的期货趋势跟踪决策辅助系统。系统不自动下单，只输出决策简报供人参考。
 
 **核心理念**：以人为本，推理为魂，规则为果。
 
-**核心能力**：统一数据路由、知识锚点体系、分级输出、套利分析、Reasoner Agent深度分析、闭环因子进化引擎。
+**核心能力**：统一数据路由、知识锚点体系、分级输出、套利分析、Reasoner Agent深度分析、闭环因子进化引擎、**基本面分析模块**。
 
 **独立策略模块**：Carry 策略（期限结构套利），与趋势跟踪策略并行运行。
+
+**最新更新**：集成基本面分析模块，支持新闻抓取、供需数据、地缘政治追踪，能够解释市场现象的根本原因。
 
 ---
 
@@ -81,15 +83,49 @@ Trend-scanner-Agent 是一个推理重于规则的期货趋势跟踪决策辅助
     ↓
 ContextAssembler (context.py) → 组装 MarketContext
     ↓
+├── 技术面分析 → IndicatorEngine (indicators.py)
+└── 基本面分析 → NewsCrawler + SupplyDemandProvider + GeopoliticalTracker
+    ↓
 ExperienceMemory (experience.py) → 检索相似经验
     ↓
-ReasoningEngine (reasoning.py) → LLM 推理
+ReasoningEngine (reasoning.py) → LLM 推理（包含基本面信息）
     ↓
 DebateReasoningEngine (debate_engine.py) → 鹰鸽辩论纠偏
     ↓
 BriefGenerator (brief.py) → 生成 TradingBrief
     ↓
 用户查看决策简报
+```
+
+### 3.2 基本面分析流程（新增）
+
+```
+品种代码 → ContextAssembler._assemble_fundamental()
+    ↓
+├── NewsCrawler.crawl() → 抓取新闻（5个数据源）
+│   ├── 财新网
+│   ├── 新浪财经
+│   ├── 央广网
+│   ├── 东方财富
+│   └── 雪球
+    ↓
+├── SupplyDemandProvider.get_supply_demand() → 获取供需数据
+│   ├── 库存数据
+│   ├── 产量数据
+│   └── 消费数据
+    ↓
+├── GeopoliticalTracker.track() → 追踪地缘政治风险
+│   ├── 战争/冲突
+│   ├── 制裁
+│   ├── 关税
+│   └── 和平协议
+    ↓
+└── 组装 FundamentalContext
+    ├── news_events: 新闻事件列表
+    ├── supply_demand: 供需数据
+    ├── geopolitical_risks: 地缘政治风险
+    ├── fundamental_score: 基本面综合评分
+    └── key_drivers: 关键驱动因素
 ```
 
 ### 3.2 因子进化流程
@@ -144,7 +180,7 @@ LLM 反思 (LLMProvider)
 
 | 模块 | 主要类 | 职责 |
 |------|--------|------|
-| `models.py` | MarketContext, Experience, TradingBrief, ... | 所有数据结构定义 |
+| `models.py` | MarketContext, Experience, TradingBrief, NewsEvent, SupplyDemandData, GeopoliticalRisk, FundamentalContext | 所有数据结构定义（包含基本面数据模型） |
 
 ### 4.1 感知层 (5 个模块)
 
@@ -200,6 +236,15 @@ LLM 反思 (LLMProvider)
 | `execution.py` | ExecutionEngine | 执行引擎 |
 | `portfolio.py` | PortfolioManager | 组合管理 |
 | `narrative_generator.py` | NarrativeGenerator | 叙事生成器 |
+
+### 4.6 基本面分析层 (4 个模块) - 新增
+
+| 模块 | 主要类 | 职责 |
+|------|--------|------|
+| `fundamental/news_crawler.py` | NewsCrawler | 新闻抓取（5个数据源） |
+| `fundamental/supply_demand.py` | SupplyDemandProvider | 供需数据接口 |
+| `fundamental/geopolitical.py` | GeopoliticalTracker | 地缘政治事件追踪 |
+| `fundamental/__init__.py` | - | 基本面分析模块初始化 |
 
 ### 4.6 进化层 (9 个模块)
 
@@ -274,6 +319,8 @@ LLM 反思 (LLMProvider)
 4. **三层记忆**: 短期(内存) / 工作(SQLite) / 长期(SQLite+DuckDB+向量)
 5. **自优化闭环**: 经验 → 模式 → 规则 → 参数，自动进化
 6. **可配置 LLM**: 支持 OpenAI/Anthropic/Ollama/WorkBuddy 一键切换
+7. **技术面+基本面融合**: 技术指标提供入场时机，基本面提供方向判断
+8. **事件驱动分析**: 重大事件（地缘政治、政策变化）优先于技术信号
 
 ---
 
@@ -281,19 +328,20 @@ LLM 反思 (LLMProvider)
 
 | 层级 | 模块数 | 主要职责 |
 |------|--------|----------|
-| 数据模型层 | 1 | 数据结构定义 |
+| 数据模型层 | 1 | 数据结构定义（包含基本面数据模型） |
 | 感知层 | 5 | 技术指标、市场分析 |
 | 存储层 | 6 | 数据存储与同步 |
 | 记忆层 | 8 | 经验管理、向量检索 |
 | 推理层 | 5 | LLM 推理、辩论 |
 | 策略层 | 6 | 扫描、执行、风控 |
+| 基本面分析层 | 4 | 新闻抓取、供需数据、地缘政治追踪 |
 | 进化层 | 9 | 自优化、轨迹分析 |
 | 因子进化层 | 10 | 因子生成、评估、进化 |
 | 高级分析层 | 7 | 可见图、Walk-Forward |
 | 分析工具层 | 11 | KPI、回测、健康度 |
 | 主协调层 | 1 | 系统主入口 |
-| **总计** | **69** | |
+| **总计** | **73** | |
 
 ---
 
-*本文档是 Trend-scanner-Agent 系统的架构总览。*
+*本文档是 QuantNova 系统的架构总览。*

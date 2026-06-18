@@ -1,4 +1,4 @@
-# Kevin J. Davey《构建盈利的算法交易系统》与 Trend-scanner-Agent 深度对比
+# Kevin J. Davey《构建盈利的算法交易系统》与 QuantNova 深度对比
 
 > 版本：v2.0 | 更新日期：2026-06-17
 > 对比对象：Kevin J. Davey "Building Winning Algorithmic Trading Systems" (Wiley, 2014)
@@ -35,7 +35,7 @@ Davey 明确反对 discretionary trading（主观交易），认为：
 
 ### 我们的立场：推理重于规则
 
-Trend-scanner-Agent 的核心理念是：
+QuantNova 的核心理念是：
 
 > **以人为本，推理为魂，规则为果。**
 
@@ -43,7 +43,7 @@ Trend-scanner-Agent 的核心理念是：
 
 ### 根本分歧
 
-| 维度 | Davey | Trend-scanner-Agent |
+| 维度 | Davey | QuantNova |
 |------|-------|---------------------|
 | **人的角色** | 执行者（服从规则） | 决策者（推理主导） |
 | **规则的来源** | 人事先定义 | LLM 实时推理生成 |
@@ -58,7 +58,7 @@ Trend-scanner-Agent 的核心理念是：
 
 ### 3.1 数据层
 
-| 维度 | Davey | Trend-scanner-Agent |
+| 维度 | Davey | QuantNova |
 |------|-------|---------------------|
 | **数据源** | 历史行情数据（CSV/API） | TqSdk + Pytdx + AkShare + 本地 DuckDB |
 | **数据类型** | 价格+成交量 | 价格+成交量+基差+季节性+龙虎榜+保证金+宏观 |
@@ -71,7 +71,7 @@ Trend-scanner-Agent 的核心理念是：
 
 ### 3.2 信号生成层
 
-| 维度 | Davey | Trend-scanner-Agent |
+| 维度 | Davey | QuantNova |
 |------|-------|---------------------|
 | **方法** | 固定规则（突破/均线交叉等） | 三层融合架构（标准化→MAD过滤→加权打分） |
 | **指标数量** | 通常 3-5 个 | 90 个（TqSdk ta 模块）+ 五维度评分 |
@@ -84,7 +84,7 @@ Trend-scanner-Agent 的核心理念是：
 
 ### 3.3 验证层（关键对比）
 
-| 维度 | Davey | Trend-scanner-Agent |
+| 维度 | Davey | QuantNova |
 |------|-------|---------------------|
 | **核心方法** | Walk-Forward Analysis | Walk-Forward Validation + 验证矩阵 |
 | **过拟合检测** | 样本外测试 + 目视检查 | 过拟合审计器 + 红线检查 + 验证矩阵路由 |
@@ -99,7 +99,7 @@ Trend-scanner-Agent 的核心理念是：
 
 ### 3.4 风险管理层
 
-| 维度 | Davey | Trend-scanner-Agent |
+| 维度 | Davey | QuantNova |
 |------|-------|---------------------|
 | **头寸规模** | 固定比例法（账户净值×风险百分比） | PositionSizer（趋势强度+波动率调整） |
 | **止损** | 固定止损点/ATR止损 | 波动幅度锚点 + LLM动态推理 |
@@ -254,7 +254,7 @@ Davey 的框架是通用的，不区分期货/股票/外汇。
 
 ## 六、综合评分（更新版）
 
-| 维度 | Davey | Trend-scanner-Agent | 说明 |
+| 维度 | Davey | QuantNova | 说明 |
 |------|-------|---------------------|------|
 | **系统化程度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Davey 的七步框架更成熟、更经过实战验证 |
 | **过拟合防护** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | **已持平**：蒙特卡洛+策略孵化已补齐 |

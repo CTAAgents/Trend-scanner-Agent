@@ -2,7 +2,7 @@
 name: evolver
 description: "期货趋势跟踪进化 Agent —— 从交易结果中学习，优化策略"
 version: "1.1.0"
-author: "Trend-scanner-Agent"
+author: "QuantNova"
 created: "2026-06-15"
 updated: "2026-06-15"
 tags: ["trading", "futures", "evolution", "agent"]
@@ -12,7 +12,7 @@ tags: ["trading", "futures", "evolution", "agent"]
 
 ## 概述
 
-Evolver Agent 是 Trend-scanner-Agent 系统的自进化组件。它从交易结果中学习，分析交易轨迹，归因故障，检测模式，优化策略。
+Evolver Agent 是 QuantNova 系统的自进化组件。它从交易结果中学习，分析交易轨迹，归因故障，检测模式，优化策略。
 
 ## 核心理念
 

@@ -2,7 +2,7 @@
 
 > 来源：[AI4Finance-Foundation/ElegantRL](https://github.com/AI4Finance-Foundation/ElegantRL)
 > 分析日期：2026-06-17
-> 目标：识别可融入 Trend-scanner-Agent 系统的设计模式和工程实践
+> 目标：识别可融入 QuantNova 系统的设计模式和工程实践
 
 ---
 

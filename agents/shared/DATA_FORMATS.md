@@ -1,4 +1,4 @@
-# Trend-scanner-Agent 统一数据格式
+# QuantNova 统一数据格式
 
 > 版本：v1.0 | 创建日期：2026-06-15
 > 所有 Agent 共享的数据格式规范
@@ -81,7 +81,7 @@
     "factors": ["RSI 超买", "波动率扩张"]
   },
   "delivery_checklist": {
-    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "framework": "TqSdk / QuantNova v5.0",
     "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
     "change_type": "new_entry",
     "change_description": "在回调至支撑位时入场做多，仓位30%",
@@ -344,7 +344,7 @@
 ```json
 {
   "delivery_checklist": {
-    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "framework": "TqSdk / QuantNova v5.0",
     "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
     "change_type": "new_entry",
     "change_description": "在回调至支撑位时入场做多，仓位30%",

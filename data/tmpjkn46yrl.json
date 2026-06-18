@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "error": null,
+  "data": {
+    "quotes": {
+      "KQ.m@DCE.lg": {
+        "tq_symbol": "KQ.m@DCE.lg",
+        "last_price": 809.0,
+        "open_interest": 3622,
+        "volume": 2244,
+        "bid_price1": 806.5,
+        "ask_price1": 809.0,
+        "highest": 809.0,
+        "lowest": 801.0,
+        "pre_close": 801.0
+      },
+      "KQ.m@DCE.lh": {
+        "tq_symbol": "KQ.m@DCE.lh",
+        "last_price": 11770,
+        "open_interest": 209692,
+        "volume": 180453,
+        "bid_price1": 11765,
+        "ask_price1": 11770,
+        "highest": 12055,
+        "lowest": 11755,
+        "pre_close": 12020
+      },
+      "KQ.m@DCE.m": {
+        "tq_symbol": "KQ.m@DCE.m",
+        "last_price": 2953,
+        "open_interest": 2072277,
+        "volume": 248593,
+        "bid_price1": 2952,
+        "ask_price1": 2953,
+        "highest": 2965,
+        "lowest": 2950,
+        "pre_close": 2957
+      },
+      "KQ.m@DCE.p": {
+        "tq_symbol": "KQ.m@DCE.p",
+        "last_price": 9391,
+        "open_interest": 523589,
+        "volume": 212882,
+        "bid_price1": 9390,
+        "ask_price1": 9391,
+        "highest": 9412,
+        "lowest": 9358,
+        "pre_close": 9349
+      },
+      "KQ.m@DCE.pg": {
+        "tq_symbol": "KQ.m@DCE.pg",
+        "last_price": 4947,
+        "open_interest": 23059,
+        "volume": 34326,
+        "bid_price1": 4945,
+        "ask_price1": 4951,
+        "highest": 4980,
+        "lowest": 4913,
+        "pre_close": 4886
+      },
+      "KQ.m@DCE.pp": {
+        "tq_symbol": "KQ.m@DCE.pp",
+        "last_price": 7879,
+        "open_interest": 534271,
+        "volume": 266927,
+        "bid_price1": 7879,
+        "ask_price1": 7880,
+        "highest": 7900,
+        "lowest": 7825,
+        "pre_close": 7828
+      }
+    },
+    "count": 6
+  }
+}

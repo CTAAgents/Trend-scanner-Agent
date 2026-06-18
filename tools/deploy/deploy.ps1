@@ -1,4 +1,4 @@
-# Trend-scanner-Agent 部署脚本 (Windows PowerShell)
+# QuantNova 部署脚本 (Windows PowerShell)
 #
 # 使用方式：
 #   powershell -ExecutionPolicy Bypass -File tools/deploy.ps1 [选项]
@@ -343,7 +343,7 @@ function Show-Status {
 # 主函数
 function Main {
     Write-Host ""
-    Write-Host "=== Trend-scanner-Agent 部署脚本 ===" -ForegroundColor Cyan
+    Write-Host "=== QuantNova 部署脚本 ===" -ForegroundColor Cyan
     Write-Host ""
     
     # 根据参数执行操作

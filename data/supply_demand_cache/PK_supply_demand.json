@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-06-18T04:32:05.247034",
+  "data": {
+    "symbol": "PK",
+    "timestamp": "2026-06-18T04:32:04.833805",
+    "source": "",
+    "inventory_exchange": 0.0,
+    "inventory_social": 0.0,
+    "inventory_change_pct": 0.0,
+    "production": 0.0,
+    "production_change_pct": 0.0,
+    "capacity_utilization": 0.0,
+    "consumption": 0.0,
+    "consumption_change_pct": 0.0,
+    "import_volume": 0.0,
+    "export_volume": 0.0,
+    "net_import": 0.0,
+    "supply_surplus": 0.0,
+    "balance_status": "balanced"
+  }
+}

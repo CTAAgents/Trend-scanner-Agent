@@ -18,8 +18,8 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/CTAAgents/Trend-scanner-Agent.git
-cd Trend-scanner-Agent
+git clone https://github.com/CTAAgents/QuantNova.git
+cd QuantNova
 
 # 2. 安装依赖
 pip install -r requirements.txt

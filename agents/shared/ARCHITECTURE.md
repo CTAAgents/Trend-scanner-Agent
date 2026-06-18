@@ -1,4 +1,4 @@
-# Trend-scanner-Agent 共享架构文档
+# QuantNova 共享架构文档
 
 > 版本：v1.0 | 创建日期：2026-06-15
 > 所有 Agent 共享的架构规范和核心理念

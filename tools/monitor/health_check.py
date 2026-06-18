@@ -309,7 +309,7 @@ def print_report(results: dict[str, Any]):
     reset_color = "\033[0m"
 
     print("\n" + "=" * 60)
-    print("Trend-scanner-Agent 健康检查报告")
+    print("QuantNova 健康检查报告")
     print("=" * 60)
     print(f"时间: {results['timestamp']}")
 

@@ -1,4 +1,4 @@
-# FinClaw 与 Trend-scanner-Agent 整合分析报告
+# FinClaw 与 QuantNova 整合分析报告
 
 > 版本：v1.0 | 日期：2026-06-17
 > 分析对象：[aifinlab/FinClaw](https://github.com/aifinlab/FinClaw)

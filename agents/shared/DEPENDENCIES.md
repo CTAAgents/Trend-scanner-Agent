@@ -1,4 +1,4 @@
-# Trend-scanner-Agent 依赖模块文档
+# QuantNova 依赖模块文档
 
 > 版本：v1.0 | 创建日期：2026-06-15
 > 所有 Agent 共享的依赖模块说明

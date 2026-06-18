@@ -356,4 +356,4 @@ python tools/sync_data.py sync --days 5
 
 ---
 
-*本准则是 Trend-scanner-Agent 项目开发的约束条件之一。*
+*本准则是 QuantNova 项目开发的约束条件之一。*

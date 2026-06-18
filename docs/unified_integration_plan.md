@@ -191,7 +191,7 @@ class MultiDimensionResult:
 ```json
 {
   "delivery_checklist": {
-    "framework": "TqSdk / Trend-scanner-Agent",
+    "framework": "TqSdk / QuantNova",
     "market_hypothesis": "焦煤JM当前处于趋势发展阶段，但效率比率下降至0.24，趋势动能衰减",
     "change_type": "adjust_position",
     "change_description": "建议减仓50%，从2500→1250",

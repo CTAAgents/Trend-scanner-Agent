@@ -2,7 +2,7 @@
 name: reasoner
 description: "期货趋势跟踪推理 Agent —— 接收市场信号，生成交易决策简报"
 version: "2.0.0"
-author: "Trend-scanner-Agent"
+author: "QuantNova"
 created: "2026-06-15"
 updated: "2026-06-17"
 tags: ["trading", "futures", "reasoning", "agent"]
@@ -12,7 +12,7 @@ tags: ["trading", "futures", "reasoning", "agent"]
 
 ## 概述
 
-Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 Scanner 脚本或 Monitor 脚本的信号，通过 LLM 推理生成交易决策简报。
+Reasoner Agent 是 QuantNova 系统的核心推理组件。它接收 Scanner 脚本或 Monitor 脚本的信号，通过 LLM 推理生成交易决策简报。
 
 ## 核心理念
 
@@ -93,7 +93,7 @@ Reasoner Agent 是 Trend-scanner-Agent 系统的核心推理组件。它接收 S
   },
   "warnings": [],
   "delivery_checklist": {
-    "framework": "TqSdk / Trend-scanner-Agent v5.0",
+    "framework": "TqSdk / QuantNova v5.0",
     "market_hypothesis": "焦煤处于趋势发展阶段，均线多头排列，动量充足",
     "change_type": "new_entry",
     "change_description": "在回调至支撑位时入场做多，仓位30%",

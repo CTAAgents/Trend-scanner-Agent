@@ -2,7 +2,7 @@
 name: orchestrator
 description: "期货趋势跟踪主协调器 —— 接收用户指令，分发任务，汇总结果"
 version: "1.1.0"
-author: "Trend-scanner-Agent"
+author: "QuantNova"
 created: "2026-06-15"
 updated: "2026-06-15"
 tags: ["trading", "futures", "orchestrator", "agent"]
@@ -12,7 +12,7 @@ tags: ["trading", "futures", "orchestrator", "agent"]
 
 ## 概述
 
-Orchestrator Agent 是 Trend-scanner-Agent 系统的主协调器。它接收用户自然语言指令，解析意图，分发任务给专业 Agent，汇总结果，生成最终输出。
+Orchestrator Agent 是 QuantNova 系统的主协调器。它接收用户自然语言指令，解析意图，分发任务给专业 Agent，汇总结果，生成最终输出。
 
 ## 核心理念
 

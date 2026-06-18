@@ -1,4 +1,4 @@
-# Trend-scanner-Agent v5.0 实施计划
+# QuantNova v5.0 实施计划
 
 > 版本：v2.0 | 创建日期：2026-06-15 | 更新日期：2026-06-16
 > 状态：v5.0 全部完成（58 个 v5.0 测试全部通过）
@@ -6,7 +6,7 @@
 ## 一、项目概述
 
 ### 1.1 目标
-基于 Agentic AI for Factor Investing、FactorEngine、FinCon、GIFT 四篇论文的核心思想，将 Trend-scanner-Agent 从 v3.0 升级到 v5.0，实现：
+基于 Agentic AI for Factor Investing、FactorEngine、FinCon、GIFT 四篇论文的核心思想，将 QuantNova 从 v3.0 升级到 v5.0，实现：
 - **闭环因子进化**：Generate→Eval→Gate→Memory 自动迭代
 - **截面 IC/ICIR 评估**：多品种截面预测能力量化
 - **贝叶斯参数优化**：Optuna TPE 自动搜索最优参数
@@ -884,7 +884,7 @@ class TestReportParser:
 
 ## 九、总结
 
-本实施计划基于四篇论文的核心思想，将 Trend-scanner-Agent 从 v3.0 升级到 v5.0。通过分阶段实施，逐步引入闭环因子进化、截面 IC/ICIR 评估、贝叶斯参数优化、多因子组合、动态因子生成、轨迹感知优化、研报知识注入、多角色协作和 RL 接口设计，构建更智能、更自适应的趋势跟踪系统。
+本实施计划基于四篇论文的核心思想，将 QuantNova 从 v3.0 升级到 v5.0。通过分阶段实施，逐步引入闭环因子进化、截面 IC/ICIR 评估、贝叶斯参数优化、多因子组合、动态因子生成、轨迹感知优化、研报知识注入、多角色协作和 RL 接口设计，构建更智能、更自适应的趋势跟踪系统。
 
 **关键成功因素**：
 1. 严格的验证机制，确保生成的因子和规则质量

@@ -2,7 +2,7 @@
 
 > 分析日期：2026-06-17
 > 仓库地址：https://github.com/tellmefrankie/ai-investment-skills
-> 目标：从该仓库中提取有用思想，与 Trend-scanner-Agent 项目融合
+> 目标：从该仓库中提取有用思想，与 QuantNova 项目融合
 
 ---
 
@@ -95,11 +95,11 @@ Wave 9: 元批评（最终综合和行动计划）
 
 ---
 
-## 三、与 Trend-scanner-Agent 的对比分析
+## 三、与 QuantNova 的对比分析
 
 ### 3.1 共同点
 
-| 维度 | ai-investment-skills | Trend-scanner-Agent |
+| 维度 | ai-investment-skills | QuantNova |
 |------|----------------------|---------------------|
 | **核心理念** | AI 辅助投资决策 | 推理重于规则的交易决策 |
 | **多智能体** | 9 个专业智能体 | Reasoner/Debater/Evolver/Orchestrator |
@@ -109,7 +109,7 @@ Wave 9: 元批评（最终综合和行动计划）
 
 ### 3.2 差异点
 
-| 维度 | ai-investment-skills | Trend-scanner-Agent |
+| 维度 | ai-investment-skills | QuantNova |
 |------|----------------------|---------------------|
 | **市场** | 美股（期权、股票） | 期货（商品、金融期货） |
 | **数据源** | Polygon.io, Yahoo Finance | TqSdk, Pytdx, AkShare, DuckDB |
@@ -125,7 +125,7 @@ Wave 9: 元批评（最终综合和行动计划）
 
 #### A. 反叙事约束机制
 
-**现状**：Trend-scanner-Agent 的 Debater Agent 已有多角色辩论，但缺少系统化的反叙事规则。
+**现状**：QuantNova 的 Debater Agent 已有多角色辩论，但缺少系统化的反叙事规则。
 
 **融合方案**：
 ```python
@@ -142,7 +142,7 @@ ANTI_NARRATIVE_RULES = {
 
 #### B. 概率加权场景分析（EV Calculator 思想）
 
-**现状**：Trend-scanner-Agent 的 Reasoner 输出操作建议，但缺少概率加权的场景分析。
+**现状**：QuantNova 的 Reasoner 输出操作建议，但缺少概率加权的场景分析。
 
 **融合方案**：
 ```python
@@ -175,7 +175,7 @@ def generate_scenarios(signal, indicators):
 
 #### C. 模块化技能架构（SKILL.md 思想）
 
-**现状**：Trend-scanner-Agent 的模块已较完善，但缺少标准化的技能接口。
+**现状**：QuantNova 的模块已较完善，但缺少标准化的技能接口。
 
 **融合方案**：
 - 为每个核心模块创建 SKILL.md 描述文件
@@ -186,7 +186,7 @@ def generate_scenarios(signal, indicators):
 
 #### D. 期权流分析（针对期货期权）
 
-**现状**：Trend-scanner-Agent 有套利分析模块，但缺少期货期权流分析。
+**现状**：QuantNova 有套利分析模块，但缺少期货期权流分析。
 
 **融合方案**：
 ```python
@@ -210,7 +210,7 @@ class FuturesOptionsFlowAnalyzer:
 
 #### E. 新闻情绪引擎
 
-**现状**：Trend-scanner-Agent 有宏观数据模块，但缺少新闻情绪分析。
+**现状**：QuantNova 有宏观数据模块，但缺少新闻情绪分析。
 
 **融合方案**：
 - 集成 RSS 新闻源
@@ -219,7 +219,7 @@ class FuturesOptionsFlowAnalyzer:
 
 #### F. 价格监控警报
 
-**现状**：Trend-scanner-Agent 有持仓健康度评估，但缺少实时价格监控。
+**现状**：QuantNova 有持仓健康度评估，但缺少实时价格监控。
 
 **融合方案**：
 - 集成 Telegram/微信通知
@@ -284,7 +284,7 @@ class FuturesOptionsFlowAnalyzer:
 3. **9 波分析管道**：系统化的多维度分析框架
 4. **多智能体协调**：高效利用多个专业智能体
 
-**与 Trend-scanner-Agent 的融合策略**：
+**与 QuantNova 的融合策略**：
 
 - **立即实施**：反叙事约束、场景分析
 - **中期实施**：期权流分析、模块化技能
@@ -295,7 +295,7 @@ class FuturesOptionsFlowAnalyzer:
 > "从真实的交易错误中学习，而不是从理论中学习。"
 > —— ai-investment-skills 作者
 
-该仓库的所有创新都来自实战经验，这与 Trend-scanner-Agent 的"推理重于规则"理念高度一致。
+该仓库的所有创新都来自实战经验，这与 QuantNova 的"推理重于规则"理念高度一致。
 
 ---
 

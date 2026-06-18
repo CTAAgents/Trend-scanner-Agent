@@ -7,7 +7,7 @@
 
 ### 1.1 目标
 
-基于 Kevin J. Davey《构建盈利的算法交易系统》中的关键缺失模块，补充 Trend-scanner-Agent 系统的风控和验证能力。
+基于 Kevin J. Davey《构建盈利的算法交易系统》中的关键缺失模块，补充 QuantNova 系统的风控和验证能力。
 
 ### 1.2 背景
 

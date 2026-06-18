@@ -13,7 +13,7 @@
 ### 1.2 目录结构
 
 ```
-E:\Trend-scanner-Agent\
+E:\QuantNova\
 ├── agents/                     # Agent 定义
 ├── tools/                      # 脚本工具
 ├── scripts/trend_scanner/      # 核心计算包

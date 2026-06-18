@@ -1,5 +1,5 @@
 #!/bin/bash
-# Trend-scanner-Agent 部署脚本
+# QuantNova 部署脚本
 # 
 # 使用方式：
 #   bash tools/deploy.sh [选项]
@@ -44,7 +44,7 @@ log_error() {
 
 # 显示帮助
 show_help() {
-    echo "Trend-scanner-Agent 部署脚本"
+    echo "QuantNova 部署脚本"
     echo ""
     echo "使用方式："
     echo "  bash tools/deploy.sh [选项]"
@@ -361,7 +361,7 @@ show_status() {
 # 主函数
 main() {
     echo ""
-    echo "=== Trend-scanner-Agent 部署脚本 ==="
+    echo "=== QuantNova 部署脚本 ==="
     echo ""
     
     # 解析参数
