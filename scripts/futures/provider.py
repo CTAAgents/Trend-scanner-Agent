@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
+import numpy as np
 import pandas as pd
 
 # 添加项目根目录到路径

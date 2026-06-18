@@ -60,6 +60,7 @@
 | **test_futures_subsystem.py** | 16 | 期货子系统（Provider/MarketContext/FactorLibrary/RiskManager/Strategy） |
 | **test_securities_subsystem.py** | 17 | 证券子系统（Provider/MarketContext/FactorLibrary/RiskManager/Strategy） |
 | **test_reasoning_adaptation.py** | 7 | 推理系统适配（期货/证券Prompt模板+PromptRouter） |
+| **test_dual_subsystem_integration.py** | 5 | 双子系统集成测试（期货+证券+Prompt路由） |
 
 ### 端到端测试（20 个）
 
