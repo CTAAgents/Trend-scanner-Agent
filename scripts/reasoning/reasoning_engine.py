@@ -14,10 +14,17 @@ v3.1 增强：机制门思想
 
 import json
 import time
+import sys
+from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .models import (
+# 添加项目根目录到路径
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from scripts.core.models import (
     Constraint,
     ExperienceMatch,
     MarketContext,
