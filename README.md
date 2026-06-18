@@ -356,7 +356,6 @@ python -m pytest tests/ -v
 | **TradeArena** | 审计轨迹系统 | `AuditTrail` | `scripts/risk/` |
 | **Representation Signatures** (arXiv:2605.28850) | 表示诊断，风险反馈对齐 | 思想已吸纳到现有模块 | - |
 | **MadEvolve** (arXiv:2605.23007) | LLM驱动的进化算法优化 | 思想已吸纳到因子进化引擎 | `scripts/evolution/` |
-| **V3.0方案** | 数据质量，幻觉检测，自适应Prompt | `DataConflictResolver` + `AnomalyWeighter` + `HallucinationDetector` + `AdaptivePromptRouter` | `scripts/data/` + `scripts/reasoning/` |
 
 **详细映射请查看** [论文实现指南](docs/paper_implementation_guide.md)
 
