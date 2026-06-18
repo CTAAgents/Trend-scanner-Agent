@@ -17,11 +17,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-# 从 trend_scanner 导入数据模型
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from trend_scanner.models import (
+from .models import (
     Constraint,
     ExperienceMatch,
     MarketContext,
