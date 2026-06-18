@@ -228,6 +228,93 @@ class SQLiteStore:
 
         self.conn.commit()
 
+    def upsert_symbols_batch(self, symbols: list[dict[str, Any]]):
+        """
+        批量插入或更新符号
+
+        Args:
+            symbols: 符号列表，每个元素是字典
+        """
+        cursor = self.conn.cursor()
+
+        for symbol in symbols:
+            # 提取符号信息
+            symbol_code = symbol.get("symbol", "")
+            name = symbol.get("name", "")
+            exchange = symbol.get("exchange", "")
+            product_type = symbol.get("product_type", "")
+            volume_multiple = symbol.get("volume_multiple", 0)
+            price_tick = symbol.get("price_tick", 0)
+            margin_ratio = symbol.get("margin_ratio", 0)
+            trading_unit = symbol.get("trading_unit", "")
+            delivery_month = symbol.get("delivery_month", "")
+            listed_date = symbol.get("listed_date", "")
+            delisted_date = symbol.get("delisted_date", "")
+            is_active = 1 if symbol.get("is_active", True) else 0
+
+            # UPSERT 操作
+            cursor.execute("""
+                INSERT INTO symbols (
+                    symbol, name, exchange, product_type,
+                    volume_multiple, price_tick, margin_ratio,
+                    trading_unit, delivery_month, listed_date,
+                    delisted_date, is_active, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ON CONFLICT(symbol) DO UPDATE SET
+                    name = excluded.name,
+                    exchange = excluded.exchange,
+                    product_type = excluded.product_type,
+                    volume_multiple = excluded.volume_multiple,
+                    price_tick = excluded.price_tick,
+                    margin_ratio = excluded.margin_ratio,
+                    trading_unit = excluded.trading_unit,
+                    delivery_month = excluded.delivery_month,
+                    listed_date = excluded.listed_date,
+                    delisted_date = excluded.delisted_date,
+                    is_active = excluded.is_active,
+                    updated_at = datetime('now')
+            """, (
+                symbol_code, name, exchange, product_type,
+                volume_multiple, price_tick, margin_ratio,
+                trading_unit, delivery_month, listed_date,
+                delisted_date, is_active
+            ))
+
+        self.conn.commit()
+
+    def get_active_symbols(self, min_oi: float = 0) -> list[dict[str, Any]]:
+        """
+        获取活跃符号
+
+        Args:
+            min_oi: 最小持仓量筛选（暂未使用）
+
+        Returns:
+            符号列表
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM symbols WHERE is_active = 1")
+        rows = cursor.fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
+    def get_all_symbols(self, active_only: bool = False) -> list[dict[str, Any]]:
+        """
+        获取所有符号
+
+        Args:
+            active_only: 是否只返回活跃符号
+
+        Returns:
+            符号列表
+        """
+        cursor = self.conn.cursor()
+        if active_only:
+            cursor.execute("SELECT * FROM symbols WHERE is_active = 1")
+        else:
+            cursor.execute("SELECT * FROM symbols")
+        rows = cursor.fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
     # ========== 经验操作 ==========
 
     def insert_experience(self, experience: dict[str, Any]) -> str:

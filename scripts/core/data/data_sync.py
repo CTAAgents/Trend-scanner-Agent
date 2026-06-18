@@ -36,6 +36,7 @@ class DataSyncManager:
             duckdb_path: DuckDB 数据库路径
         """
         self.sqlite = SQLiteStore(sqlite_path)
+        self.sqlite.init_tables()
         self.duckdb = DuckDBStore(duckdb_path)
 
         # TqSdk 数据源（延迟初始化）
