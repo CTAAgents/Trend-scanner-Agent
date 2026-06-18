@@ -88,19 +88,19 @@ python scripts/core/main.py --stop
 
 ```bash
 # 查看系统状态
-python tools/scan_opportunities.py --status
+python tools/core/scan_opportunities.py --status
 
 # 手动触发扫描
-python tools/scan_opportunities.py --output text --save
+python tools/core/scan_opportunities.py --output text --save
 
 # 手动触发因子进化
-python tools/scan_opportunities.py --evolve --evolve-rounds 3
+python tools/core/scan_opportunities.py --evolve --evolve-rounds 3
 
 # 查看持仓健康度
-python tools/scan_opportunities.py --position-health
+python tools/core/scan_opportunities.py --position-health
 
 # 查看套利机会
-python tools/scan_opportunities.py --arbitrage --output text
+python tools/core/scan_opportunities.py --arbitrage --output text
 ```
 
 ### 2.3 CLI 优势

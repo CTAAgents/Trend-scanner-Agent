@@ -32,9 +32,9 @@ E:\QuantNova\
 
 ### 2.1 启动流程
 
-1. 检查数据源连接：`python tools/health_check.py check`
-2. 检查健康状态：`python tools/health_check.py report`
-3. 启动心跳监控：`python tools/heartbeat.py --loop`
+1. 检查数据源连接：`python tools/monitor/health_check.py check`
+2. 检查健康状态：`python tools/monitor/health_check.py report`
+3. 启动心跳监控：`python tools/monitor/heartbeat.py --loop`
 
 ### 2.2 Cron 调度
 
@@ -55,8 +55,8 @@ E:\QuantNova\
 ### 3.1 Token 预算
 
 - 每日预算：850,000 token
-- 查看状态：`python tools/token_budget.py status`
-- 记录使用：`python tools/token_budget.py record --component reasoner --tokens 5000`
+- 查看状态：`python tools/utils/token_budget.py status`
+- 记录使用：`python tools/utils/token_budget.py record --component reasoner --tokens 5000`
 
 降级策略：
 | 使用率 | 动作 |
@@ -87,7 +87,7 @@ grep '"level":"ERROR"' logs/2026-06-15.jsonl
 ### 3.3 错误统计
 
 - 位置：`data/error_log.json`
-- 查看：`python tools/health_check.py report`
+- 查看：`python tools/monitor/health_check.py report`
 
 ## 四、故障排查
 
@@ -124,7 +124,7 @@ grep '"level":"ERROR"' logs/2026-06-15.jsonl
 **症状**：Agent 停止运行
 
 **排查步骤**：
-1. 查看预算状态：`python tools/token_budget.py status`
+1. 查看预算状态：`python tools/utils/token_budget.py status`
 2. 检查各组件使用量
 3. 等待次日重置或手动调整预算
 
@@ -137,7 +137,7 @@ grep '"level":"ERROR"' logs/2026-06-15.jsonl
 **症状**：Monitor 脚本报错 "positions.json 不存在"
 
 **恢复步骤**：
-1. 重新提交持仓：`python tools/positions_manager.py add --symbol DCE.jm2609 --direction LONG --price 1350`
+1. 通过系统命令重新提交持仓（如："添加焦煤多头持仓"）
 2. 或手动编辑 `config/positions.json`
 
 ## 五、维护
@@ -167,33 +167,29 @@ grep '"level":"ERROR"' logs/2026-06-15.jsonl
 
 ```bash
 # 健康检查
-python tools/health_check.py check
-python tools/health_check.py report
+python tools/monitor/health_check.py check
+python tools/monitor/health_check.py report
 
 # 扫描
-python tools/scan_opportunities.py --output text --save
+python tools/core/scan_opportunities.py --output text --save
 
 # 心跳
-python tools/heartbeat.py --output text
-
-# 持仓管理
-python tools/positions_manager.py list
-python tools/positions_manager.py add --symbol DCE.jm2609 --direction LONG --price 1350
+python tools/monitor/heartbeat.py --output text
 
 # 推理
-python tools/run_reasoner.py --symbol SHFE.rb --output text
+python tools/core/run_reasoner.py --symbol SHFE.rb --output text
 
 # 辩论
-python tools/run_debater.py --output text --save
+python tools/core/run_debater.py --output text --save
 
 # 进化
-python tools/run_evolver.py status
-python tools/run_evolver.py feedback --symbol DCE.jm2609 --result profit --pnl 3.5
+python tools/core/run_evolver.py status
+python tools/core/run_evolver.py feedback --symbol DCE.jm2609 --result profit --pnl 3.5
 
 # Token 预算
-python tools/token_budget.py status
-python tools/token_budget.py record --component reasoner --tokens 5000
+python tools/utils/token_budget.py status
+python tools/utils/token_budget.py record --component reasoner --tokens 5000
 
 # 完整流程
-python tools/orchestrator.py full
+python tools/core/orchestrator.py full
 ```

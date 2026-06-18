@@ -64,7 +64,7 @@ Orchestrator Agent（主协调）
 | 1.2 | 实现 LLM 因子生成接口 | ✅ 已完成 | `scripts/trend_scanner/llm_factor_client.py` |
 | 1.3 | 创建因子验证模块 | ✅ 已完成 | `scripts/trend_scanner/factor_validator.py` |
 | 1.4 | 建立因子知识库 | ✅ 已完成 | `data/factor_knowledge.json` |
-| 1.5 | 与 Scanner 脚本集成 | ✅ 已完成 | 修改 `tools/scan_opportunities.py`（支持 `--use-dynamic-factors`） |
+| 1.5 | 与 Scanner 脚本集成 | ✅ 已完成 | 修改 `tools/core/scan_opportunities.py`（支持 `--use-dynamic-factors`） |
 | 1.6 | 编写单元测试 | ✅ 已完成 | `tests/test_factor_generator.py`（22 个测试） |
 
 ### Phase 2: 轨迹感知优化器（第 2-3 周）— 高优先级

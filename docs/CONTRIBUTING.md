@@ -1,15 +1,15 @@
-# 编码行为准则
+# 开发规范
 
-> 来源：CLAUDE.md + trend-tracking-scanner coding-guidelines.md
-> 版本：v2.0 | 创建日期：2026-06-15 | 更新日期：2026-06-17
+> 本文档定义 QuantNova 项目的代码风格与开发规范
+> 版本：v2.0 | 创建日期：2026-06-15 | 更新日期：2026-06-18
 
 ---
 
-## 核心原则
+## 定位说明
 
-**减少常见的 LLM 编码错误，偏向谨慎而非速度。**
+本文档面向所有开发者（人类+AI），定义代码风格、命名规范、最佳实践等开发规范。
 
-> 权衡：这些准则偏向谨慎而非速度。对于简单任务，自行判断。
+**AI编码行为准则**已统一由 `~/.workbuddy/skills/claude-md-guidelines/SKILL.md` 管理，不在本文档重复。
 
 ---
 
@@ -269,7 +269,7 @@ result = some_function(argument_one, argument_two, argument_three)
 
 ```bash
 # 同步最近5天数据
-python tools/sync_data.py sync --days 5
+python tools/core/sync_data.py sync --days 5
 ```
 
 将任务转化为可验证的目标：
@@ -353,6 +353,14 @@ python tools/sync_data.py sync --days 5
 2. **简单优先**：最少代码解决问题，不添加未要求功能
 3. **外科手术式修改**：只改必须改的，不改进相邻代码
 4. **目标驱动执行**：定义成功标准，循环直到验证通过
+
+---
+
+## 附注：AI编码行为准则
+
+本文档中的"先思考再编码"、"简单至上"、"外科手术式修改"、"目标驱动执行"四条核心原则，完整版本由项目根目录的 `CLAUDE.md` 统一管理。
+
+本文档保留精简版本作为快速参考，详细说明请查看 `CLAUDE.md`。
 
 ---
 

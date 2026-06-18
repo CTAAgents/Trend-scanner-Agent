@@ -1,7 +1,8 @@
 # 测试文档
 
-> 版本：v1.5 | 创建日期：2026-06-17
+> 版本：v2.0 | 创建日期：2026-06-17
 > 最后更新：2026-06-18
+> 状态：全面梳理，与实际代码结构对齐
 
 ## 测试概览
 
@@ -49,6 +50,7 @@
 | **test_scanner_integration.py** | 11 | RLSignalGenerator, integrate_rl_signal_to_scanner |
 | **test_scenario_analyzer.py** | 11 | ScenarioAnalyzer（概率加权场景分析） |
 | **test_carry_analyzer.py** | 19 | CarryAnalyzer（Carry策略：期限结构套利） |
+| **test_fundamental.py** | 25 | 基本面分析（新闻抓取+供需数据+地缘政治+上下文组装+推理层集成） |
 
 ### 端到端测试（20 个）
 
@@ -85,7 +87,7 @@ python -m pytest tests/ -v
 python -m pytest tests/test_visibility_graph.py -v
 
 # 运行带覆盖率报告
-python -m pytest tests/ --cov=scripts/trend_scanner --cov-report=html
+python -m pytest tests/ --cov=scripts --cov-report=html
 ```
 
 ## 测试规范
@@ -111,4 +113,4 @@ python -m pytest tests/ --cov=scripts/trend_scanner --cov-report=html
 
 ---
 
-*本文档记录 Trend-Scanner-Agent 项目的测试状态和规范。*
+*本文档记录 QuantNova 项目的测试状态和规范。*

@@ -1,12 +1,12 @@
 # 用户手册
 
-> Trend Scanner Agent v0.1.0 — 期货趋势跟踪决策辅助系统
+> QuantNova v0.1.0 — 期货趋势跟踪决策辅助系统
 
 ---
 
 ## 这是什么？
 
-一个帮你扫描期货市场趋势信号的工具。它自动计算 60+ 个期货品种的技术指标，发现有趋势的品种，告诉你方向、仓位和止损位。
+一个帮你扫描期货市场趋势信号的工具。它自动计算 60+ 个期货品种的技术指标（含自研35+和TqSdk内置70+），发现有趋势的品种，告诉你方向、仓位和止损位。
 
 **它不自动下单。** 最终决策权在你手里。
 
@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ### 1. 扫描行情（每天必做）
 
 ```bash
-python tools/scan_opportunities.py --output text --save
+python tools/core/scan_opportunities.py --output text --save
 ```
 
 输出示例：
@@ -58,7 +58,7 @@ python tools/scan_opportunities.py --output text --save
 ### 2. 评估因子（每周一次）
 
 ```bash
-python tools/scan_opportunities.py --evaluate-factors
+python tools/core/scan_opportunities.py --evaluate-factors
 ```
 
 输出示例：
@@ -76,7 +76,7 @@ python tools/scan_opportunities.py --evaluate-factors
 ### 3. 因子进化（研究时用）
 
 ```bash
-python tools/scan_opportunities.py --evolve --evolve-rounds 5
+python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
 ```
 
 自动尝试不同因子组合，找到有效的留下，没用的淘汰。
@@ -89,31 +89,31 @@ python tools/scan_opportunities.py --evolve --evolve-rounds 5
 
 ```bash
 # 优化 RSI/动量/波动率等因子的参数
-python tools/scan_opportunities.py --optimize-params --opt-trials 50
+python tools/core/scan_opportunities.py --optimize-params --opt-trials 50
 ```
 
 ### 策略健康检查
 
 ```bash
 # 检查策略是否健康（需要有交易历史）
-python tools/scan_opportunities.py --health-check
+python tools/core/scan_opportunities.py --health-check
 
 # 检查是否过拟合
-python tools/scan_opportunities.py --overfitting-check
+python tools/core/scan_opportunities.py --overfitting-check
 ```
 
 ### 从研报加载因子
 
 ```bash
 # 把研报中的因子想法导入系统
-python tools/scan_opportunities.py --evolve --load-report report.txt
+python tools/core/scan_opportunities.py --evolve --load-report report.txt
 ```
 
 ### 套利分析（v0.1.0 新增）
 
 ```bash
 # 扫描套利机会（跨期/跨品种价差）
-python tools/scan_opportunities.py --arbitrage
+python tools/core/scan_opportunities.py --arbitrage
 ```
 
 **支持的套利组合**：
@@ -127,7 +127,7 @@ python tools/scan_opportunities.py --arbitrage
 
 ```bash
 # 使用 LLM 进行深度分析
-python tools/scan_opportunities.py --reasoner
+python tools/core/scan_opportunities.py --reasoner
 ```
 
 ### VGRSI 因子（可见图技术指标）
@@ -135,8 +135,8 @@ python tools/scan_opportunities.py --reasoner
 基于可见图的技术指标，捕捉价格序列的拓扑结构特征。
 
 ```bash
-# 添加 VGRSI 因子到种子因子池
-python tools/add_vgrsi_factor.py
+# 添加 VGRSI 因子到种子因子池（通过因子进化引擎）
+python tools/core/scan_opportunities.py --evolve --load-report vgrsi_report.txt
 ```
 
 **VGRSI 与传统 RSI 的区别**：
@@ -153,7 +153,7 @@ python tools/add_vgrsi_factor.py
 
 ```bash
 # 在因子进化中启用 Walk-Forward 验证
-python tools/scan_opportunities.py --evolve --walk-forward
+python tools/core/scan_opportunities.py --evolve --walk-forward
 ```
 
 **验证标准**：
@@ -166,10 +166,10 @@ python tools/scan_opportunities.py --evolve --walk-forward
 
 ```bash
 # 同步所有品种数据到本地（首次使用必须执行）
-python tools/sync_data.py sync --days 120
+python tools/core/sync_data.py sync --days 120
 
 # 查看数据状态
-python tools/sync_data.py stats
+python tools/core/sync_data.py stats
 ```
 
 ---
@@ -244,7 +244,7 @@ A: 检查：
 
 A: 首次使用需要同步数据：
 ```bash
-python tools/sync_data.py sync --days 120
+python tools/core/sync_data.py sync --days 120
 ```
 
 ### Q: 因子评估全是"淘汰"？
@@ -270,9 +270,9 @@ A: 编辑 `data/seed_factors.json`，添加因子代码：
 
 | 文件/目录 | 用途 |
 |-----------|------|
-| `tools/scan_opportunities.py` | 主入口（扫描/评估/进化） |
-| `tools/sync_data.py` | 数据同步 |
-| `tools/heartbeat.py` | 心跳监控 |
+| `tools/core/scan_opportunities.py` | 主入口（扫描/评估/进化） |
+| `tools/core/sync_data.py` | 数据同步 |
+| `tools/monitor/heartbeat.py` | 心跳监控 |
 | `config/config.json` | 配置文件 |
 | `data/latest_scan.json` | 最新扫描结果 |
 | `data/market.db` | K线数据库（DuckDB） |

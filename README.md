@@ -1,27 +1,27 @@
 ---
 name: quantnova
 description: >
-  智能量化交易系统 - 融合趋势跟踪、因子进化、强化学习的多策略交易智能体。
-  统一数据路由 + 知识锚点 + 分级输出 + 套利分析 + LLM推理 + 闭环因子进化，
-  数据源：TqSdk + Pytdx + AkShare + 本地数据库缓存。
-  独立策略模块：趋势跟踪、Carry策略（期限结构套利）、套利策略。
+  推理重于规则的期货趋势跟踪决策辅助系统 - 融合趋势跟踪、因子进化、强化学习的多策略交易智能体。
+  统一数据路由 + 知识锚点 + 分级输出 + 套利分析 + LLM推理 + 闭环因子进化 + 基本面分析，
+  数据源：TqSdk（首选）+ Pytdx（备选）+ AkShare（基差/季节性/龙虎榜）+ 本地数据库缓存。
+  独立策略模块：趋势跟踪、Carry策略（期限结构套利）、套利策略（跨期/跨品种）。
 ---
 
 # QuantNova
 
-> 智能量化交易系统 - 多策略交易智能体
+> 推理重于规则的期货趋势跟踪决策辅助系统 - 多策略交易智能体
 
-**新用户请查看 [用户手册](docs/USER_GUIDE.md)** | **版本历史见 [CHANGELOG](docs/CHANGELOG.md)**
+**新用户请查看 [用户手册](docs/USER_GUIDE.md)** | **版本历史见 [CHANGELOG](docs/CHANGELOG.md)** | **架构总览见 [系统架构](docs/system_architecture_overview.md)**
 
 ## 一句话概括
 
-QuantNova 是一个融合趋势跟踪、因子进化、强化学习的多策略交易智能体，通过 LLM 推理和自然语言交互，为期货交易提供智能决策支持。
+QuantNova 是一个融合趋势跟踪、因子进化、强化学习的多策略交易智能体，通过 LLM 推理和自然语言交互，为期货交易提供智能决策支持。系统不自动下单，只输出决策简报供人参考。
 
 ## 核心理念
 
 **以人为本，推理为魂，规则为果。**
 
-所有看似"规则"的内容（止损、仓位、入场条件）均由推理层根据当前市场状态动态生成，而非事先写死。系统不自动下单，只输出决策简报供人参考。
+所有看似"规则"的内容（止损、仓位、入场条件）均由推理层根据当前市场状态动态生成，而非事先写死。
 
 ---
 
@@ -57,56 +57,79 @@ python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
 
 ![系统架构](docs/architecture_diagram_v2.svg)
 
-### 分层架构
+### 分层架构（11层 + 跨层模块）
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Layer 10 - 主协调层 (Orchestrator)                                   │
-│   TradingAssistant - 系统主入口                                       │
+│   TradingAssistant + MainProcess + EventEngine + Workers + NLP      │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Layer 9 - 分析工具层 (Analytics)                                     │
-│   PositionSizer + StopLoss + RiskManager + Backtester               │
+│   PositionSizer + StopLoss + RiskManager + Backtester + Health     │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 8 - 推理层 (Reasoning)                                         │
-│   ReasoningEngine(LLM推理) + DebateEngine(多角色辩论)               │
+│ Layer 8 - 高级分析层 (Advanced Analysis)                             │
+│   KnowledgeAnchors + VisibilityGraph + RegimeSegmenter + DataValid │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Layer 7 - 因子进化层 (Factor Evolution)                              │
-│   FactorGenerator → FactorEvaluator → FactorEvolutionEngine         │
+│   FactorGenerator → FactorEvaluator → FactorGate → Evolver         │
+│   + FactorValidator + FactorLifecycle + FactorGovernance            │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 6 - 策略层 (Strategy)                                          │
-│   TrendScanner + RiskManager + ExecutionEngine                      │
+│ Layer 6 - 进化层 (Evolution)                                         │
+│   EvolutionManager + TrajectoryAnalyzer + CircuitBreaker + Meta    │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 5 - 进化层 (Evolution)                                         │
-│   EvolutionManager + TrajectoryAnalyzer + TradeJournal              │
+│ Layer 5 - 策略层 (Strategy)                                          │
+│   TrendScanner + Carry + Arbitrage + RiskManager + Execution       │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 4 - 记忆层 (Memory)                                            │
-│   UnifiedMemoryManager + MemoryBridge + ExperienceMemory            │
+│ Layer 4 - 推理层 (Reasoning)                                         │
+│   ReasoningEngine(LLM推理) + DebateEngine(鹰鸽辩论) + Scenario     │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 3 - 感知层 (Perception)                                        │
-│   IndicatorEngine(35+) + ContextAssembler + MacroStateDetector      │
+│ Layer 3 - 记忆层 (Memory)                                            │
+│   UnifiedMemoryManager + MemoryBridge + ExperienceMemory + Vector  │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Layer 2 - 存储层 (Storage)                                           │
-│   DuckDBStore + SQLiteStore + DataSyncManager                       │
+│   DuckDBStore + SQLiteStore + DataSync + TqSdkBridge + DataRouter  │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Layer 1 - 数据源层 (Data Sources)                                    │
-│   TqSdk(首选) + Pytdx(备选) + AkShare + CSV(兜底)                   │
+│ Layer 1 - 感知层 (Perception)                                        │
+│   IndicatorEngine(自研35+指标+TqSdk内置70+指标+7维趋势强度)          │
+│   + ContextAssembler + MultiDimensionScreener + MacroState           │
+│   + 基本面分析(国际/国内新闻源)                                     │
 ├─────────────────────────────────────────────────────────────────────┤
-│ 基本面分析层 (Fundamental Analysis) - 新增                           │
-│   NewsCrawler + SupplyDemandProvider + GeopoliticalTracker           │
+│ Layer 0 - 数据模型层 (Foundation)                                    │
+│   models.py + TrendScannerConfig + ControlVariable                  │
 └─────────────────────────────────────────────────────────────────────┘
+
+跨层模块:
+  RL模块 (8个) → Layer 5(信号) + Layer 7(Walk-Forward) + Layer 8(接口) + Layer 10
+  NLP模块 (7个) → Layer 1(命令解析) + Layer 10(LLM对话)
+  Tools工具集 (10+个) → CLI入口脚本
 ```
+
+### 核心数据流
+
+| 数据流 | 方向 | 说明 |
+|--------|------|------|
+| 数据源 → 存储层 | ↑ | 原始行情写入 DuckDB（自动回写） |
+| 存储层 → 感知层 | ↑ | K线数据供指标计算 |
+| 感知层 → 记忆层 | ↑ | 技术指标+基本面存入记忆 |
+| 记忆层 → 推理层 | ↑ | 历史经验供LLM推理参考 |
+| 推理层 → 策略层 | ↑ | 推理结论指导策略信号 |
+| 策略层 → 进化层 | ↔ | 策略表现反馈，因子有效性验证 |
+| 进化层 → 记忆层 | ↔ | 经验教训存储，历史经验查询 |
+| 各层 → 主协调层 | ↑ | TradingAssistant 调度全流程 |
 
 ### 独立策略模块
 
 ```
 scripts/strategies/
-├── __init__.py           # 策略模块导出
-└── carry/                # Carry 策略（期限结构套利）
-    ├── __init__.py
-    └── carry_analyzer.py
+├── trend_following/      # 趋势跟踪（3层融合：Z-score→MAD→加权评分）
+│   ├── scanner.py        # TrendScanner
+│   └── strategy.py       # StrategyPool
+├── carry/                # Carry 策略（期限结构套利）
+│   └── carry_analyzer.py # CarryAnalyzer（Contango/Backwardation展期收益）
+├── arbitrage/            # 套利策略（跨期/跨品种）
+│   └── arbitrage_analyzer.py
+└── strategy_portfolio.py # 多策略组合管理
 ```
-
-**Carry 策略**：赚取期货曲线形态（Contango/Backwardation）带来的展期收益，与趋势跟踪策略并行运行。
 
 ### 设计原则
 
@@ -117,77 +140,8 @@ scripts/strategies/
 | 数据本地化 | TqSdk 数据写入本地 DuckDB |
 | 因子即代码 | 因子是 LLM 生成的可执行代码 |
 | 门控不可调 | 门控阈值预设，防 p-hacking |
-
-### 层级关系图
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 10: 主协调层 (Orchestrator)                              │
-│                              TradingAssistant - 系统主入口                                 │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-                                          ↓ 调用
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 9: RL 强化学习层 (RL)                                    │
-│                    AgentPPO + FuturesTradingEnv + RLSignalGenerator                      │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-                                          ↓ 信号
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 8: 推理层 (Reasoning)                                   │
-│              ReasoningEngine + DebateEngine + ScenarioAnalyzer + BriefGenerator         │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-                                          ↓ 推理结果
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 7: 因子进化层 (Factor Evolution)                        │
-│     FactorGenerator → FactorEvaluator → FactorGate → FactorEvolutionEngine              │
-│                              ↓ 验证后的因子 ↓ 经验反馈                                   │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 因子有效性验证                              ↑ 策略调整建议
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 6: 策略层 (Strategy)                                    │
-│              TrendScanner + RiskManager + ExecutionEngine + PortfolioManager            │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 策略表现反馈                              ↓ 交易记录
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 5: 进化工具层 (Evolution Tools)                         │
-│          EvolutionManager + TrajectoryAnalyzer + TradeJournal + CircuitBreaker         │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 经验教训                                ↓ 策略调整
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 4: 记忆层 (Memory)                                      │
-│         UnifiedMemoryManager + MemoryBridge + ExperienceMemory + KnowledgeAnchors      │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 历史经验                                ↓ 技术指标
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 3: 感知层 (Perception)                                  │
-│              IndicatorEngine(80+) + ContextAssembler + MacroStateDetector               │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 指标数据                                ↓ K线数据
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 2: 存储层 (Storage)                                     │
-│              DuckDBStore + SQLiteStore + DataSyncManager + DataValidator                │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-          ↑ 数据存储                                ↓ 原始数据
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                            Layer 1: 数据源层 (Data Sources)                              │
-│              TqSdk(首选) + Pytdx(备选) + AkShare + CSV(兜底)                            │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 数据流方向
-
-| 数据流 | 方向 | 说明 |
-|--------|------|------|
-| **数据层 → 存储层** | ↑ | 原始行情数据写入 DuckDB |
-| **存储层 → 感知层** | ↑ | K线数据供指标计算 |
-| **感知层 → 记忆层** | ↑ | 技术指标存入记忆 |
-| **记忆层 → 进化层** | ↑ | 历史经验供策略学习 |
-| **进化层 → 策略层** | ↑ | 验证后的因子供策略使用 |
-| **策略层 → 推理层** | ↑ | 策略信号供推理分析 |
-| **推理层 → RL层** | ↑ | 推理结果供RL决策 |
-| **RL层 → 主协调层** | ↑ | 最终信号供系统协调 |
-| **主协调层 → 各层** | ↓ | 系统主入口调用各层 |
-| **策略层 ↔ 进化层** | ↔ | 策略表现反馈，因子有效性验证 |
-| **进化层 ↔ 记忆层** | ↔ | 经验教训存储，历史经验查询 |
+| 技术面+基本面融合 | 技术指标提供时机，基本面提供方向 |
+| 事件驱动 | 重大事件优先于技术信号 |
 
 ---
 
@@ -196,7 +150,7 @@ scripts/strategies/
 ### 主入口：scan_opportunities.py
 
 ```bash
-python tools/scan_opportunities.py [选项]
+python tools/core/scan_opportunities.py [选项]
 ```
 
 | 参数 | 说明 | 示例 |
@@ -215,25 +169,25 @@ python tools/scan_opportunities.py [选项]
 
 ```bash
 # 日常扫描
-python tools/scan_opportunities.py --output text --save
+python tools/core/scan_opportunities.py --output text --save
 
 # Reasoner深度分析（推荐）
-python tools/scan_opportunities.py --reasoner --output text --save
+python tools/core/scan_opportunities.py --reasoner --output text --save
 
 # 指定品种 + Reasoner
-python tools/scan_opportunities.py --symbols RB,I,JM --reasoner --output text
+python tools/core/scan_opportunities.py --symbols RB,I,JM --reasoner --output text
 
 # 使用 RL 信号扫描（需要先训练模型）
-python tools/scan_opportunities.py --use-rl
+python tools/core/scan_opportunities.py --use-rl
 
 # 因子进化（手动触发）
-python tools/scan_opportunities.py --evolve --evolve-rounds 5
+python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
 
 # 套利分析
-python tools/scan_opportunities.py --arbitrage --output text
+python tools/core/scan_opportunities.py --arbitrage --output text
 
 # 持仓健康度
-python tools/scan_opportunities.py --position-health
+python tools/core/scan_opportunities.py --position-health
 ```
 
 ### 自动进化机制
@@ -253,39 +207,48 @@ python tools/scan_opportunities.py --position-health
 
 ```bash
 # 训练 PPO 策略
-python tools/train_ppo.py --symbol RB --days 200 --train-steps 10000
+python tools/rl/train_ppo.py --symbol RB --days 200 --train-steps 10000
 
 # 多品种并行训练
-python tools/train_ppo.py --symbol I,J,JM --multi-asset
+python tools/rl/train_ppo.py --symbol I,J,JM --multi-asset
 
 # Walk-Forward 验证
-python tools/train_ppo.py --symbol RB --walk-forward
+python tools/rl/train_ppo.py --symbol RB --walk-forward
 
 # 超参调优
-python tools/tune_rl_hyperparams.py --symbol RB --trials 20
+python tools/rl/tune_rl_hyperparams.py --symbol RB --trials 20
 ```
 
 ### 数据同步
 
 ```bash
-python tools/sync_data.py sync --days 120 --min-oi 10000
-python tools/sync_data.py stats
+python tools/core/sync_data.py sync --days 120 --min-oi 10000
+python tools/core/sync_data.py stats
 ```
 
 ---
 
 ## 工作流
 
-### 日常扫描
+### 日常扫描（主流程）
 
 ```
-数据同步 → 全品种扫描 → 信号筛选 → Reasoner推理 → 决策简报
+数据同步 → 全品种扫描 → 信号筛选 → Context组装(技术面+基本面)
+→ 经验检索 → LLM推理 → 鹰鸽辩论 → 决策简报
 ```
 
-### 因子进化
+### 因子进化（闭环）
 
 ```
-种子因子 → 生成候选 → 执行计算 → IC/ICIR评估 → 门控决策 → 经验记忆
+种子因子 → 候选生成 → 代码验证 → 执行计算 → IC/ICIR评估
+→ Walk-Forward验证 → 门控决策 → 经验记忆 → 反馈优化
+```
+
+### 自优化闭环
+
+```
+交易执行 → 结果记录 → 轨迹分析 → 故障归因 → LLM反思
+→ 规则优化 → 过拟合审计 → 规则晋升 → 经验存储 → 闭环
 ```
 
 ---
@@ -294,7 +257,7 @@ python tools/sync_data.py stats
 
 | 文件 | 用途 |
 |------|------|
-| `config/config.json` | 主配置（品种/筛选条件/数据路由） |
+| `config/config.json` | 主配置（品种/筛选条件/数据路由/LLM/权重） |
 | `config/positions.json` | 持仓配置 |
 | `config/web.json` | Web UI 配置 |
 | `config/api.json` | API 配置 |
@@ -310,33 +273,37 @@ python tools/sync_data.py stats
 ### CLI 模式（命令行）
 
 ```bash
-# 启动独立运行模式
+# 启动独立运行模式（事件驱动+智能休眠）
 python scripts/core/main.py
 
 # 查看系统状态
 python scripts/core/main.py --status
 
 # 手动触发扫描
-python tools/scan_opportunities.py --output text --save
+python tools/core/scan_opportunities.py --output text --save
 ```
 
-### Web UI 模式（可视化）
+### NLP 模式（自然语言交互）
+
+```bash
+# 启动自然语言交互
+python scripts/core/nlp/nlp_chat.py
+
+# 支持的交互方式：
+# /scan  - 快捷扫描
+# /health - 健康度检查
+# /evolve - 因子进化
+# 自然语言提问 → IntentRecognizer → CommandParser → LLMProcessor → ResponseGenerator
+```
+
+### Web UI / API 模式
 
 ```bash
 # 启动 Web UI 服务
 python scripts/core/main.py --web --port 8080
 
-# 访问 http://localhost:8080
-```
-
-### API 模式（系统集成）
-
-```bash
 # 启动 API 服务
 python scripts/core/main.py --api --port 8081
-
-# 调用示例
-curl http://localhost:8081/api/status
 ```
 
 **详细说明请查看 [用户交互指南](docs/user_interaction_guide.md)**
@@ -351,14 +318,21 @@ python -m pytest tests/ -v
 
 **测试状态**: 544+ 个测试全部通过
 
+**详细测试文档**: [TESTING.md](docs/TESTING.md)
+
 ---
 
-## 论文基础
+## 论文基础与实现映射
 
-1. **Agentic AI for Factor Investing** (arXiv:2603.14288) — 闭环迭代因子发现引擎
-2. **FactorEngine** (arXiv:2603.16365) — 因子即代码，三大分离
-3. **FinCon** — 概念性语言反馈，信念传播机制
-4. **GIFT** — LLM 引导的 RL 接口设计
+| 论文 | 核心思想 | 实现模块 | 代码路径 |
+|------|----------|----------|----------|
+| **Agentic AI** (arXiv:2603.14288) | 闭环因子发现 | `FactorEvolutionEngine` | `scripts/evolution/` |
+| **FactorEngine** (arXiv:2603.16365) | 因子即代码，三大分离 | `FactorGenerator` + `FactorEvaluator` | `scripts/evolution/` |
+| **FinCon** | 信念传播，概念反馈 | `BeliefPropagationManager` | `scripts/reasoning/` |
+| **GIFT** | LLM引导RL接口设计 | `RLInterfaceDesigner` | `scripts/rl/` |
+| **Davey框架** | 蒙特卡洛/孵化/熔断/组合 | 4个模块 | `scripts/evolution_tools/` |
+
+**详细映射请查看** [论文实现指南](docs/paper_implementation_guide.md)
 
 ---
 
@@ -366,11 +340,11 @@ python -m pytest tests/ -v
 
 | 文档 | 说明 |
 |------|------|
+| [系统架构](docs/system_architecture_overview.md) | 11层架构+模块清单+工作流（最详细） |
 | [用户手册](docs/USER_GUIDE.md) | 安装、配置、使用指南 |
-| [用户交互指南](docs/user_interaction_guide.md) | CLI/Web UI/API 交互模式 |
-| [系统架构](docs/system_architecture_overview.md) | 详细架构设计 |
+| [用户交互指南](docs/user_interaction_guide.md) | CLI/NLP/Web UI/API 交互模式 |
 | [版本管理规范](docs/VERSION_MANAGEMENT.md) | 版本号管理原则 |
 | [版本历史](docs/CHANGELOG.md) | 完整变更记录 |
-| [编码规范](docs/CODE_STYLE.md) | 代码风格指南 |
+| [开发规范](docs/CONTRIBUTING.md) | 代码风格与开发指南 |
 | [测试文档](docs/TESTING.md) | 测试覆盖与运行 |
 | [自动运行升级计划](docs/auto_run_upgrade_plan.md) | 从cron升级为事件驱动架构 |
