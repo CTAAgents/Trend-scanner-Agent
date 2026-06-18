@@ -1,7 +1,7 @@
 # Changelog
 
 > 版本号管理遵循 [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md)
-> 版本号唯一定义位置：`scripts/trend_scanner/__version__.py`
+> 版本号唯一定义位置：`scripts/core/__version__.py`
 
 ---
 

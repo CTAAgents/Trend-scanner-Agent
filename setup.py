@@ -4,7 +4,7 @@ from pathlib import Path
 
 # 从 __version__.py 读取版本号（Single Source of Truth）
 def get_version():
-    version_file = Path(__file__).parent / "scripts" / "trend_scanner" / "__version__.py"
+    version_file = Path(__file__).parent / "scripts" / "core" / "__version__.py"
     content = version_file.read_text(encoding='utf-8')
     match = re.search(r'__version__ = "([^"]+)"', content)
     if match:
