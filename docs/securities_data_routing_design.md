@@ -366,27 +366,7 @@ CREATE TABLE securities_industry (
     PRIMARY KEY (symbol)
 );
 
--- 12. 宏观数据表
-CREATE TABLE macro_data (
-    subject VARCHAR NOT NULL,       -- 主体 (中国/美国)
-    indicator VARCHAR NOT NULL,     -- 指标 (GDP/CPI/PPI)
-    date DATE NOT NULL,             -- 数据日期
-    value DOUBLE,                   -- 数值
-    unit VARCHAR,                   -- 单位
-    data_source VARCHAR,            -- 数据来源 (tdx_mcp)
-    update_time TIMESTAMP,
-    PRIMARY KEY (subject, indicator, date)
-);
-
--- 13. 研报数据表
-CREATE TABLE research_report (
-    symbol VARCHAR,                 -- 证券代码 (可为空)
-    title VARCHAR,                  -- 研报标题
-    author VARCHAR,                 -- 研报机构/作者
-    rating VARCHAR,                 -- 评级
-    target_price DOUBLE,            -- 目标价
-    summary TEXT,                   -- 摘要
-    publish_date DATE,              -- 发布日期
+-- 12. 数据更新日志表
     data_source VARCHAR,
     update_time TIMESTAMP,
     PRIMARY KEY (title, publish_date)

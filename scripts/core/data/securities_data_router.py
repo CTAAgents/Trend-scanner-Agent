@@ -299,36 +299,6 @@ class SecuritiesDataRouter:
                 PRIMARY KEY (symbol)
             )
         """)
-        
-        # 宏观数据表
-        self.db.execute("""
-            CREATE TABLE IF NOT EXISTS macro_data (
-                subject VARCHAR NOT NULL,
-                indicator VARCHAR NOT NULL,
-                date DATE NOT NULL,
-                value DOUBLE,
-                unit VARCHAR,
-                data_source VARCHAR,
-                update_time TIMESTAMP,
-                PRIMARY KEY (subject, indicator, date)
-            )
-        """)
-        
-        # 研报数据表
-        self.db.execute("""
-            CREATE TABLE IF NOT EXISTS research_report (
-                symbol VARCHAR,
-                title VARCHAR,
-                author VARCHAR,
-                rating VARCHAR,
-                target_price DOUBLE,
-                summary TEXT,
-                publish_date DATE,
-                data_source VARCHAR,
-                update_time TIMESTAMP,
-                PRIMARY KEY (title, publish_date)
-            )
-        """)
     
     def get_kline(self, symbol: str, count: int = 100) -> pd.DataFrame:
         """获取K线数据"""
@@ -383,31 +353,6 @@ class SecuritiesDataRouter:
             ORDER BY date DESC 
             LIMIT {days}
         """).fetchdf()
-    
-    def get_macro_data(self, subject: str, indicator: str, days: int = 30) -> pd.DataFrame:
-        """获取宏观数据"""
-        return self.db.execute(f"""
-            SELECT * FROM macro_data 
-            WHERE subject = '{subject}' AND indicator = '{indicator}'
-            ORDER BY date DESC 
-            LIMIT {days}
-        """).fetchdf()
-    
-    def get_research_report(self, symbol: str = None, days: int = 30) -> pd.DataFrame:
-        """获取研报数据"""
-        if symbol:
-            return self.db.execute(f"""
-                SELECT * FROM research_report 
-                WHERE symbol = '{symbol}'
-                ORDER BY publish_date DESC 
-                LIMIT {days}
-            """).fetchdf()
-        else:
-            return self.db.execute(f"""
-                SELECT * FROM research_report 
-                ORDER BY publish_date DESC 
-                LIMIT {days}
-            """).fetchdf()
     
     def close(self):
         """关闭数据库连接"""
