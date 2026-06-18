@@ -9,6 +9,7 @@
 5. 集成收益归因（KTD-Fin）
 6. 集成审计轨迹（TradeArena）
 7. 集成V3.0方案（数据质量、幻觉检测、自适应Prompt）
+8. 集成多智能体融合框架（三方辩论、论据评估）
 """
 
 import logging
@@ -26,6 +27,7 @@ from .models import (
     TrendPhase,
     VolatilityState,
 )
+from .module_registry import get_module
 
 logger = logging.getLogger(__name__)
 
@@ -60,48 +62,34 @@ class ContextAssembler:
         self._anomaly_weighter = None
         self._hallucination_detector = None
         self._prompt_router = None
+        
+        # 多智能体融合框架模块（可选集成）
+        self._triad_debate_engine = None
+        self._evidence_evaluator = None
 
         self._init_risk_modules()
 
     def _init_risk_modules(self):
         """初始化风险评估模块和V3.0方案模块"""
         try:
-            import sys
-            from pathlib import Path
-            
-            # 添加项目根目录到路径
-            project_root = Path(__file__).parent.parent.parent
-            if str(project_root) not in sys.path:
-                sys.path.insert(0, str(project_root))
-            
-            from scripts.risk import (
-                CrowdingDetector,
-                DeploymentRiskEstimator,
-                ReturnAttributor,
-                AuditTrail,
-            )
-            from scripts.data import (
-                DataConflictResolver,
-                AnomalyWeighter,
-            )
-            from scripts.reasoning import (
-                HallucinationDetector,
-                AdaptivePromptRouter,
-            )
-
-            self._crowding_detector = CrowdingDetector()
-            self._deployment_risk_estimator = DeploymentRiskEstimator()
-            self._return_attributor = ReturnAttributor()
-            self._audit_trail = AuditTrail()
+            # 使用模块注册中心加载模块
+            self._crowding_detector = get_module("CrowdingDetector")
+            self._deployment_risk_estimator = get_module("DeploymentRiskEstimator")
+            self._return_attributor = get_module("ReturnAttributor")
+            self._audit_trail = get_module("AuditTrail")
             
             # V3.0 方案模块
-            self._conflict_resolver = DataConflictResolver()
-            self._anomaly_weighter = AnomalyWeighter()
-            self._hallucination_detector = HallucinationDetector()
-            self._prompt_router = AdaptivePromptRouter()
+            self._conflict_resolver = get_module("DataConflictResolver")
+            self._anomaly_weighter = get_module("AnomalyWeighter")
+            self._hallucination_detector = get_module("HallucinationDetector")
+            self._prompt_router = get_module("AdaptivePromptRouter")
+            
+            # 多智能体融合框架模块
+            self._triad_debate_engine = get_module("TriadDebateEngine")
+            self._evidence_evaluator = get_module("EvidenceEvaluator")
 
             logger.info("所有模块加载成功")
-        except ImportError as e:
+        except Exception as e:
             logger.warning(f"部分模块未找到，跳过集成: {e}")
 
     def assemble(

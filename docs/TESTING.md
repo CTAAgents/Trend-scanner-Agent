@@ -55,6 +55,7 @@
 | **test_paper_integration.py** | 11 | 论文集成（收益归因+审计轨迹系统） |
 | **test_v3_0_integration.py** | 18 | V3.0方案集成（数据冲突裁决+异常值加权+幻觉检测+自适应Prompt） |
 | **test_triad_debate.py** | 7 | 三方辩论引擎（论据可靠性评估） |
+| **test_module_registry.py** | 12 | 模块注册中心（模块发现、分类、加载） |
 
 ### 端到端测试（20 个）
 
