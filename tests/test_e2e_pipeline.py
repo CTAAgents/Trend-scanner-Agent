@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
 
-from trend_scanner.memory import UnifiedMemoryManager
+from core.memory import UnifiedMemoryManager
 
 
 class TestEndToEndPipeline(unittest.TestCase):
@@ -302,7 +302,7 @@ class TestEndToEndPipeline(unittest.TestCase):
 
     def test_07_evolution_trigger_integration(self):
         """测试7：进化触发集成"""
-        from trend_scanner.memory import EvolutionTrigger
+        from core.memory import EvolutionTrigger
 
         # 存储连续亏损的交易
         for i in range(5):
@@ -325,7 +325,7 @@ class TestEndToEndPipeline(unittest.TestCase):
 
     def test_08_rule_promotion_integration(self):
         """测试8：规则晋升集成"""
-        from trend_scanner.memory import RulePromoter
+        from core.memory import RulePromoter
 
         # 创建符合条件的模式
         pattern = {
@@ -349,7 +349,7 @@ class TestEndToEndPipeline(unittest.TestCase):
 
     def test_09_overfitting_audit_integration(self):
         """测试9：过拟合审计集成"""
-        from trend_scanner.memory import OverfittingAuditor
+        from core.memory import OverfittingAuditor
 
         # 存储一个规则
         rule = {

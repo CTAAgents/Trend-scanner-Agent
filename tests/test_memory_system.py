@@ -23,7 +23,7 @@ import pytest
 # 添加模块路径
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from trend_scanner.memory import (
+from core.memory import (
     EvolutionTrigger,
     OverfittingAuditor,
     RulePromoter,
