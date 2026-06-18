@@ -62,7 +62,7 @@ python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
 
 ## 系统架构
 
-![系统架构](docs/architecture_diagram_v2.svg)
+![系统架构](docs/architecture_diagram.svg)
 
 ### 分层架构（11层 + 跨层模块）
 
