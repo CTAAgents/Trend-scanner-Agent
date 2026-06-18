@@ -126,37 +126,62 @@ python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
 
 ### 独立策略模块
 
+#### 期货子系统策略
+
 ```
-scripts/strategies/
-├── trend_following/      # 趋势跟踪（3层融合：Z-score→MAD→加权评分）
-│   ├── scanner.py        # TrendScanner
-│   └── strategy.py       # StrategyPool
-├── carry/                # Carry 策略（期限结构套利）
-│   └── carry_analyzer.py # CarryAnalyzer（Contango/Backwardation展期收益）
-├── arbitrage/            # 套利策略（跨期/跨品种）
-│   └── arbitrage_analyzer.py
-└── strategy_portfolio.py # 多策略组合管理
+scripts/futures/strategy/
+├── trend.py          # 趋势跟踪策略（EMA/ATR/ADX）
+├── carry.py          # Carry策略（期限结构套利）
+└── arbitrage.py      # 套利策略（跨期/跨品种）
 ```
 
-### 风险评估模块（Algometrics 论文实现）
+#### 证券子系统策略
+
+```
+scripts/securities/strategy/
+├── stock.py          # 股票策略（价值/成长/动量）
+├── etf.py            # ETF策略（趋势跟踪，不做套利）
+├── reits.py          # REITs策略（分红收益率/NAV折溢价）
+└── convertible_bond/ # 可转债策略（双低策略）
+```
+
+### 风险评估模块
+
+#### 期货风控
+
+```
+scripts/futures/risk_manager.py
+├── FuturesRiskManager
+│   ├── 保证金/杠杆计算
+│   ├── T+0日内交易
+│   └── 交割月管理
+```
+
+#### 证券风控
+
+```
+scripts/securities/risk_manager.py
+├── SecuritiesRiskManager
+│   ├── T+1交割限制
+│   ├── 涨跌停板（主板10%/创业板20%）
+│   └── 流动性风险
+
+scripts/securities/convertible_bond/risk_manager.py
+├── ConvertibleBondRiskManager
+│   ├── 强赎监控
+│   ├── 转股风险
+│   └── 关联正股价格
+```
+
+#### 共享风险模块（Algometrics 论文实现）
 
 ```
 scripts/risk/
 ├── crowding_detector.py  # 拥挤度检测
-│   ├── CrowdingDetector  # 检测信号拥挤度
-│   ├── CrowdingMetrics   # 拥挤度指标
-│   └── CrowdingLevel     # 拥挤度等级 (LOW/MEDIUM/HIGH/CRITICAL)
-└── deployment_risk.py    # 部署风险评估
-    ├── DeploymentRiskEstimator  # 估算部署风险 vs 历史风险
-    └── RiskAssessment    # 风险评估结果
+├── deployment_risk.py    # 部署风险评估
+├── return_attributor.py  # 收益归因（KTD-Fin）
+└── audit_trail.py        # 审计轨迹（TradeArena）
 ```
-
-**基于论文**：[Algometrics: Forecasting Under Algorithmic Feedback](https://arxiv.org/abs/2605.23978)
-
-**核心思想**：
-- 历史风险 ≠ 部署风险（回测表现 ≠ 实盘表现）
-- 拥挤效应会导致历史排名反转
-- 需要报告反馈敏感性
 
 ### 设计原则
 
