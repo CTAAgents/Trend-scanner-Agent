@@ -249,7 +249,88 @@ scripts/risk/
 
 ---
 
-## 四、哲学根基：推理重于规则
+## 四、KTD-Fin: From Knowing to Doing (arXiv:2605.28359)
+
+**论文核心思想**：
+- 预训练记忆泄露会污染评估结果
+- 总收益具有误导性，需要Barra风格收益归因
+- 选股Alpha是真正可转移的投资技能
+
+**实现模块**：`ReturnAttributor`
+
+**代码路径**：`scripts/risk/return_attributor.py`
+
+**实现细节**：
+```python
+class ReturnAttributor:
+    """
+    收益归因引擎
+    基于 Barra 风格收益归因框架
+    """
+    def attribute(self, portfolio_returns, market_returns, factor_exposures=None):
+        # 1. 计算市场Beta贡献
+        market_beta = self._calculate_market_beta(portfolio_returns, market_returns)
+        # 2. 计算风格暴露贡献
+        style_exposure = self._calculate_style_exposure(...)
+        # 3. 计算选股Alpha（残差）
+        alpha = total_return - market_beta - style_exposure
+        return AttributionResult(...)
+```
+
+---
+
+## 五、TradeArena: LLM交易审计和控制系统
+
+**核心思想**：
+- 审计优先设计：完整轨迹记录
+- 多阶段风险检查（交易前、中、后）
+- 执行模型分层（压力测试 vs 校准）
+
+**实现模块**：`AuditTrail`
+
+**代码路径**：`scripts/risk/audit_trail.py`
+
+**实现细节**：
+```python
+class AuditTrail:
+    """
+    审计轨迹系统
+    记录完整决策周期：观察→规划→风险→行动→反思
+    """
+    def record(self, record: AuditRecord) -> str:
+        # 计算内容哈希
+        record.content_hash = record.compute_hash()
+        # 存储记录
+        self.records.append(record)
+        return record.record_id
+    
+    def replay(self, record_id: str) -> Optional[AuditRecord]:
+        # 重放决策过程
+        pass
+    
+    def verify(self, record: AuditRecord) -> bool:
+        # 验证记录完整性
+        pass
+```
+
+---
+
+## 六、Representation Signatures
+
+**论文核心思想**：
+- LLM的表示在故障前会发生有效秩收缩
+- 风险反馈是双刃剑（对齐 vs 过度对齐）
+- 相关性盲区：LLM无法正确建模资产相关性
+
+**当前状态**：思想已吸纳，部分实现在其他模块中
+
+**可借鉴思想**：
+- 有效秩收缩作为故障早期预警（待实现）
+- 相关性盲区检测（集成到拥挤度检测）
+
+---
+
+## 七、哲学根基：推理重于规则
 
 所有论文实现都遵循系统的核心哲学：**"推理重于规则"**。
 
@@ -261,6 +342,8 @@ scripts/risk/
 | GIFT | RL 接口由 LLM 设计，不是手工定义 |
 | Davey | 风控规则虽然机械执行，但其参数由推理层动态调整 |
 | Algometrics | 拥挤度和部署风险需要动态评估，不能仅靠历史数据 |
+| KTD-Fin | 收益归因需要区分技能与运气，不能仅看总收益 |
+| TradeArena | 审计轨迹记录完整决策过程，支持事后验证 |
 
 **设计原则对照**：
 

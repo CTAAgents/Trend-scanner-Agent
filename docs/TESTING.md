@@ -52,6 +52,7 @@
 | **test_carry_analyzer.py** | 19 | CarryAnalyzer（Carry策略：期限结构套利） |
 | **test_fundamental.py** | 25 | 基本面分析（新闻抓取+供需数据+地缘政治+上下文组装+推理层集成） |
 | **test_risk_integration.py** | 13 | 风险模块集成（拥挤度检测+部署风险评估+ContextAssembler集成） |
+| **test_paper_integration.py** | 11 | 论文集成（收益归因+审计轨迹系统） |
 
 ### 端到端测试（20 个）
 
