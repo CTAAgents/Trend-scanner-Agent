@@ -5,11 +5,12 @@
 """
 
 import logging
+import os
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
 
 # 添加项目根目录到路径
@@ -37,12 +38,30 @@ FUTURES_SYMBOLS = [
     "IF", "IC", "IH", "IM",
 ]
 
+# 交易所映射
+EXCHANGE_MAP = {
+    "RB": "SHFE", "HC": "SHFE", "SS": "SHFE", "CU": "SHFE",
+    "AL": "SHFE", "ZN": "SHFE", "PB": "SHFE", "NI": "SHFE", "SN": "SHFE",
+    "AU": "SHFE", "AG": "SHFE", "FU": "SHFE", "BU": "SHFE", "SP": "SHFE",
+    "RU": "SHFE", "NR": "INE", "SC": "INE",
+    "I": "DCE", "J": "DCE", "JM": "DCE", "M": "DCE", "Y": "DCE",
+    "P": "DCE", "C": "DCE", "CS": "DCE", "A": "DCE", "B": "DCE",
+    "RR": "DCE", "L": "DCE", "V": "DCE", "EB": "DCE", "EG": "DCE",
+    "PG": "DCE", "JD": "DCE", "LH": "DCE",
+    "TA": "CZCE", "MA": "CZCE", "SR": "CZCE", "CF": "CZCE",
+    "RM": "CZCE", "OI": "CZCE", "FG": "CZCE", "SA": "CZCE",
+    "ZC": "CZCE", "SF": "CZCE", "SM": "CZCE", "AP": "CZCE",
+    "CJ": "CZCE", "PK": "CZCE",
+    "IF": "CFFEX", "IC": "CFFEX", "IH": "CFFEX", "IM": "CFFEX",
+    "T": "CFFEX", "TF": "CFFEX", "TS": "CFFEX",
+}
+
 
 class FuturesProvider(MarketProvider):
     """
     期货数据提供者
 
-    基于通达信MCP的期货数据获取
+    基于TqSdk的期货数据获取
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -53,11 +72,42 @@ class FuturesProvider(MarketProvider):
             config: 配置字典
         """
         super().__init__(config)
-        self.tdx_client = None  # 通达信MCP客户端
+        self._api = None
+        self._ensure_tqsdk_connection()
+
+    def _ensure_tqsdk_connection(self):
+        """确保TqSdk连接"""
+        try:
+            from tqsdk import TqApi, TqAuth
+            
+            user = os.environ.get("TQ_USER")
+            password = os.environ.get("TQ_PASSWORD")
+            
+            if not user or not password:
+                logger.warning("TqSdk环境变量未设置，无法获取实时数据")
+                return
+            
+            self._api = TqApi(auth=TqAuth(user, password))
+            logger.info("TqSdk连接成功")
+        except ImportError:
+            logger.warning("TqSdk未安装，请运行: pip install tqsdk")
+        except Exception as e:
+            logger.error(f"TqSdk连接失败: {e}")
 
     def _get_market_type(self) -> MarketType:
         """获取市场类型"""
         return MarketType.FUTURES
+
+    def _get_exchange(self, symbol: str) -> str:
+        """获取交易所代码"""
+        return EXCHANGE_MAP.get(symbol, "UNKNOWN")
+
+    def _get_main_contract_symbol(self, symbol: str) -> str:
+        """获取主力连续合约代码"""
+        exchange = self._get_exchange(symbol)
+        # TqSdk要求品种代码小写
+        symbol_lower = symbol.lower()
+        return f"KQ.m@{exchange}.{symbol_lower}"
 
     def get_kline(
         self,
@@ -70,27 +120,81 @@ class FuturesProvider(MarketProvider):
 
         Args:
             symbol: 品种代码（如 "RB", "I"）
-            timeframe: 时间周期
+            timeframe: 时间周期（daily/weekly/monthly/5min/15min/30min/1h）
             count: 数据条数
 
         Returns:
             DataFrame: K线数据
+
+        Raises:
+            RuntimeError: TqSdk未连接时抛出
         """
-        # TODO: 实现通达信MCP数据获取
-        # 临时返回模拟数据
-        dates = pd.date_range(end=pd.Timestamp.now(), periods=count)
-        np.random.seed(hash(symbol) % 2**32)
+        if self._api is None:
+            self._ensure_tqsdk_connection()
         
-        data = pd.DataFrame({
-            "open": 3500 + np.random.randn(count) * 50,
-            "high": 3520 + np.random.randn(count) * 50,
-            "low": 3480 + np.random.randn(count) * 50,
-            "close": 3500 + np.random.randn(count) * 50,
-            "volume": np.random.randint(10000, 50000, count),
-            "open_interest": np.random.randint(100000, 200000, count),
-        }, index=dates)
+        if self._api is None:
+            raise RuntimeError("TqSdk未连接，无法获取期货数据。请检查TQ_USER和TQ_PASSWORD环境变量。")
+
+        try:
+            # 获取主力连续合约
+            contract = self._get_main_contract_symbol(symbol)
+            
+            # 时间周期映射（TqSdk period参数，单位：秒）
+            # 300=5min, 900=15min, 1800=30min, 3600=1h, 86400=daily, 604800=weekly
+            period_map = {
+                "5min": 300,
+                "15min": 900,
+                "30min": 1800,
+                "1h": 3600,
+                "daily": 86400,
+                "weekly": 604800,
+                "monthly": 2592000,
+            }
+            
+            period = period_map.get(timeframe, 86400)  # 默认日线
+            klines = self._api.get_kline_serial(contract, period, count)
+            
+            # 转换为DataFrame
+            df = pd.DataFrame({
+                "datetime": pd.to_datetime(klines["datetime"], unit="ns"),
+                "open": klines["open"],
+                "high": klines["high"],
+                "low": klines["low"],
+                "close": klines["close"],
+                "volume": klines["volume"],
+                "open_interest": klines.get("open_oi", 0),
+            })
+            
+            df.set_index("datetime", inplace=True)
+            
+            # 数据时效性检查
+            self._check_data_timeliness(df)
+            
+            return df.tail(count)
+            
+        except Exception as e:
+            logger.error(f"获取{symbol}K线数据失败: {e}")
+            raise
+
+    def _check_data_timeliness(self, df: pd.DataFrame):
+        """检查数据时效性"""
+        if df.empty:
+            return
         
-        return data
+        latest_time = df.index[-1]
+        now = pd.Timestamp.now()
+        
+        # 计算数据延迟
+        if latest_time.tzinfo is None:
+            delay_hours = (now - latest_time).total_seconds() / 3600
+        else:
+            delay_hours = (now.tz_localize(None) - latest_time).total_seconds() / 3600
+        
+        # 数据滞后警告
+        if delay_hours > 24:
+            logger.warning(f"数据滞后超过24小时，最新时间: {latest_time}")
+        elif delay_hours > 4:
+            logger.info(f"数据滞后{delay_hours:.1f}小时，最新时间: {latest_time}")
 
     def get_realtime_quote(self, symbol: str) -> Dict[str, Any]:
         """
@@ -101,14 +205,35 @@ class FuturesProvider(MarketProvider):
 
         Returns:
             Dict: 实时行情数据
+
+        Raises:
+            RuntimeError: TqSdk未连接时抛出
         """
-        # TODO: 实现通达信MCP实时行情
-        return {
-            "symbol": symbol,
-            "price": 3500.0,
-            "volume": 50000,
-            "open_interest": 150000,
-        }
+        if self._api is None:
+            self._ensure_tqsdk_connection()
+        
+        if self._api is None:
+            raise RuntimeError("TqSdk未连接，无法获取实时数据")
+
+        try:
+            contract = self._get_main_contract_symbol(symbol)
+            quote = self._api.get_quote(contract)
+            
+            return {
+                "symbol": symbol,
+                "last_price": quote.last_price,
+                "open": quote.open,
+                "high": quote.highest,
+                "low": quote.lowest,
+                "volume": quote.volume,
+                "open_interest": quote.open_interest,
+                "change": quote.last_price - quote.pre_close,
+                "change_pct": (quote.last_price - quote.pre_close) / quote.pre_close * 100,
+                "timestamp": datetime.now().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"获取{symbol}实时行情失败: {e}")
+            raise
 
     def get_symbols(self) -> List[str]:
         """
@@ -129,12 +254,17 @@ class FuturesProvider(MarketProvider):
         Returns:
             Dict: 基本面数据（库存/仓单/持仓量）
         """
-        # TODO: 实现基本面数据获取
+        # 获取实时持仓量
+        try:
+            quote = self.get_realtime_quote(symbol)
+            open_interest = quote.get("open_interest", 0)
+        except Exception:
+            open_interest = 0
+        
         return {
             "symbol": symbol,
-            "inventory": 1000000.0,
-            "warehouse_receipt": 500000.0,
-            "open_interest": 150000.0,
+            "open_interest": open_interest,
+            "timestamp": datetime.now().isoformat(),
         }
 
     def get_open_interest(self, symbol: str) -> float:
@@ -147,34 +277,19 @@ class FuturesProvider(MarketProvider):
         Returns:
             float: 持仓量
         """
-        quote = self.get_realtime_quote(symbol)
-        return quote.get("open_interest", 0.0)
+        try:
+            quote = self.get_realtime_quote(symbol)
+            return quote.get("open_interest", 0)
+        except Exception:
+            return 0.0
 
-    def get_basis(self, symbol: str) -> float:
-        """
-        获取基差
-
-        Args:
-            symbol: 品种代码
-
-        Returns:
-            float: 基差
-        """
-        # TODO: 实现基差计算
-        return 50.0
-
-    def get_term_structure(self, symbol: str) -> Dict[str, float]:
-        """
-        获取期限结构
-
-        Args:
-            symbol: 品种代码
-
-        Returns:
-            Dict: 期限结构（近月/远月价格）
-        """
-        # TODO: 实现期限结构获取
-        return {
-            "near": 3500.0,
-            "far": 3550.0,
-        }
+    def close(self):
+        """关闭TqSdk连接"""
+        if self._api is not None:
+            try:
+                self._api.close()
+                logger.info("TqSdk连接已关闭")
+            except Exception as e:
+                logger.error(f"关闭TqSdk连接失败: {e}")
+            finally:
+                self._api = None
