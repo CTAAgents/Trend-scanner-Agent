@@ -189,7 +189,67 @@ class StrategyPortfolio:
 
 ---
 
-## 三、哲学根基：推理重于规则
+## 三、Algometrics: Forecasting Under Algorithmic Feedback (arXiv:2605.23978)
+
+**论文核心思想**：
+- 算法预测会改变市场数据生成过程（反馈循环）
+- 历史风险 R₀(f) ≠ 部署风险 Rₘ(f)
+- 拥挤效应会导致历史排名反转
+- 需要报告反馈敏感性
+
+**实现模块**：`CrowdingDetector` + `DeploymentRiskEstimator`
+
+**代码路径**：`scripts/risk/`
+
+**实现细节**：
+```python
+class CrowdingDetector:
+    """
+    拥挤度检测器
+    检测信号拥挤度，评估多策略同时运行时的相互干扰
+    """
+    def detect(self, signal, market_volume, price_change, order_flow):
+        # 1. 计算信号与订单流的相关性
+        signal_correlation = self._calculate_signal_correlation(signal, order_flow)
+        # 2. 计算成交量集中度
+        volume_concentration = self._calculate_volume_concentration(market_volume)
+        # 3. 计算价格冲击
+        price_impact = self._calculate_price_impact(price_change, market_volume)
+        # 4. 综合拥挤度分数
+        crowding_score = self._calculate_crowding_score(...)
+        # 5. 估算部署风险溢价
+        deployment_risk_premium = self._estimate_deployment_risk_premium(...)
+        return CrowdingMetrics(...)
+
+class DeploymentRiskEstimator:
+    """
+    部署风险评估器
+    区分历史风险与部署风险，估算反馈间隙
+    """
+    def assess(self, model, market_liquidity):
+        # 1. 计算历史风险
+        historical_risk = self._calculate_historical_risk(model)
+        # 2. 计算反馈间隙
+        feedback_gap = self._calculate_feedback_gap(model, market_liquidity)
+        # 3. 计算部署风险
+        deployment_risk = historical_risk + feedback_gap
+        return RiskAssessment(...)
+```
+
+**调用关系**：
+```
+scripts/risk/
+├── crowding_detector.py
+│   ├── CrowdingDetector.detect() → CrowdingMetrics
+│   └── CrowdingDetector.get_crowding_curve() → 拥挤曲线
+└── deployment_risk.py
+    ├── DeploymentRiskEstimator.assess() → RiskAssessment
+    └── DeploymentRiskEstimator.compare_models() → 排名比较
+```
+
+---
+
+## 四、哲学根基：推理重于规则
 
 所有论文实现都遵循系统的核心哲学：**"推理重于规则"**。
 
@@ -200,6 +260,7 @@ class StrategyPortfolio:
 | FinCon | 反馈是概念性的，不是数值阈值 |
 | GIFT | RL 接口由 LLM 设计，不是手工定义 |
 | Davey | 风控规则虽然机械执行，但其参数由推理层动态调整 |
+| Algometrics | 拥挤度和部署风险需要动态评估，不能仅靠历史数据 |
 
 **设计原则对照**：
 

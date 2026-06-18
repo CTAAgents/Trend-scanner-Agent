@@ -131,6 +131,26 @@ scripts/strategies/
 └── strategy_portfolio.py # 多策略组合管理
 ```
 
+### 风险评估模块（Algometrics 论文实现）
+
+```
+scripts/risk/
+├── crowding_detector.py  # 拥挤度检测
+│   ├── CrowdingDetector  # 检测信号拥挤度
+│   ├── CrowdingMetrics   # 拥挤度指标
+│   └── CrowdingLevel     # 拥挤度等级 (LOW/MEDIUM/HIGH/CRITICAL)
+└── deployment_risk.py    # 部署风险评估
+    ├── DeploymentRiskEstimator  # 估算部署风险 vs 历史风险
+    └── RiskAssessment    # 风险评估结果
+```
+
+**基于论文**：[Algometrics: Forecasting Under Algorithmic Feedback](https://arxiv.org/abs/2605.23978)
+
+**核心思想**：
+- 历史风险 ≠ 部署风险（回测表现 ≠ 实盘表现）
+- 拥挤效应会导致历史排名反转
+- 需要报告反馈敏感性
+
 ### 设计原则
 
 | 原则 | 含义 |
