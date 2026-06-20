@@ -1,83 +1,85 @@
 ---
 title: "QuantNova Agent Definition"
-summary: "推理重于规则的期货趋势跟踪决策辅助系统 Agent"
+summary: "推理重于规则的量化交易决策辅助系统 Agent（简化版）"
 ---
 
 # Agent.md - QuantNova 交易决策 Agent
 
 ## 定位
 
-QuantNova 是一个**推理重于规则**的期货趋势跟踪决策辅助系统。系统不自动下单，只输出决策简报供人参考。
+QuantNova 是一个**推理重于规则**的量化交易决策辅助系统，支持期货和证券双市场。系统不自动下单，只输出决策简报供人参考。
 
 **核心理念**：以人为本，推理为魂，规则为果。
 
 **核心原则**（必须遵守）：
-1. **数据第一原则**：绝对禁止使用模拟数据，分析必须使用真实数据，必须确保数据的可靠性和时效性
-2. **系统分析原则**：所有分析必须基于QuantNova系统开展，这是与数据真实性、时效性同等重要的原则
-3. **推理重于规则**：所有看似"规则"的内容均由推理层根据当前市场状态动态生成
+1. **数据第一原则**：绝对禁止使用模拟数据，分析必须使用真实数据
+2. **系统分析原则**：所有分析必须基于QuantNova系统开展
+3. **推理重于规则**：规则动态生成，非硬编码
 4. **辩论验证原则**：所有交易建议必须经过多方辩论才可以向用户提交
-5. **自优化原则**：多空判断方法需要系统自优化，而不是用初始默认的方法
+5. **自优化原则**：多空判断方法需要系统自优化
+
+## 架构（简化后）
+
+```
+核心闭环：扫描 → 推理 → 辩论 → 风控
+├── 期货子系统（TqSdk）
+├── 证券子系统（通达信MCP）
+├── 推理引擎 + 辩论引擎
+├── 因子评估
+├── 指标计算
+├── 基本面分析
+├── 风控模块
+└── 记忆系统
+```
+
+**简化成果**：104个文件 / 41,973行代码
 
 ## 能力矩阵
 
-| 层级 | 能力 | 核心模块 |
-|------|------|----------|
-| **感知** | 35+技术指标 + 7维趋势强度 + 基本面分析 | IndicatorEngine + MultiDimensionScreener + NewsCrawler |
-| **记忆** | 经验检索 + 向量增强 + 知识锚点 | UnifiedMemoryManager + MemoryBridge |
-| **推理** | LLM推理 + 鹰鸽辩论 + 场景分析 + 信念传播 | ReasoningEngine + DebateEngine + ScenarioAnalyzer |
-| **策略** | 趋势跟踪 + Carry套利 + 跨品种套利 + 风控 | TrendScanner + CarryAnalyzer + ArbitrageAnalyzer |
-| **进化** | 自优化闭环 + 因子进化 + 过拟合审计 | EvolutionManager + FactorEvolutionEngine |
-| **协调** | 事件驱动 + NLP交互 + 异步Workers | EventDrivenEngine + NLPChat |
+| 模块 | 功能 |
+|------|------|
+| **indicators/** | 35+技术指标计算 |
+| **reasoning/** | LLM推理 + 鹰鸽辩论 |
+| **fundamental/** | 基本面分析（库存/仓单/宏观/研报） |
+| **risk/** | 风控模块（止损/仓位/熔断） |
+| **core/memory/** | 经验记忆系统 |
+| **futures/** | 期货子系统（Provider+Strategy） |
+| **securities/** | 证券子系统（Provider+Strategy） |
 
-## 工作机制
-
-### 五层管线（主流程）
-
-```
-ContextAssembler → ExperienceMemory → ReasoningEngine → DebateEngine → BriefGenerator
-```
-
-1. **ContextAssembler**: 组装 MarketContext（技术面+基本面+宏观状态）
-2. **ExperienceMemory**: 检索历史相似经验
-3. **ReasoningEngine**: LLM 推理生成初始判断
-4. **DebateEngine**: 鹰鸽辩论纠偏（Hawk激进 vs Dove保守 → 分歧评分 → 仓位调整）
-5. **BriefGenerator**: 输出 TradingBrief（MarketAssessment + Routes + Uncertainty）
-
-### 因子进化闭环
+## 核心工作流
 
 ```
-Generate → Validate → Execute → Evaluate → Gate → Memory → Feedback → 循环
-```
-
-### 自优化闭环
-
-```
-交易 → 记录 → 轨迹分析 → 故障归因 → LLM反思 → 规则优化 → 过拟合审计 → 晋升 → 经验存储 → 闭环
+1. 数据获取（TqSdk/通达信MCP）
+   ↓
+2. 指标计算（EMA/RSI/MACD等）
+   ↓
+3. 信号生成（自优化参数）
+   ↓
+4. 辩论验证（鹰鸽对抗）
+   ↓
+5. 风控检查（止损/仓位）
+   ↓
+6. 输出决策简报
 ```
 
 ## 输出格式
 
-系统输出为**交易决策简报**（TradingBrief），包含：
+系统输出为**交易决策简报**，包含：
+- 市场评估
+- 操作建议（方向+品种+仓位+止损）
+- 风险提示
+- 置信度
 
-- **MarketAssessment**: 市场评估（趋势状态+基本面评分+关键驱动因素）
-- **Routes**: 操作方案（方向+品种+仓位建议+止损参考）
-- **Uncertainty**: 不确定性标注（置信度+分歧评分+数据时效性）
+## 数据源
 
-**注意**: 系统不输出 BUY/SELL/HOLD 硬信号，只输出决策简报供人参考。
-
-## 交互方式
-
-| 方式 | 入口 | 说明 |
+| 市场 | 首选 | 第二 |
 |------|------|------|
-| CLI | `tools/core/scan_opportunities.py` | 命令行扫描+分析 |
-| NLP | `scripts/core/nlp/nlp_chat.py` | 自然语言交互 |
-| Web | `scripts/core/main.py --web` | 可视化界面 |
-| API | `scripts/core/main.py --api` | 系统集成接口 |
-| 自动 | `scripts/core/main.py` | 事件驱动独立运行 |
+| 期货 | TqSdk | 通达信MCP |
+| 证券 | 通达信MCP | NeoData |
+| 基本面 | AKShare | 通达信MCP |
 
 ## 快速参考
 
-- **完整文档**: [README.md](README.md)
 - **架构总览**: [docs/system_architecture_overview.md](docs/system_architecture_overview.md)
-- **测试状态**: [docs/TESTING.md](docs/TESTING.md)
+- **全景档案**: [docs/quantnova_system_overview.md](docs/quantnova_system_overview.md)
 - **变更记录**: [docs/CHANGELOG.md](docs/CHANGELOG.md)

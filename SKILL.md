@@ -1,148 +1,81 @@
 ---
 name: quantnova
 description: >
-  推理重于规则的期货趋势跟踪决策辅助系统。
-  Davey框架补充（蒙特卡洛+策略孵化+熔断+组合管理） +
-  基本面分析模块（新闻抓取+供需数据+地缘政治追踪） +
-  统一数据路由 + 知识锚点 + 分级输出 + 套利分析 +
-  Reasoner Agent 深度分析 + 持仓健康度评估 + 闭环迭代因子进化引擎，
-  每日自动扫描主力合约，筛选非僵尸品种（持仓量>=10000），
-  数据源：TqSdk（首选）+ Pytdx（备选）+ AkShare（基差/季节性/龙虎榜）+ 本地数据库缓存。
-  独立策略模块：趋势跟踪、Carry策略（期限结构套利）、套利策略（跨期/跨品种）。
-  跨层支撑：RL强化学习、NLP自然语言交互、事件驱动引擎、Workers异步任务池。
+  推理重于规则的量化交易决策辅助系统（简化版 v2.1.0）。
+  支持期货+证券双市场。
+  核心闭环：扫描→推理→辩论→风控。
+  数据源：TqSdk（期货首选）、通达信MCP（证券首选）。
 ---
 
 # QuantNova
 
-> 推理重于规则的期货趋势跟踪决策辅助系统
-> 完整文档请查看 [README.md](README.md) 和 [系统架构总览](docs/system_architecture_overview.md)
+> 推理重于规则的量化交易决策辅助系统 - 简化版 v2.1.0
+> 完整文档请查看 [README.md](README.md) 和 [系统架构](docs/system_architecture_overview.md)
 
 ## 核心原则（必须遵守）
 
-1. **数据第一原则**：绝对禁止使用模拟数据，分析必须使用真实数据，必须确保数据的可靠性和时效性
-2. **系统分析原则**：所有分析必须基于QuantNova系统开展，这是与数据真实性、时效性同等重要的原则
-3. **推理重于规则**：所有看似"规则"的内容均由推理层根据当前市场状态动态生成
+1. **数据第一原则**：绝对禁止使用模拟数据，分析必须使用真实数据
+2. **系统分析原则**：所有分析必须基于QuantNova系统开展
+3. **推理重于规则**：规则动态生成，非硬编码
 4. **辩论验证原则**：所有交易建议必须经过多方辩论才可以向用户提交
-5. **自优化原则**：多空判断方法需要系统自优化，而不是用初始默认的方法
+5. **自优化原则**：多空判断方法需要系统自优化
 
-**系统分析原则详解**：
-- 禁止使用简化逻辑或临时判断替代系统逻辑
-- 数据不足时，明确告知用户，等待数据充足后再分析
-- 必须使用系统核心模块：TrendPhaseDetector、IndicatorEngine、ContextAssembler等
-- 必须使用系统逻辑：多指标确认、趋势阶段识别、推理引擎动态生成规则
+## 架构（简化后）
 
-**辩论验证原则详解**：
-- 辩论流程：鹰鸽辩论或三方辩论
-- 辩论结果：必须考虑分歧度、风险调整
-- 未经辩论的建议不得向用户提交
-- 辩论使用WorkBuddy平台LLM
-
-**自优化原则详解**：
-- 使用`EvolutionManager`进行策略优化
-- 记录每次分析和交易结果
-- 轨迹分析与故障归因
-- 经验积累与模式检测
-- 策略反思与规则优化
+```
+核心闭环：扫描 → 推理 → 辩论 → 风控
+├── 期货子系统（TqSdk）
+├── 证券子系统（通达信MCP）
+├── 推理引擎 + 辩论引擎
+├── 因子评估
+├── 指标计算
+├── 基本面分析
+├── 风控模块
+└── 记忆系统
+```
 
 ## 快速开始
 
 ```bash
-# 数据同步（首次使用必须执行）
+# 数据同步
 python tools/core/sync_data.py sync --days 120
 
 # 运行扫描
 python tools/core/scan_opportunities.py --output text --save
 
-# Reasoner深度分析（推荐）
+# Reasoner深度分析
 python tools/core/scan_opportunities.py --reasoner --output text --save
-
-# 持仓健康度评估
-python tools/core/scan_opportunities.py --position-health
 
 # 因子评估
 python tools/core/scan_opportunities.py --evaluate-factors
-
-# 因子进化
-python tools/core/scan_opportunities.py --evolve --evolve-rounds 5
-
-# 自然语言交互
-python scripts/core/nlp/nlp_chat.py
-
-# RL训练
-python tools/rl/train_ppo.py --symbol RB --days 200 --train-steps 10000
 ```
 
 ## 核心能力
 
-| 能力 | 命令 | 来源模块 |
-|------|------|----------|
-| 全品种扫描 | `--output text --save` | Layer 5 趋势扫描器 |
-| **技术指标计算** | 自动触发 | Layer 1 IndicatorEngine (自研35+ + TqSdk内置70+) |
-| **五维度筛选评分** | `--use-multi-dimension` | Layer 1 MultiDimensionScreener |
-| **Reasoner深度分析** | `--reasoner --output text --save` | Layer 4 ReasoningEngine |
-| **鹰鸽辩论纠偏** | 自动触发 | Layer 4 DebateEngine |
-| **基本面分析** | 自动触发 | Layer 1 基本面子模块 |
-| **持仓健康度评估** | `--position-health` | Layer 9 PositionHealth |
-| **RL 策略信号** | `--use-rl` | 跨层 RL模块 |
-| **蒙特卡洛模拟** | 内置（自动触发） | Davey Step 5 |
-| **策略孵化** | 内置（自动触发） | Davey Step 6 |
-| **停止交易阈值** | 内置（自动触发） | Davey Step 7 CircuitBreaker |
-| **多策略组合** | 内置（自动触发） | Davey Step 7 StrategyPortfolio |
-| 因子评估 | `--evaluate-factors` | Layer 7 FactorEvaluator |
-| 因子进化 | `--evolve` | Layer 7 FactorEvolutionEngine |
-| 参数优化 | `--optimize-params` | Layer 7 FactorParamOptimizer |
-| 策略健康检查 | `--health-check` | Layer 9 StrategyHealth |
-| 过拟合检测 | `--overfitting-check` | Layer 9 OverfittingDetector |
-| 套利分析 | `--arbitrage` | Layer 5 ArbitrageAnalyzer |
-| Carry策略 | 内置 | Layer 5 CarryAnalyzer |
-| 自然语言交互 | `nlp_chat.py` | 跨层 NLP模块 |
+| 能力 | 模块 |
+|------|------|
+| 技术指标计算 | indicators/ |
+| LLM推理 | reasoning/reasoner |
+| 鹰鸽辩论 | reasoning/debate_engine |
+| 基本面分析 | fundamental/ |
+| 风控检查 | risk/ |
+| 因子评估 | evolution/ |
+| 经验记忆 | core/memory/ |
+| 期货子系统 | futures/ |
+| 证券子系统 | securities/ |
 
-## Davey 框架模块
+## 数据源
 
-基于 Kevin J. Davey《构建盈利的算法交易系统》补充的4个风控模块：
-
-| 模块 | 文件 | 功能 |
+| 市场 | 首选 | 第二 |
 |------|------|------|
-| 蒙特卡洛模拟 | `evolution_tools/circuit_breaker.py` | 交易重排→破产概率/置信区间/最差情景 |
-| 策略孵化 | `evolution_tools/strategy_health.py` | 实盘数据验证3-6个月，对比回测预期 |
-| 停止交易阈值 | `evolution_tools/circuit_breaker.py` | 策略级熔断（最大亏损/回撤/连续亏损） |
-| 多策略组合 | `strategies/strategy_portfolio.py` | 策略权重优化/相关性控制/分散化 |
-
-## RL 强化学习模块
-
-借鉴 ElegantRL 架构设计的强化学习模块，支持 PPO 策略训练和集成：
-
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| AgentBase | `rl/base.py` | Agent 基类，定义 perceive→reason→act→reflect 生命周期 |
-| PPO Agent | `rl/agent_ppo.py` | PPO 算法实现（GAE + Ratio Clipping + 熵正则化） |
-| 网络架构 | `rl/networks.py` | ActorPPO、CriticPPO、StateNormalizer |
-| Gym 环境 | `rl/futures_env.py` | FuturesTradingEnv、MultiAssetVecEnv |
-| 训练器 | `rl/trainer.py` | RLTrainer、evaluate_agent |
-| Walk-Forward 验证 | `rl/walk_forward_rl.py` | RLWalkForwardValidator（IS/OOS 一致性检查） |
-| Scanner 集成 | `rl/scanner_integration.py` | RLSignalGenerator、integrate_rl_signal_to_scanner |
-| RL 接口设计 | `rl/rl_interface_designer.py` | RLInterfaceDesigner（GIFT启发） |
-
-## 基本面分析模块
-
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| 新闻抓取 | `fundamental/news_crawler.py` | 10+数据源（国际：华尔街/路透/彭博/CNN；国内：财新/新浪/央广/东财/雪球） |
-| 供需数据 | `fundamental/supply_demand.py` | 库存/产量/消费数据 |
-| 地缘政治追踪 | `fundamental/geopolitical.py` | 战争/制裁/关税/和平协议 |
-
-## 事件驱动引擎
-
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| 事件引擎 | `core/event_engine/event_engine.py` | DATA_UPDATE/SIGNAL/FACTOR_EVOLUTION等6种事件类型 |
-| 调度器 | `core/event_engine/scheduler.py` | 定时任务注册+智能休眠 |
-| 资源监控 | `core/event_engine/resource_monitor.py` | 内存/CPU/Token预算追踪 |
+| 期货 | TqSdk | 通达信MCP |
+| 证券 | 通达信MCP | NeoData |
+| 基本面 | AKShare | 通达信MCP |
 
 ## 触发词
 
-趋势扫描、期货扫描、因子评估、因子进化、参数优化、持仓健康度、Reasoner分析、蒙特卡洛、策略孵化、熔断、组合管理、基本面分析、套利分析、Carry策略、自然语言交互
+扫描市场、分析品种、期货分析、证券分析、因子评估、Reasoner分析、辩论分析
 
 ---
 
-**完整文档：[README.md](README.md)** | **架构总览：[docs/system_architecture_overview.md](docs/system_architecture_overview.md)** | **测试：[docs/TESTING.md](docs/TESTING.md)** | **变更：[docs/CHANGELOG.md](docs/CHANGELOG.md)**
+**完整文档：[README.md](README.md)** | **架构总览：[docs/system_architecture_overview.md](docs/system_architecture_overview.md)** | **变更：[docs/CHANGELOG.md](docs/CHANGELOG.md)**

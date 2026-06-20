@@ -159,7 +159,14 @@ E:\QuantNova\
 ├── service.bat        # 服务管理器
 ├── monitor.bat        # 状态监控
 ├── install_startup.bat # 安装开机自启动
-├── scripts\core\      # 核心代码
+├── scripts/           # 核心代码（简化后）
+│   ├── futures/       # 期货子系统
+│   ├── securities/    # 证券子系统
+│   ├── reasoning/     # 推理+辩论引擎
+│   ├── indicators/    # 指标计算
+│   ├── fundamental/   # 基本面分析
+│   ├── risk/          # 风控模块
+│   └── core/          # 核心基础设施
 ├── config\            # 配置文件
 ├── data\              # 数据目录
 ├── logs\              # 日志目录
@@ -173,8 +180,8 @@ E:\QuantNova\
 遇到问题请查看：
 - [README.md](README.md) - 完整技术文档
 - [系统架构](docs/system_architecture_overview.md) - 架构详情
-- [论文实现指南](docs/paper_implementation_guide.md) - 设计原理
+- [全景档案](docs/quantnova_system_overview.md) - 系统全景
 
 ---
 
-*部署指南版本：v1.0 | 更新日期：2026-06-18*
+*部署指南版本：v2.1.0 | 更新日期：2026-06-20 | 简化版*
