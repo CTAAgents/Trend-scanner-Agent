@@ -101,6 +101,19 @@ python tools/core/scan_opportunities.py --evaluate-factors
 
 ---
 
+## Davey 框架
+
+基于 Kevin J. Davey《构建盈利的算法交易系统》的风控模块：
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| 蒙特卡洛模拟 | `scripts/tools/monte_carlo.py` | 交易重排→破产概率/置信区间/最差情景 |
+| 策略孵化 | `scripts/tools/strategy_incubator.py` | 实盘数据验证3-6个月 |
+| 熔断机制 | `scripts/evolution_tools/circuit_breaker.py` | 策略级熔断（最大亏损/回撤/连续亏损） |
+| 组合管理 | `scripts/strategies/strategy_portfolio.py` | 策略权重优化/相关性控制/分散化 |
+
+---
+
 ## CLI 使用手册
 
 ```bash
